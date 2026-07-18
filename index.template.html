@@ -79,6 +79,169 @@
       accent-color: currentColor;
     }
 
+
+    .driver-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+    .driver-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .34;
+      white-space: nowrap;
+    }
+    .driver-options {
+      display: flex;
+      gap: 5px;
+      padding: 4px;
+      border-radius: 999px;
+      background: var(--soft);
+    }
+    .driver-option {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--fg);
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: .48;
+      white-space: nowrap;
+    }
+    .driver-option.active {
+      background: var(--fg);
+      color: var(--bg);
+      opacity: 1;
+    }
+    @media (max-width: 430px) {
+      .driver-label { display: none; }
+      .driver-option { padding: 7px 8px; font-size: 12px; }
+      .driver-picker { margin-right: 6px; }
+    }
+
+
+    .launch-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,.08), transparent 34%),
+        var(--bg);
+      color: var(--fg);
+      transition: opacity .55s ease, visibility .55s ease;
+    }
+    .launch-screen.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .launch-core {
+      width: min(78vw, 420px);
+      text-align: center;
+    }
+    .launch-ring {
+      width: 132px;
+      height: 132px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      border: 1px solid var(--soft-border);
+      position: relative;
+      display: grid;
+      place-items: center;
+      box-shadow:
+        0 0 40px rgba(255,255,255,.05),
+        inset 0 0 28px rgba(255,255,255,.025);
+    }
+    .launch-ring::before,
+    .launch-ring::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--fg);
+      opacity: .7;
+      animation: spin 1.15s linear infinite;
+    }
+    .launch-ring::before { inset: 10px; }
+    .launch-ring::after {
+      inset: 24px;
+      animation-direction: reverse;
+      animation-duration: .85s;
+      opacity: .35;
+    }
+    .launch-mark {
+      font-size: 28px;
+      font-weight: 820;
+      letter-spacing: .08em;
+      opacity: .9;
+    }
+    .launch-title {
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      opacity: .42;
+    }
+    .launch-status {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      min-height: 24px;
+    }
+    .launch-progress {
+      width: 100%;
+      height: 3px;
+      margin-top: 18px;
+      border-radius: 999px;
+      background: var(--soft);
+      overflow: hidden;
+    }
+    .launch-progress > span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: var(--fg);
+      border-radius: inherit;
+      transition: width .45s ease;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 10px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      font-size: 12px;
+      font-weight: 700;
+      opacity: .72;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .status-dot.pulse {
+      animation: pulse 1.25s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: .35; transform: scale(.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
     header {
       min-height: 42px;
       display: flex;
@@ -373,12 +536,33 @@
   </style>
 </head>
 <body>
+
+<div class="launch-screen" id="launchScreen" aria-hidden="true">
+  <div class="launch-core">
+    <div class="launch-ring">
+      <div class="launch-mark">500</div>
+    </div>
+    <div class="launch-title">Super Simple Speedo</div>
+    <div class="launch-status" id="launchStatus">Application initialising…</div>
+    <div class="launch-progress"><span id="launchProgress"></span></div>
+  </div>
+</div>
+
 <div id="app">
   <header>
     <div>
       <div class="brand">500 · FIAT</div>
       <div class="greeting" id="greeting">Ciao, Dani!</div>
     </div>
+
+    <div class="driver-picker" aria-label="Who's driving?">
+      <div class="driver-label">Who's driving?</div>
+      <div class="driver-options">
+        <button class="driver-option" id="driverDani" data-driver="Dani">Dani 🕺</button>
+        <button class="driver-option" id="driverFrancy" data-driver="Francy">Francy 💃</button>
+      </div>
+    </div>
+
     <button class="icon-button" id="settingsButton" aria-label="Settings">⚙︎</button>
   </header>
 
@@ -398,6 +582,7 @@
           <div id="source">Waiting for GPS</div>
           <div id="road">Tap Start GPS</div>
           <div id="gps">Automatic limit ready</div>
+          <div class="status-pill" id="matchPill"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
         </div>
       </div>
     </section>
@@ -532,6 +717,7 @@
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
     showGps: localStorage.getItem("showGps") !== "false",
+    driver: localStorage.getItem("speedoDriver") || "Dani",
     speakGreeting: localStorage.getItem("speakGreeting") === "true",
     warningArmed: true,
     audioContext: null,
@@ -541,11 +727,56 @@
 
 
 
+
+  function setMatchStage(stage, detail = "") {
+    const labels = {
+      waiting: "Waiting for movement",
+      collecting: "Collecting road data",
+      matching: "Matching road",
+      confirming: "Confirming speed limit",
+      matched: "Road matched",
+      nodata: "No mapped limit",
+      error: "Automatic lookup unavailable"
+    };
+
+    $("matchStage").textContent = labels[stage] || stage;
+    $("matchDot").classList.toggle("pulse", ["waiting", "collecting", "matching", "confirming"].includes(stage));
+
+    if (detail) gpsEl.textContent = detail;
+  }
+
+  function runLaunchSequence() {
+    const steps = [
+      ["Application initialising…", 18],
+      ["Loading driver profile…", 42],
+      ["Calibrating display…", 68],
+      ["Preparing road intelligence…", 88],
+      ["Ready to roll", 100]
+    ];
+
+    let index = 0;
+    const advance = () => {
+      const [text, progress] = steps[index];
+      $("launchStatus").textContent = text;
+      $("launchProgress").style.width = `${progress}%`;
+      index += 1;
+
+      if (index < steps.length) {
+        setTimeout(advance, index === 1 ? 420 : 360);
+      } else {
+        setTimeout(() => $("launchScreen").classList.add("hide"), 520);
+      }
+    };
+
+    setTimeout(advance, 120);
+  }
+
   function currentGreeting() {
     const hour = new Date().getHours();
-    if (hour < 12) return "Buongiorno, Dani!";
-    if (hour >= 18) return "Buonasera, Dani!";
-    return "Ciao, Dani!";
+    const name = state.driver;
+    if (hour < 12) return `Buongiorno, ${name}!`;
+    if (hour >= 18) return `Buonasera, ${name}!`;
+    return `Ciao, ${name}!`;
   }
 
   function updateGreeting() {
@@ -569,6 +800,20 @@
     if (italianVoice) utterance.voice = italianVoice;
 
     window.speechSynthesis.speak(utterance);
+  }
+
+
+  function applyDriver() {
+    $("driverDani").classList.toggle("active", state.driver === "Dani");
+    $("driverFrancy").classList.toggle("active", state.driver === "Francy");
+    updateGreeting();
+  }
+
+  function setDriver(name) {
+    state.driver = name;
+    localStorage.setItem("speedoDriver", name);
+    applyDriver();
+    if (state.speakGreeting) speakGreeting();
   }
 
   function applyTheme() {
@@ -778,6 +1023,7 @@
       longitude: currentCoords.longitude
     };
     sourceEl.textContent = "Matching road";
+    setMatchStage("matching", "Sending GPS trail to road matcher");
 
     try {
       const sample = state.points.slice(-10);
@@ -817,20 +1063,21 @@
             chime: previous !== null && previous !== Math.round(value),
             previous
           });
-          gpsEl.textContent = "Road matched";
+          setMatchStage("matched", "Road matched ✓");
         } else {
           sourceEl.textContent = "Confirming change";
+          setMatchStage("confirming", `Possible new limit: ${Math.round(value)} km/h`);
           roadEl.textContent = roadName;
           gpsEl.textContent = `Possible new limit: ${Math.round(value)}`;
         }
       } else {
         sourceEl.textContent = "Automatic";
         roadEl.textContent = roadName;
-        gpsEl.textContent = "No mapped limit — tap the sign";
+        setMatchStage("nodata", "No mapped limit — tap the sign");
       }
     } catch (error) {
       sourceEl.textContent = "Automatic unavailable";
-      gpsEl.textContent = `Lookup failed: ${error.message}`;
+      setMatchStage("error", `Lookup failed: ${error.message}`);
     } finally {
       state.lookupBusy = false;
     }
@@ -870,7 +1117,19 @@
     }
 
     const accuracy = Math.round(c.accuracy);
-    gpsEl.textContent = `GPS accuracy about ${accuracy} m`;
+    const movedEnough = state.points.length >= 2;
+
+    if (state.mode === "auto" && !state.lookupBusy && !state.acceptedAutoLimit) {
+      setMatchStage(
+        movedEnough ? "collecting" : "waiting",
+        movedEnough
+          ? `GPS accuracy about ${accuracy} m · move a little more`
+          : `GPS accuracy about ${accuracy} m · waiting for movement`
+      );
+    } else if (!state.lookupBusy && state.acceptedAutoLimit) {
+      setMatchStage("matched", `GPS accuracy about ${accuracy} m · road matched ✓`);
+    }
+
     statusEl.textContent = "Automatic road matching active.";
 
     if (shouldLookup(c, Date.now())) lookupSpeedLimit(c);
@@ -912,6 +1171,7 @@
     startEl.disabled = true;
     sourceEl.textContent = state.mode === "auto" ? "Finding road" : "Manual limit";
     roadEl.textContent = "Move briefly for an accurate reading";
+    setMatchStage("waiting", "Move around 20 metres to identify the road");
     await requestWakeLock();
   }
 
@@ -932,6 +1192,9 @@
     if (button.dataset.mode === "auto") setAutomaticMode();
     else setManualLimit(Number(button.dataset.limit));
   });
+
+  $("driverDani").addEventListener("click", () => setDriver("Dani"));
+  $("driverFrancy").addEventListener("click", () => setDriver("Francy"));
 
   $("settingsButton").addEventListener("click", () => openModal(settingsModal));
   $("closeSettings").addEventListener("click", () => closeModal(settingsModal));
@@ -1002,10 +1265,12 @@
     const saved = Number(localStorage.getItem("manualLimit") || 50);
     setLimit(saved, "Manual limit", "Tap the sign to change");
   } else {
-    setLimit(null, "Automatic", "Start GPS to find the road");
+    setLimit(null, "Automatic", "Tap Let’s go! to begin");
+    setMatchStage("waiting", "Move around 20 metres after starting");
   }
 
-  updateGreeting();
+  runLaunchSequence();
+  applyDriver();
   setInterval(updateGreeting, 60000);
   if (state.speakGreeting) {
     setTimeout(speakGreeting, 700);
