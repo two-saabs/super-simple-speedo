@@ -1,3 +1,5 @@
+const APP_VERSION = "8.5";
+
 const fs = require("fs");
 const path = require("path");
 
