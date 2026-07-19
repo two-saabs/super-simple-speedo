@@ -80,51 +80,6 @@
     }
 
 
-    .driver-picker {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: auto;
-      margin-right: 10px;
-    }
-    .driver-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      opacity: .34;
-      white-space: nowrap;
-    }
-    .driver-options {
-      display: flex;
-      gap: 5px;
-      padding: 4px;
-      border-radius: 999px;
-      background: var(--soft);
-    }
-    .driver-option {
-      border: 0;
-      border-radius: 999px;
-      background: transparent;
-      color: var(--fg);
-      padding: 7px 10px;
-      font-size: 13px;
-      font-weight: 700;
-      opacity: .48;
-      white-space: nowrap;
-    }
-    .driver-option.active {
-      background: var(--fg);
-      color: var(--bg);
-      opacity: 1;
-    }
-    @media (max-width: 430px) {
-      .driver-label { display: none; }
-      .driver-option { padding: 7px 8px; font-size: 12px; }
-      .driver-picker { margin-right: 6px; }
-    }
-
-
     .launch-screen {
       position: fixed;
       inset: 0;
@@ -240,6 +195,51 @@
     @keyframes pulse {
       0%, 100% { opacity: .35; transform: scale(.9); }
       50% { opacity: 1; transform: scale(1.15); }
+    }
+
+
+    .language-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+    .language-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .34;
+      white-space: nowrap;
+    }
+    .language-options {
+      display: flex;
+      gap: 5px;
+      padding: 4px;
+      border-radius: 999px;
+      background: var(--soft);
+    }
+    .language-option {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--fg);
+      padding: 7px 10px;
+      font-size: 18px;
+      font-weight: 700;
+      opacity: .48;
+      white-space: nowrap;
+    }
+    .language-option.active {
+      background: var(--fg);
+      color: var(--bg);
+      opacity: 1;
+    }
+    @media (max-width: 430px) {
+      .language-label { display: none; }
+      .language-option { padding: 7px 9px; }
+      .language-picker { margin-right: 6px; }
     }
 
     header {
@@ -552,14 +552,14 @@
   <header>
     <div>
       <div class="brand">500 · FIAT</div>
-      <div class="greeting" id="greeting">Ciao, Dani!</div>
+      <div class="greeting" id="greeting">Ey up!</div>
     </div>
 
-    <div class="driver-picker" aria-label="Who's driving?">
-      <div class="driver-label">Who's driving?</div>
-      <div class="driver-options">
-        <button class="driver-option" id="driverDani" data-driver="Dani">Dani 🕺</button>
-        <button class="driver-option" id="driverFrancy" data-driver="Francy">Francy 💃</button>
+    <div class="language-picker" aria-label="Language pack">
+      <div class="language-label">Language</div>
+      <div class="language-options">
+        <button class="language-option" id="langYorkshire" aria-label="Yorkshire">🇬🇧</button>
+        <button class="language-option" id="langItalian" aria-label="Italian">🇮🇹</button>
       </div>
     </div>
 
@@ -635,7 +635,7 @@
       <div class="setting-row">
         <div>
           <div class="setting-title">Overspeed warning</div>
-          <div class="setting-note">One discreet tone after exceeding the limit by 4 km/h.</div>
+          <div class="setting-note">Speaks “Steady on!” or “Attenzione!” after exceeding the limit by 4 km/h.</div>
         </div>
         <button class="switch" id="warningSwitch" aria-label="Toggle warning"></button>
       </div>
@@ -646,7 +646,7 @@
       <div class="setting-row">
         <div>
           <div class="setting-title">Speak greeting</div>
-          <div class="setting-note">Uses the phone’s built-in Italian voice when available.</div>
+          <div class="setting-note">Uses the selected Yorkshire or Italian voice pack.</div>
         </div>
         <button class="switch" id="greetingSwitch" aria-label="Toggle spoken greeting"></button>
       </div>
@@ -717,7 +717,7 @@
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
     showGps: localStorage.getItem("showGps") !== "false",
-    driver: localStorage.getItem("speedoDriver") || "Dani",
+    languagePack: localStorage.getItem("speedoLanguagePack") || "yorkshire",
     speakGreeting: localStorage.getItem("speakGreeting") === "true",
     warningArmed: true,
     audioContext: null,
@@ -751,7 +751,7 @@
       ["Loading driver profile…", 42],
       ["Calibrating display…", 68],
       ["Preparing road intelligence…", 88],
-      ["Ready to roll", 100]
+      [currentGreeting(), 100]
     ];
 
     let index = 0;
@@ -773,10 +773,13 @@
 
   function currentGreeting() {
     const hour = new Date().getHours();
-    const name = state.driver;
-    if (hour < 12) return `Buongiorno, ${name}!`;
-    if (hour >= 18) return `Buonasera, ${name}!`;
-    return `Ciao, ${name}!`;
+    const evening = hour >= 18;
+
+    if (state.languagePack === "italian") {
+      return evening ? "Buonasera!" : "Buongiorno!";
+    }
+
+    return evening ? "Good evening!" : "Ey up!";
   }
 
   function updateGreeting() {
@@ -789,31 +792,41 @@
       return;
     }
 
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(currentGreeting());
-    utterance.lang = "it-IT";
-    utterance.rate = 0.92;
-    utterance.pitch = 1.05;
-
-    const voices = window.speechSynthesis.getVoices();
-    const italianVoice = voices.find(v => v.lang?.toLowerCase().startsWith("it"));
-    if (italianVoice) utterance.voice = italianVoice;
-
-    window.speechSynthesis.speak(utterance);
+    const lang = state.languagePack === "italian" ? "it-IT" : "en-GB";
+    speakPhrase(currentGreeting(), lang);
   }
 
 
-  function applyDriver() {
-    $("driverDani").classList.toggle("active", state.driver === "Dani");
-    $("driverFrancy").classList.toggle("active", state.driver === "Francy");
+  function applyLanguagePack() {
+    $("langYorkshire").classList.toggle("active", state.languagePack === "yorkshire");
+    $("langItalian").classList.toggle("active", state.languagePack === "italian");
     updateGreeting();
   }
 
-  function setDriver(name) {
-    state.driver = name;
-    localStorage.setItem("speedoDriver", name);
-    applyDriver();
+  function setLanguagePack(pack) {
+    state.languagePack = pack;
+    localStorage.setItem("speedoLanguagePack", pack);
+    applyLanguagePack();
     if (state.speakGreeting) speakGreeting();
+  }
+
+  function overspeedPhrase() {
+    return state.languagePack === "italian" ? "Attenzione!" : "Steady on!";
+  }
+
+  function speakPhrase(text, lang) {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.92;
+    utterance.pitch = 1.02;
+
+    const voices = window.speechSynthesis.getVoices();
+    const match = voices.find(v => v.lang?.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
+    if (match) utterance.voice = match;
+
+    window.speechSynthesis.speak(utterance);
   }
 
   function applyTheme() {
@@ -988,7 +1001,8 @@
   function handleOverspeed(speed) {
     if (!state.warning || state.limit === null) return;
     if (speed >= state.limit + 4 && state.warningArmed) {
-      tone(520, 0, .18, .045);
+      const lang = state.languagePack === "italian" ? "it-IT" : "en-GB";
+      speakPhrase(overspeedPhrase(), lang);
       state.warningArmed = false;
     } else if (speed <= state.limit + 1) {
       state.warningArmed = true;
@@ -1193,8 +1207,8 @@
     else setManualLimit(Number(button.dataset.limit));
   });
 
-  $("driverDani").addEventListener("click", () => setDriver("Dani"));
-  $("driverFrancy").addEventListener("click", () => setDriver("Francy"));
+  $("langYorkshire").addEventListener("click", () => setLanguagePack("yorkshire"));
+  $("langItalian").addEventListener("click", () => setLanguagePack("italian"));
 
   $("settingsButton").addEventListener("click", () => openModal(settingsModal));
   $("closeSettings").addEventListener("click", () => closeModal(settingsModal));
@@ -1270,7 +1284,7 @@
   }
 
   runLaunchSequence();
-  applyDriver();
+  applyLanguagePack();
   setInterval(updateGreeting, 60000);
   if (state.speakGreeting) {
     setTimeout(speakGreeting, 700);
