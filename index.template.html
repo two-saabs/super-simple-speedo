@@ -124,9 +124,9 @@
       opacity: .35;
     }
     .launch-mark {
-      width: 96px;
+      width: 102px;
       text-align: center;
-      font-size: 15px;
+      font-size: 17px;
       line-height: 1.08;
       font-weight: 820;
       letter-spacing: .04em;
@@ -823,7 +823,7 @@
 
   <footer>
     <div class="drive-controls">
-      <button id="start" class="connect-button">GPS Connect</button>
+      <button id="start" class="connect-button">Connect GPS</button>
       <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
     <div id="status">Connect GPS to begin road matching.</div>
@@ -923,6 +923,44 @@
         <label class="choice-row"><input type="checkbox" id="showSpeedo">Speedo</label>
         <label class="choice-row"><input type="checkbox" id="showLimit">Speed limit</label>
         <label class="choice-row"><input type="checkbox" id="showGps">GPS status</label>
+      </div>
+    </div>
+
+    <div class="settings-section-title">About</div>
+
+    <div class="setting">
+      <div style="text-align:center; padding:10px 0;">
+        <div style="font-size:20px;font-weight:780;">
+          Super Simple Speedo
+        </div>
+
+        <div style="margin-top:8px;opacity:.55;">
+          Version 9.0
+        </div>
+
+        <div style="margin-top:18px;">
+          Designed and built with ❤️ in Zurich 🇨🇭
+        </div>
+
+        <div style="margin-top:18px;line-height:1.5;">
+          Created to make driving calmer,<br>
+          simpler and safer.
+        </div>
+
+        <div style="margin-top:18px;opacity:.7;">
+          Road intelligence powered by Geoapify.
+        </div>
+
+        <div style="margin-top:20px;">
+          <a
+            href="https://supersimplespeedo.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="color:inherit;text-decoration:none;font-weight:700;"
+          >
+            supersimplespeedo.app
+          </a>
+        </div>
       </div>
     </div>
 
@@ -1713,7 +1751,7 @@
     setMatchStage("waiting", "GPS disconnected");
 
     $("disconnect").classList.add("hidden");
-    startEl.textContent = "GPS Connect";
+    startEl.textContent = "Connect GPS";
     startEl.disabled = false;
     startEl.classList.remove("connected-status");
     document.querySelector(".drive-controls").classList.remove("connected");
