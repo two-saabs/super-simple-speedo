@@ -1,7 +1,3 @@
-# Super Simple Speedo V8
+# Super Simple Speedo V8.6
 
-## Netlify environment variable
-
-Create `GEOAPIFY_API_KEY` in Netlify with Build scope.
-
-Netlify runs `node build.js` and publishes `dist`.
+Platform-aware PWA install onboarding.

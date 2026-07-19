@@ -393,6 +393,92 @@
       color: #222;
     }
 
+
+    .install-card {
+      position: fixed;
+      left: 50%;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      z-index: 80;
+      width: min(92vw, 440px);
+      transform: translate(-50%, 24px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .25s ease, transform .25s ease, visibility .25s ease;
+      border: 1px solid var(--soft-border);
+      border-radius: 22px;
+      padding: 16px;
+      background: var(--panel);
+      color: var(--fg);
+      box-shadow: 0 18px 50px rgba(0,0,0,.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .install-card.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, 0);
+    }
+    .install-card-title {
+      font-size: 17px;
+      font-weight: 780;
+    }
+    .install-card-copy {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.4;
+      opacity: .58;
+    }
+    .install-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+      margin-top: 14px;
+    }
+    .install-primary,
+    .install-secondary {
+      min-height: 46px;
+      border: 0;
+      border-radius: 14px;
+      font-weight: 760;
+    }
+    .install-primary {
+      background: var(--fg);
+      color: var(--bg);
+    }
+    .install-secondary {
+      padding: 0 15px;
+      background: var(--muted-panel);
+      color: var(--fg);
+    }
+    .ios-steps {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+      text-align: left;
+    }
+    .ios-step {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .ios-step-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--fg);
+      color: var(--bg);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .ios-step-text {
+      padding-top: 4px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
     header {
       min-height: 42px;
       display: flex;
@@ -840,49 +926,48 @@
       </div>
     </div>
 
-<div class="settings-section-title">About</div>
-
-<div class="setting">
-  <div style="text-align:center; padding:10px 0;">
-    <div style="font-size:20px;font-weight:780;">
-      Super Simple Speedo
-    </div>
-    <div style="margin-top:8px;opacity:.55;">
-      Version 8.5
-    </div>
-
-    <div style="margin-top:18px;">
-      Designed and built with ❤️ in Zurich 🇨🇭
-    </div>
-
-    <div style="margin-top:18px;line-height:1.5;">
-      Created to make driving calmer,<br>
-      simpler and safer.
-    </div>
-
-    <div style="margin-top:18px;opacity:.7;">
-      Road intelligence powered by Geoapify.
-    </div>
-
-    <div style="margin-top:20px;">
-      <a
-        href="https://supersimplespeedo.app"
-        target="_blank"
-        style="color:inherit;text-decoration:none;font-weight:700;"
-      >
-        supersimplespeedo.app
-      </a>
-    </div>
-   
-  </div>
-</div>
-    
     <div class="settings-section-title">Driving</div>
 
     <div class="setting">
       <button class="wide-button secondary" id="fullscreenButton">Enter full screen</button>
       <button class="wide-button secondary" id="closeSettings">Close</button>
     </div>
+  </div>
+</div>
+
+
+<div class="install-card" id="installCard" aria-hidden="true">
+  <div class="install-card-title">Install Super Simple Speedo</div>
+  <div class="install-card-copy" id="installCardCopy">
+    For the best driving experience, install the app on your device.
+  </div>
+  <div class="install-actions">
+    <button class="install-primary" id="installAction">Install App</button>
+    <button class="install-secondary" id="installLater">Not now</button>
+  </div>
+</div>
+
+<div class="modal" id="iosInstallModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <h2>Install Super Simple Speedo</h2>
+
+    <div class="ios-steps">
+      <div class="ios-step">
+        <div class="ios-step-number">1</div>
+        <div class="ios-step-text">Tap the Share button in Safari.</div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-number">2</div>
+        <div class="ios-step-text">Choose <strong>Add to Home Screen</strong>.</div>
+      </div>
+      <div class="ios-step">
+        <div class="ios-step-number">3</div>
+        <div class="ios-step-text">Open Super Simple Speedo from the new icon.</div>
+      </div>
+    </div>
+
+    <button class="wide-button secondary" id="closeIosInstall">Got it</button>
   </div>
 </div>
 
@@ -901,6 +986,8 @@
   const startEl = $("start");
   const limitModal = $("limitModal");
   const settingsModal = $("settingsModal");
+  const iosInstallModal = $("iosInstallModal");
+  let deferredInstallPrompt = null;
 
   const state = {
     displayedSpeed: 0,
@@ -1061,6 +1148,64 @@
     tone(860, .12, .18, .035);
   }
 
+
+  function isStandalone() {
+    return window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
+  }
+
+  function isIOSDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  function installPromptDismissed() {
+    return localStorage.getItem("installPromptDismissed") === "true";
+  }
+
+  function showInstallCard() {
+    if (isStandalone() || installPromptDismissed()) return;
+
+    const installCard = $("installCard");
+    const action = $("installAction");
+
+    if (isIOSDevice()) {
+      action.textContent = "Show me how";
+      $("installCardCopy").textContent =
+        "Install it for full screen, easier access and a better GPS experience.";
+      installCard.classList.add("show");
+      installCard.setAttribute("aria-hidden", "false");
+      return;
+    }
+
+    if (deferredInstallPrompt) {
+      action.textContent = "Install App";
+      installCard.classList.add("show");
+      installCard.setAttribute("aria-hidden", "false");
+    }
+  }
+
+  function hideInstallCard() {
+    $("installCard").classList.remove("show");
+    $("installCard").setAttribute("aria-hidden", "true");
+  }
+
+  async function handleInstallAction() {
+    if (isIOSDevice()) {
+      hideInstallCard();
+      openModal(iosInstallModal);
+      return;
+    }
+
+    if (!deferredInstallPrompt) return;
+
+    deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+
+    if (choice.outcome === "accepted") hideInstallCard();
+    deferredInstallPrompt = null;
+  }
+
   function showToast(message) {
     const toast = $("toast");
     toast.textContent = message;
@@ -1077,7 +1222,7 @@
     modal.classList.remove("open");
     modal.setAttribute("aria-hidden", "true");
   }
-  [limitModal, settingsModal].forEach(modal => {
+  [limitModal, settingsModal, iosInstallModal].forEach(modal => {
     modal.addEventListener("click", e => {
       if (e.target === modal) closeModal(modal);
     });
@@ -1486,6 +1631,30 @@
     applyTheme();
   });
 
+
+  window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    showInstallCard();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    hideInstallCard();
+    localStorage.removeItem("installPromptDismissed");
+    showToast("App installed");
+  });
+
+  $("installAction").addEventListener("click", handleInstallAction);
+  $("installLater").addEventListener("click", () => {
+    localStorage.setItem("installPromptDismissed", "true");
+    hideInstallCard();
+  });
+  $("closeIosInstall").addEventListener("click", () => {
+    closeModal(iosInstallModal);
+    localStorage.setItem("installPromptDismissed", "true");
+  });
+
   $("settingsButton").addEventListener("click", () => openModal(settingsModal));
   $("closeSettings").addEventListener("click", () => closeModal(settingsModal));
 
@@ -1568,6 +1737,7 @@
   }
 
   runLaunchSequence();
+  setTimeout(showInstallCard, 4600);
   applyTheme();
   applyVisibility();
   applyAudioSettings();
