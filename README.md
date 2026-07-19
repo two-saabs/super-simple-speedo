@@ -1,13 +1,7 @@
-# Super Simple Speedo
-
-Netlify build project.
+# Super Simple Speedo V8
 
 ## Netlify environment variable
 
-Create:
+Create `GEOAPIFY_API_KEY` in Netlify with Build scope.
 
-- Key: `GEOAPIFY_API_KEY`
-- Value: your Geoapify API key
-- Scope: Builds
-
-Netlify runs `node build.js` and publishes the `dist` directory.
+Netlify runs `node build.js` and publishes `dist`.

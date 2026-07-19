@@ -53,13 +53,6 @@
 
 
     .hidden-element { display: none !important; }
-    .greeting {
-      margin-top: 2px;
-      font-size: 13px;
-      font-weight: 650;
-      opacity: .44;
-      letter-spacing: .02em;
-    }
     .choice-list {
       display: grid;
       gap: 12px;
@@ -198,48 +191,181 @@
     }
 
 
-    .language-picker {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-left: auto;
-      margin-right: 10px;
-    }
-    .language-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .08em;
+    .app-title {
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: .14em;
       text-transform: uppercase;
       opacity: .34;
-      white-space: nowrap;
     }
-    .language-options {
-      display: flex;
-      gap: 5px;
-      padding: 4px;
-      border-radius: 999px;
-      background: var(--soft);
+    .settings-button {
+      width: 48px;
+      height: 48px;
+      font-size: 23px;
+      border: 1px solid var(--soft-border);
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      opacity: .95;
     }
-    .language-option {
+    .drive-controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .connect-button,
+    .disconnect-button {
+      width: 100%;
+      min-height: 62px;
       border: 0;
+      border-radius: 18px;
+      font-size: 18px;
+      font-weight: 780;
+    }
+    .connect-button {
+      background: var(--fg);
+      color: var(--bg);
+    }
+    .disconnect-button {
+      background: var(--muted-panel);
+      color: var(--fg);
+    }
+    .hidden { display: none !important; }
+
+    .gps-connect-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+      place-items: center;
+      background: rgba(0,0,0,.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .gps-connect-overlay.open { display: grid; }
+    .gps-connect-card {
+      width: min(84vw, 430px);
+      text-align: center;
+      color: #fff;
+    }
+    .satellite-track {
+      position: relative;
+      height: 120px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+    .satellite {
+      position: absolute;
+      top: 28px;
+      left: -70px;
+      font-size: 54px;
+      filter: drop-shadow(0 0 18px rgba(255,255,255,.35));
+      animation: satelliteFly 2.2s ease-in-out infinite;
+    }
+    .signal-wave {
+      position: absolute;
+      left: 50%;
+      top: 78px;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,.8);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      animation: signalPulse 1.2s ease-out infinite;
+    }
+    .signal-wave:nth-child(3) { animation-delay: .35s; }
+    .signal-wave:nth-child(4) { animation-delay: .7s; }
+    .gps-connect-title {
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      opacity: .5;
+    }
+    .gps-connect-status {
+      margin-top: 9px;
+      font-size: 22px;
+      font-weight: 760;
+      min-height: 30px;
+    }
+    .gps-connect-progress {
+      height: 3px;
+      margin-top: 18px;
+      background: rgba(255,255,255,.15);
       border-radius: 999px;
+      overflow: hidden;
+    }
+    .gps-connect-progress span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: #fff;
+      transition: width .5s ease;
+    }
+    @keyframes satelliteFly {
+      0% { left: -70px; transform: translateY(12px) rotate(-12deg); opacity: .25; }
+      50% { left: calc(50% - 28px); transform: translateY(-8px) rotate(4deg); opacity: 1; }
+      100% { left: calc(100% + 20px); transform: translateY(10px) rotate(16deg); opacity: .2; }
+    }
+    @keyframes signalPulse {
+      0% { transform: translateX(-50%) scale(.6); opacity: .8; }
+      100% { transform: translateX(-50%) scale(5); opacity: 0; }
+    }
+
+    .settings-section-title {
+      margin: 4px 0 12px;
+      font-size: 12px;
+      font-weight: 780;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: .38;
+    }
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      padding: 5px;
+      border-radius: 14px;
+      background: var(--soft);
+      margin-top: 10px;
+    }
+    .segment-button {
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 8px;
       background: transparent;
       color: var(--fg);
-      padding: 7px 10px;
-      font-size: 18px;
       font-weight: 700;
-      opacity: .48;
-      white-space: nowrap;
+      opacity: .55;
     }
-    .language-option.active {
+    .segment-button.active {
       background: var(--fg);
       color: var(--bg);
       opacity: 1;
     }
-    @media (max-width: 430px) {
-      .language-label { display: none; }
-      .language-option { padding: 7px 9px; }
-      .language-picker { margin-right: 6px; }
+    .beep-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .play-button {
+      min-width: 48px;
+      height: 42px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--muted-panel);
+      color: var(--fg);
+      font-size: 17px;
+    }
+
+    body.light #start,
+    body.light .connect-button {
+      background: #111;
+      color: #fff;
+    }
+    body.light #start.running {
+      background: #dededb;
+      color: #222;
     }
 
     header {
@@ -247,12 +373,6 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-    }
-    .brand {
-      font-size: 11px;
-      font-weight: 720;
-      letter-spacing: .16em;
-      opacity: .32;
     }
     .icon-button {
       width: 42px; height: 42px; border: 0; border-radius: 50%;
@@ -537,6 +657,21 @@
 </head>
 <body>
 
+
+<div class="gps-connect-overlay" id="gpsConnectOverlay">
+  <div class="gps-connect-card">
+    <div class="satellite-track">
+      <div class="satellite">🛰️</div>
+      <div class="signal-wave"></div>
+      <div class="signal-wave"></div>
+      <div class="signal-wave"></div>
+    </div>
+    <div class="gps-connect-title">Navigation systems</div>
+    <div class="gps-connect-status" id="gpsConnectStatus">Acquiring satellites…</div>
+    <div class="gps-connect-progress"><span id="gpsConnectProgress"></span></div>
+  </div>
+</div>
+
 <div class="launch-screen" id="launchScreen" aria-hidden="true">
   <div class="launch-core">
     <div class="launch-ring">
@@ -550,20 +685,8 @@
 
 <div id="app">
   <header>
-    <div>
-      <div class="brand">500 · FIAT</div>
-      <div class="greeting" id="greeting">Ey up!</div>
-    </div>
-
-    <div class="language-picker" aria-label="Language pack">
-      <div class="language-label">Language</div>
-      <div class="language-options">
-        <button class="language-option" id="langYorkshire" aria-label="Yorkshire">🇬🇧</button>
-        <button class="language-option" id="langItalian" aria-label="Italian">🇮🇹</button>
-      </div>
-    </div>
-
-    <button class="icon-button" id="settingsButton" aria-label="Settings">⚙︎</button>
+    <div class="app-title">Super Simple Speedo</div>
+    <button class="icon-button settings-button" id="settingsButton" aria-label="Settings">⚙︎</button>
   </header>
 
   <main>
@@ -589,8 +712,11 @@
   </main>
 
   <footer>
-    <button id="start">Let&apos;s go!</button>
-    <div id="status">Mount the phone securely before driving.</div>
+    <div class="drive-controls">
+      <button id="start" class="connect-button">Connect GPS</button>
+      <button id="disconnect" class="disconnect-button hidden">We&apos;ve arrived</button>
+    </div>
+    <div id="status">Connect GPS to begin road matching.</div>
   </footer>
 </div>
 
@@ -621,43 +747,56 @@
     <div class="grabber"></div>
     <h2>Settings</h2>
 
+    <div class="settings-section-title">Audio</div>
+
     <div class="setting">
       <div class="setting-row">
         <div>
-          <div class="setting-title">Limit-change sound</div>
-          <div class="setting-note">A quiet two-note chime when an automatic limit changes.</div>
+          <div class="setting-title">Audio greeting</div>
+          <div class="setting-note">Francy’s recorded morning or evening greeting.</div>
         </div>
-        <button class="switch" id="soundSwitch" aria-label="Toggle sound"></button>
+        <button class="switch" id="greetingSwitch" aria-label="Toggle audio greeting"></button>
       </div>
+      <button class="wide-button secondary" id="testGreeting">▶ Play greeting</button>
     </div>
 
     <div class="setting">
       <div class="setting-row">
         <div>
-          <div class="setting-title">Overspeed warning</div>
-          <div class="setting-note">Speaks “Steady on!” or “Attenzione!” after exceeding the limit by 4 km/h.</div>
+          <div class="setting-title">Speed warning</div>
+          <div class="setting-note">Warn once when exceeding the road limit by 4 km/h.</div>
         </div>
-        <button class="switch" id="warningSwitch" aria-label="Toggle warning"></button>
+        <button class="switch" id="warningSwitch" aria-label="Toggle speed warning"></button>
+      </div>
+
+      <div class="setting-note" style="margin-top:14px">Warning sound</div>
+      <div class="segmented">
+        <button class="segment-button" id="warningVoice">Voice</button>
+        <button class="segment-button" id="warningBeep">Beep</button>
+      </div>
+
+      <div id="beepOptions">
+        <div class="setting-note" style="margin-top:14px">Beep type</div>
+        <div class="segmented" style="grid-template-columns:repeat(3,1fr)">
+          <button class="segment-button" data-beep="elegant">Elegant</button>
+          <button class="segment-button" data-beep="minimal">Minimal</button>
+          <button class="segment-button" data-beep="classic">Classic</button>
+        </div>
+      </div>
+
+      <div class="beep-row">
+        <div class="setting-note">Preview the selected warning.</div>
+        <button class="play-button" id="testWarning">▶</button>
       </div>
     </div>
 
-
-    <div class="setting">
-      <div class="setting-row">
-        <div>
-          <div class="setting-title">Speak greeting</div>
-          <div class="setting-note">Uses the selected Yorkshire or Italian voice pack.</div>
-        </div>
-        <button class="switch" id="greetingSwitch" aria-label="Toggle spoken greeting"></button>
-      </div>
-      <button class="wide-button secondary" id="testGreeting">Play greeting</button>
-    </div>
+    <div class="settings-section-title">Display</div>
 
     <div class="setting">
       <div class="setting-title">Appearance</div>
-      <div class="choice-list">
-        <label class="choice-row"><input type="radio" name="theme" value="dark" id="themeDark">Dark mode</label>
-        <label class="choice-row"><input type="radio" name="theme" value="light" id="themeLight">Light mode</label>
+      <div class="segmented">
+        <button class="segment-button" id="themeDarkButton">Dark</button>
+        <button class="segment-button" id="themeLightButton">Light</button>
       </div>
     </div>
 
@@ -673,6 +812,8 @@
         <label class="choice-row"><input type="checkbox" id="showGps">GPS status</label>
       </div>
     </div>
+
+    <div class="settings-section-title">Driving</div>
 
     <div class="setting">
       <button class="wide-button secondary" id="fullscreenButton">Enter full screen</button>
@@ -711,14 +852,15 @@
     acceptedAutoLimit: null,
     apiKey: "__GEOAPIFY_API_KEY__",
     sounds: localStorage.getItem("limitSounds") === "true",
-    warning: localStorage.getItem("overspeedWarning") === "true",
+    warning: localStorage.getItem("overspeedWarning") !== "false",
+    greetingAudio: localStorage.getItem("greetingAudio") !== "false",
+    warningStyle: localStorage.getItem("warningStyle") || "voice",
+    beepType: localStorage.getItem("beepType") || "elegant",
     theme: localStorage.getItem("speedoTheme") || "dark",
     viewMode: localStorage.getItem("speedoViewMode") || "all",
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
     showGps: localStorage.getItem("showGps") !== "false",
-    languagePack: localStorage.getItem("speedoLanguagePack") || "yorkshire",
-    speakGreeting: localStorage.getItem("speakGreeting") === "true",
     warningArmed: true,
     audioContext: null,
     wakeLock: null
@@ -751,7 +893,7 @@
       ["Loading driver profile…", 42],
       ["Calibrating display…", 68],
       ["Preparing road intelligence…", 88],
-      [currentGreeting(), 100]
+      ["Systems ready", 100]
     ];
 
     let index = 0;
@@ -771,68 +913,18 @@
     setTimeout(advance, 120);
   }
 
-  function currentGreeting() {
-    const hour = new Date().getHours();
-    const evening = hour >= 18;
-
-    if (state.languagePack === "italian") {
-      return evening ? "Buonasera!" : "Buongiorno!";
-    }
-
-    return evening ? "Good evening!" : "Ey up!";
-  }
-
-  function updateGreeting() {
-    $("greeting").textContent = currentGreeting();
-  }
-
-  function speakGreeting() {
-    if (!("speechSynthesis" in window)) {
-      showToast("Speech is not supported on this device");
-      return;
-    }
-
-    const lang = state.languagePack === "italian" ? "it-IT" : "en-GB";
-    speakPhrase(currentGreeting(), lang);
-  }
 
 
-  function applyLanguagePack() {
-    $("langYorkshire").classList.toggle("active", state.languagePack === "yorkshire");
-    $("langItalian").classList.toggle("active", state.languagePack === "italian");
-    updateGreeting();
-  }
 
-  function setLanguagePack(pack) {
-    state.languagePack = pack;
-    localStorage.setItem("speedoLanguagePack", pack);
-    applyLanguagePack();
-    if (state.speakGreeting) speakGreeting();
-  }
 
-  function overspeedPhrase() {
-    return state.languagePack === "italian" ? "Attenzione!" : "Steady on!";
-  }
 
-  function speakPhrase(text, lang) {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = 0.92;
-    utterance.pitch = 1.02;
 
-    const voices = window.speechSynthesis.getVoices();
-    const match = voices.find(v => v.lang?.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
-    if (match) utterance.voice = match;
 
-    window.speechSynthesis.speak(utterance);
-  }
 
   function applyTheme() {
     document.body.classList.toggle("light", state.theme === "light");
-    $("themeDark").checked = state.theme === "dark";
-    $("themeLight").checked = state.theme === "light";
+    $("themeDarkButton")?.classList.toggle("active", state.theme === "dark");
+    $("themeLightButton")?.classList.toggle("active", state.theme === "light");
   }
 
   function applyVisibility() {
@@ -855,6 +947,57 @@
     localStorage.setItem("showLimit", String(state.showLimit));
     localStorage.setItem("showGps", String(state.showGps));
     applyVisibility();
+  }
+
+
+  const recordedAudio = {
+    buongiorno: new Audio("/audio/buongiorno.mp3"),
+    buonasera: new Audio("/audio/buonasera.mp3"),
+    attenzione: new Audio("/audio/attenzione.mp3")
+  };
+
+  function stopRecordedAudio() {
+    Object.values(recordedAudio).forEach(audio => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+  }
+
+  function playRecorded(name) {
+    const audio = recordedAudio[name];
+    if (!audio) return;
+    stopRecordedAudio();
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }
+
+  function playGreeting() {
+    if (!state.greetingAudio) return;
+    const hour = new Date().getHours();
+    playRecorded(hour >= 18 ? "buonasera" : "buongiorno");
+  }
+
+  function playWarning() {
+    if (!state.warning) return;
+    if (state.warningStyle === "voice") {
+      playRecorded("attenzione");
+    } else {
+      playSelectedBeep();
+    }
+  }
+
+  function playSelectedBeep() {
+    if (state.beepType === "minimal") {
+      tone(720, 0, .11, .04);
+      return;
+    }
+    if (state.beepType === "classic") {
+      tone(520, 0, .13, .045);
+      tone(520, .18, .13, .045);
+      return;
+    }
+    tone(620, 0, .13, .032);
+    tone(860, .12, .18, .035);
   }
 
   function showToast(message) {
@@ -1001,8 +1144,7 @@
   function handleOverspeed(speed) {
     if (!state.warning || state.limit === null) return;
     if (speed >= state.limit + 4 && state.warningArmed) {
-      const lang = state.languagePack === "italian" ? "it-IT" : "en-GB";
-      speakPhrase(overspeedPhrase(), lang);
+      playWarning();
       state.warningArmed = false;
     } else if (speed <= state.limit + 1) {
       state.warningArmed = true;
@@ -1166,6 +1308,9 @@
   }
 
   async function startGPS() {
+    $("gpsConnectOverlay").classList.add("open");
+    $("gpsConnectStatus").textContent = "Acquiring satellites…";
+    $("gpsConnectProgress").style.width = "22%";
     audioContext();
     if (!("geolocation" in navigator)) {
       statusEl.textContent = "This browser does not support GPS.";
@@ -1180,9 +1325,18 @@
       timeout: 10000
     });
 
-    startEl.textContent = "We are rolling!";
-    startEl.classList.add("running");
-    startEl.disabled = true;
+    $("gpsConnectStatus").textContent = "GPS lock acquired";
+    $("gpsConnectProgress").style.width = "68%";
+    setTimeout(() => {
+      $("gpsConnectStatus").textContent = "Road intelligence active";
+      $("gpsConnectProgress").style.width = "100%";
+    }, 500);
+    setTimeout(() => {
+      $("gpsConnectOverlay").classList.remove("open");
+      startEl.classList.add("hidden");
+      $("disconnect").classList.remove("hidden");
+      playGreeting();
+    }, 1150);
     sourceEl.textContent = state.mode === "auto" ? "Finding road" : "Manual limit";
     roadEl.textContent = "Move briefly for an accurate reading";
     setMatchStage("waiting", "Move around 20 metres to identify the road");
@@ -1207,28 +1361,65 @@
     else setManualLimit(Number(button.dataset.limit));
   });
 
-  $("langYorkshire").addEventListener("click", () => setLanguagePack("yorkshire"));
-  $("langItalian").addEventListener("click", () => setLanguagePack("italian"));
+
+  function applyAudioSettings() {
+    $("greetingSwitch").classList.toggle("on", state.greetingAudio);
+    $("warningSwitch").classList.toggle("on", state.warning);
+    $("warningVoice").classList.toggle("active", state.warningStyle === "voice");
+    $("warningBeep").classList.toggle("active", state.warningStyle === "beep");
+    $("beepOptions").style.display = state.warningStyle === "beep" ? "block" : "none";
+    document.querySelectorAll("[data-beep]").forEach(button => {
+      button.classList.toggle("active", button.dataset.beep === state.beepType);
+    });
+  }
+
+  $("greetingSwitch").addEventListener("click", () => {
+    state.greetingAudio = !state.greetingAudio;
+    localStorage.setItem("greetingAudio", String(state.greetingAudio));
+    applyAudioSettings();
+    if (state.greetingAudio) playGreeting();
+  });
+  $("testGreeting").addEventListener("click", playGreeting);
+
+  $("warningSwitch").addEventListener("click", () => {
+    state.warning = !state.warning;
+    localStorage.setItem("overspeedWarning", String(state.warning));
+    applyAudioSettings();
+  });
+
+  $("warningVoice").addEventListener("click", () => {
+    state.warningStyle = "voice";
+    localStorage.setItem("warningStyle", state.warningStyle);
+    applyAudioSettings();
+  });
+  $("warningBeep").addEventListener("click", () => {
+    state.warningStyle = "beep";
+    localStorage.setItem("warningStyle", state.warningStyle);
+    applyAudioSettings();
+  });
+  document.querySelectorAll("[data-beep]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.beepType = button.dataset.beep;
+      localStorage.setItem("beepType", state.beepType);
+      applyAudioSettings();
+      playSelectedBeep();
+    });
+  });
+  $("testWarning").addEventListener("click", playWarning);
+
+  $("themeDarkButton").addEventListener("click", () => {
+    state.theme = "dark";
+    localStorage.setItem("speedoTheme", state.theme);
+    applyTheme();
+  });
+  $("themeLightButton").addEventListener("click", () => {
+    state.theme = "light";
+    localStorage.setItem("speedoTheme", state.theme);
+    applyTheme();
+  });
 
   $("settingsButton").addEventListener("click", () => openModal(settingsModal));
   $("closeSettings").addEventListener("click", () => closeModal(settingsModal));
-
-  $("greetingSwitch").classList.toggle("on", state.speakGreeting);
-  $("greetingSwitch").addEventListener("click", () => {
-    state.speakGreeting = !state.speakGreeting;
-    localStorage.setItem("speakGreeting", String(state.speakGreeting));
-    $("greetingSwitch").classList.toggle("on", state.speakGreeting);
-    audioContext();
-    if (state.speakGreeting) speakGreeting();
-  });
-  $("testGreeting").addEventListener("click", speakGreeting);
-
-  $("soundSwitch").classList.toggle("on", state.sounds);
-  $("warningSwitch").classList.toggle("on", state.warning);
-  $("soundSwitch").addEventListener("click", () =>
-    toggleSwitch($("soundSwitch"), "limitSounds", "sounds"));
-  $("warningSwitch").addEventListener("click", () =>
-    toggleSwitch($("warningSwitch"), "overspeedWarning", "warning"));
 
   $("fullscreenButton").addEventListener("click", async () => {
     try {
@@ -1241,13 +1432,6 @@
   });
 
 
-  document.querySelectorAll('input[name="theme"]').forEach(input => {
-    input.addEventListener("change", () => {
-      state.theme = input.value;
-      localStorage.setItem("speedoTheme", state.theme);
-      applyTheme();
-    });
-  });
 
   document.querySelectorAll('input[name="viewMode"]').forEach(input => {
     input.addEventListener("change", () => {
@@ -1269,7 +1453,36 @@
     saveVisibility();
   });
 
+
+  async function disconnectDrive() {
+    if (state.watchId !== null) {
+      navigator.geolocation.clearWatch(state.watchId);
+      state.watchId = null;
+    }
+
+    if (state.wakeLock) {
+      try { await state.wakeLock.release(); } catch (_) {}
+      state.wakeLock = null;
+    }
+
+    state.points = [];
+    state.lookupBusy = false;
+    state.lastLookupAt = 0;
+    state.lastLookupPosition = null;
+    state.targetSpeed = 0;
+    state.displayedSpeed = 0;
+    state.acceptedAutoLimit = null;
+    setLimit(null, "Automatic", "Connect GPS to begin");
+    setMatchStage("waiting", "GPS disconnected");
+
+    $("disconnect").classList.add("hidden");
+    startEl.classList.remove("hidden");
+    statusEl.textContent = "Drive ended. Connect GPS when ready.";
+    showToast("Drive ended");
+  }
+
   startEl.addEventListener("click", startGPS);
+  $("disconnect").addEventListener("click", disconnectDrive);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && state.watchId !== null) requestWakeLock();
   });
@@ -1284,13 +1497,9 @@
   }
 
   runLaunchSequence();
-  applyLanguagePack();
-  setInterval(updateGreeting, 60000);
-  if (state.speakGreeting) {
-    setTimeout(speakGreeting, 700);
-  }
   applyTheme();
   applyVisibility();
+  applyAudioSettings();
   animateSpeed();
 })();
 </script>
