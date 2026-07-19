@@ -1,3 +1,3 @@
-# Super Simple Speedo V8.6
+# Super Simple Speedo V9.1
 
-Platform-aware PWA install onboarding.
+Adds full PWA install support for Android and desktop Chrome.

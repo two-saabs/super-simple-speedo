@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
   <title>Super Simple Speedo</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <style>
     :root {
       color-scheme: dark;
@@ -1220,6 +1223,16 @@
       action.textContent = "Install App";
       installCard.classList.add("show");
       installCard.setAttribute("aria-hidden", "false");
+      return;
+    }
+
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      action.textContent = "Install App";
+      $("installCardCopy").textContent =
+        "Chrome is preparing the install option. Keep this page open briefly, then try again.";
+      installCard.classList.add("show");
+      installCard.setAttribute("aria-hidden", "false");
     }
   }
 
@@ -1235,7 +1248,10 @@
       return;
     }
 
-    if (!deferredInstallPrompt) return;
+    if (!deferredInstallPrompt) {
+      showToast("Chrome is not ready to install yet");
+      return;
+    }
 
     deferredInstallPrompt.prompt();
     const choice = await deferredInstallPrompt.userChoice;
@@ -1772,6 +1788,13 @@
   } else {
     setLimit(null, "Automatic", "Tap Let’s go! to begin");
     setMatchStage("waiting", "Move around 20 metres after starting");
+  }
+
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+    });
   }
 
   runLaunchSequence();

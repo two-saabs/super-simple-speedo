@@ -32,4 +32,22 @@ if (fs.existsSync(audioSource)) {
   console.log("Copied audio files to dist/audio.");
 }
 
+
+const staticFiles = ["manifest.webmanifest", "service-worker.js"];
+
+for (const file of staticFiles) {
+  const sourceFile = path.join(__dirname, file);
+  if (fs.existsSync(sourceFile)) {
+    fs.copyFileSync(sourceFile, path.join(outputDir, file));
+  }
+}
+
+const iconsSource = path.join(__dirname, "icons");
+const iconsOutput = path.join(outputDir, "icons");
+
+if (fs.existsSync(iconsSource)) {
+  fs.cpSync(iconsSource, iconsOutput, { recursive: true });
+  console.log("Copied PWA icons to dist/icons.");
+}
+
 console.log("Built dist/index.html successfully.");
