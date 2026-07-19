@@ -1,3 +1,3 @@
-# Super Simple Speedo V9.1
+# Super Simple Speedo V9.2
 
-Adds full PWA install support for Android and desktop Chrome.
+Adds audio cache-busting and refreshed service-worker caching.

@@ -1,12 +1,12 @@
-const CACHE_NAME = "super-simple-speedo-v9-1";
+const CACHE_NAME = "super-simple-speedo-v9-2";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/audio/buongiorno.mp3",
-  "/audio/buonasera.mp3",
-  "/audio/attenzione.mp3"
+  "/audio/buongiorno.mp3?v=9.2",
+  "/audio/buonasera.mp3?v=9.2",
+  "/audio/attenzione.mp3?v=9.2"
 ];
 
 self.addEventListener("install", event => {

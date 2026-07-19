@@ -1140,9 +1140,9 @@
 
 
   const recordedAudio = {
-    buongiorno: new Audio("/audio/buongiorno.mp3"),
-    buonasera: new Audio("/audio/buonasera.mp3"),
-    attenzione: new Audio("/audio/attenzione.mp3")
+    buongiorno: new Audio("/audio/buongiorno.mp3?v=9.2"),
+    buonasera: new Audio("/audio/buonasera.mp3?v=9.2"),
+    attenzione: new Audio("/audio/attenzione.mp3?v=9.2")
   };
 
   function stopRecordedAudio() {
@@ -1793,7 +1793,9 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(registration => registration.update())
+        .catch(() => {});
     });
   }
 
