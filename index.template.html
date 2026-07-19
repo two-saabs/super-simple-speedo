@@ -124,9 +124,12 @@
       opacity: .35;
     }
     .launch-mark {
-      font-size: 28px;
+      width: 96px;
+      text-align: center;
+      font-size: 15px;
+      line-height: 1.08;
       font-weight: 820;
-      letter-spacing: .08em;
+      letter-spacing: .04em;
       opacity: .9;
     }
     .launch-title {
@@ -211,6 +214,10 @@
       grid-template-columns: 1fr;
       gap: 10px;
     }
+    .drive-controls.connected {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: stretch;
+    }
     .connect-button,
     .disconnect-button {
       width: 100%;
@@ -225,8 +232,26 @@
       color: var(--bg);
     }
     .disconnect-button {
+      min-width: 124px;
+      padding: 0 16px;
       background: var(--muted-panel);
       color: var(--fg);
+      font-size: 14px;
+    }
+    .connect-button.connected-status {
+      cursor: default;
+      opacity: .82;
+    }
+    @media (max-width: 390px) {
+      .drive-controls.connected {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 7px;
+      }
+      .disconnect-button {
+        min-width: 105px;
+        padding: 0 10px;
+        font-size: 12px;
+      }
     }
     .hidden { display: none !important; }
 
@@ -675,10 +700,9 @@
 <div class="launch-screen" id="launchScreen" aria-hidden="true">
   <div class="launch-core">
     <div class="launch-ring">
-      <div class="launch-mark">500</div>
+      <div class="launch-mark">Super Simple Speed</div>
     </div>
-    <div class="launch-title">Super Simple Speedo</div>
-    <div class="launch-status" id="launchStatus">Application initialising…</div>
+        <div class="launch-status" id="launchStatus">Application initialising…</div>
     <div class="launch-progress"><span id="launchProgress"></span></div>
   </div>
 </div>
@@ -713,8 +737,8 @@
 
   <footer>
     <div class="drive-controls">
-      <button id="start" class="connect-button">Connect GPS</button>
-      <button id="disconnect" class="disconnect-button hidden">We&apos;ve arrived</button>
+      <button id="start" class="connect-button">GPS Connect</button>
+      <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
     <div id="status">Connect GPS to begin road matching.</div>
   </footer>
@@ -753,11 +777,14 @@
       <div class="setting-row">
         <div>
           <div class="setting-title">Audio greeting</div>
-          <div class="setting-note">Francy’s recorded morning or evening greeting.</div>
         </div>
         <button class="switch" id="greetingSwitch" aria-label="Toggle audio greeting"></button>
       </div>
-      <button class="wide-button secondary" id="testGreeting">▶ Play greeting</button>
+
+      <div class="beep-row">
+        <div class="setting-note">Preview the selected sound.</div>
+        <button class="play-button" id="testGreeting" aria-label="Play greeting">▶</button>
+      </div>
     </div>
 
     <div class="setting">
@@ -890,27 +917,24 @@
   function runLaunchSequence() {
     const steps = [
       ["Application initialising…", 18],
-      ["Loading driver profile…", 42],
+      ["Loading interface…", 42],
       ["Calibrating display…", 68],
       ["Preparing road intelligence…", 88],
       ["Systems ready", 100]
     ];
 
-    let index = 0;
-    const advance = () => {
-      const [text, progress] = steps[index];
-      $("launchStatus").textContent = text;
-      $("launchProgress").style.width = `${progress}%`;
-      index += 1;
+    const stepTimes = [0, 800, 1600, 2400, 3200];
 
-      if (index < steps.length) {
-        setTimeout(advance, index === 1 ? 420 : 360);
-      } else {
-        setTimeout(() => $("launchScreen").classList.add("hide"), 520);
-      }
-    };
+    steps.forEach(([text, progress], index) => {
+      setTimeout(() => {
+        $("launchStatus").textContent = text;
+        $("launchProgress").style.width = `${progress}%`;
+      }, stepTimes[index]);
+    });
 
-    setTimeout(advance, 120);
+    setTimeout(() => {
+      $("launchScreen").classList.add("hide");
+    }, 4000);
   }
 
 
@@ -1325,18 +1349,25 @@
       timeout: 10000
     });
 
-    $("gpsConnectStatus").textContent = "GPS lock acquired";
-    $("gpsConnectProgress").style.width = "68%";
+    setTimeout(() => {
+      $("gpsConnectStatus").textContent = "GPS lock acquired";
+      $("gpsConnectProgress").style.width = "60%";
+    }, 1400);
+
     setTimeout(() => {
       $("gpsConnectStatus").textContent = "Road intelligence active";
       $("gpsConnectProgress").style.width = "100%";
-    }, 500);
+    }, 2800);
+
     setTimeout(() => {
       $("gpsConnectOverlay").classList.remove("open");
-      startEl.classList.add("hidden");
+      startEl.textContent = "GPS Connected ✓";
+      startEl.disabled = true;
+      startEl.classList.add("connected-status");
       $("disconnect").classList.remove("hidden");
+      document.querySelector(".drive-controls").classList.add("connected");
       playGreeting();
-    }, 1150);
+    }, 4000);
     sourceEl.textContent = state.mode === "auto" ? "Finding road" : "Manual limit";
     roadEl.textContent = "Move briefly for an accurate reading";
     setMatchStage("waiting", "Move around 20 metres to identify the road");
@@ -1476,7 +1507,10 @@
     setMatchStage("waiting", "GPS disconnected");
 
     $("disconnect").classList.add("hidden");
-    startEl.classList.remove("hidden");
+    startEl.textContent = "GPS Connect";
+    startEl.disabled = false;
+    startEl.classList.remove("connected-status");
+    document.querySelector(".drive-controls").classList.remove("connected");
     statusEl.textContent = "Drive ended. Connect GPS when ready.";
     showToast("Drive ended");
   }

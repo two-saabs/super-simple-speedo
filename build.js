@@ -24,4 +24,12 @@ const output = source.replaceAll("__GEOAPIFY_API_KEY__", key);
 fs.mkdirSync(outputDir, { recursive: true });
 fs.writeFileSync(outputPath, output, "utf8");
 
+const audioSource = path.join(__dirname, "audio");
+const audioOutput = path.join(outputDir, "audio");
+
+if (fs.existsSync(audioSource)) {
+  fs.cpSync(audioSource, audioOutput, { recursive: true });
+  console.log("Copied audio files to dist/audio.");
+}
+
 console.log("Built dist/index.html successfully.");
