@@ -22,6 +22,8 @@
       --muted-panel: #292929;
       --soft: rgba(255,255,255,.07);
       --soft-border: rgba(255,255,255,.12);
+      --accent: #fff;
+      --accent-soft: rgba(255,255,255,.12);
     }
     body.light {
       color-scheme: light;
@@ -31,7 +33,29 @@
       --muted-panel: #e7e7e5;
       --soft: rgba(0,0,0,.06);
       --soft-border: rgba(0,0,0,.12);
+      --accent: #111;
+      --accent-soft: rgba(0,0,0,.12);
     }
+    body.modern-theme {
+      --accent: #a5c7df;
+      --accent-soft: rgba(165,199,223,.16);
+    }
+    body.modern-theme:not(.light) {
+      --fg: #f7fbff;
+      --panel: #10171c;
+      --muted-panel: #1c2932;
+      --soft: rgba(165,199,223,.08);
+      --soft-border: rgba(165,199,223,.18);
+    }
+    body.modern-theme #speed:not(.over) { color: var(--accent); }
+    body.modern-theme .settings-section-title,
+    body.modern-theme .eyebrow,
+    body.modern-theme #source,
+    body.modern-theme .app-title { color: var(--accent); }
+    body.modern-theme .status-dot { color: var(--accent); }
+    body.modern-theme .segment-button.active { background: var(--accent); color: #071014; }
+    body.modern-theme .switch.on { background: var(--accent); }
+
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { margin: 0; width: 100%; min-height: 100%; background: var(--bg); overflow: hidden; }
     body {
@@ -522,11 +546,11 @@
       line-height: .83;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum";
-      transition: color .18s ease, transform .14s ease;
+      transition: color .28s ease, transform .22s ease, opacity .22s ease;
       margin: 1.5vh 0 0;
     }
-    #speed.bump { transform: scale(1.012); }
-    body.over #speed { color: #ff453a; }
+    #speed.bump { transform: scale(1.004); }
+    body.over #speed, body.modern-theme.over #speed { color: #ff453a; }
     .unit {
       margin-top: 12px;
       font-size: 20px;
@@ -730,37 +754,64 @@
     }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+    .experimental-theme-setting {
+      overflow: hidden;
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-top-color: transparent;
+      opacity: 0;
+      transition: max-height .28s ease, padding .28s ease, opacity .2s ease, border-color .2s ease;
+    }
+    .experimental-theme-setting.show {
+      max-height: 180px;
+      padding-top: 16px;
+      padding-bottom: 16px;
+      border-top-color: rgba(255,255,255,.09);
+      opacity: 1;
+    }
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 9px;
-      margin-top: 12px;
+      gap: 10px;
+      margin-top: 14px;
     }
     .stat-card {
-      padding: 14px 8px;
-      border-radius: 14px;
+      min-height: 92px;
+      padding: 16px 8px 13px;
+      border: 1px solid var(--soft-border);
+      border-radius: 16px;
       background: var(--soft);
+      display: grid;
+      align-content: center;
       text-align: center;
     }
     .stat-value {
-      font-size: 22px;
+      font-size: 24px;
+      line-height: 1;
       font-weight: 800;
+      letter-spacing: -.025em;
       font-variant-numeric: tabular-nums;
     }
     .stat-label {
-      margin-top: 4px;
+      margin-top: 8px;
       font-size: 11px;
-      opacity: .48;
+      font-weight: 700;
+      letter-spacing: .02em;
+      opacity: .52;
     }
 
-    /* Driver mode: remove diagnostics while the vehicle is moving. */
-    body.driver-mode header { opacity: .22; transition: opacity .2s ease; }
+    /* Driver mode: retain only speed, limit and road evidence while moving. */
+    body.driver-mode header { opacity: .16; transition: opacity .25s ease; }
+    body.driver-mode .app-title { visibility: hidden; }
     body.driver-mode #gps,
     body.driver-mode #matchPill,
     body.driver-mode #status { display: none; }
-    body.driver-mode #source { font-size: 11px; opacity: .38; }
-    body.driver-mode footer { min-height: 18px; }
-    body.driver-mode .drive-controls { opacity: .14; transition: opacity .2s ease; }
+    body.driver-mode #source { font-size: 11px; opacity: .5; }
+    body.driver-mode #road { margin-top: 5px; }
+    body.driver-mode .lower { margin-top: clamp(20px, 4vh, 42px); }
+    body.driver-mode footer { min-height: 8px; }
+    body.driver-mode .drive-controls { opacity: .07; transition: opacity .25s ease; }
     body.driver-mode .drive-controls:focus-within,
     body.driver-mode .drive-controls:hover { opacity: 1; }
 
@@ -951,6 +1002,25 @@
     </div>
 
     <div class="setting">
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">Experimental mode</div>
+          <div class="setting-note">Preview new visual ideas without changing the simple default experience.</div>
+        </div>
+        <button class="switch" id="experimentalSwitch" aria-label="Toggle experimental mode"></button>
+      </div>
+    </div>
+
+    <div class="setting experimental-theme-setting" id="experimentalThemeSetting" aria-hidden="true">
+      <div class="setting-title">Theme</div>
+      <div class="setting-note">Modern adds a calm, Volvo-inspired blue accent.</div>
+      <div class="segmented">
+        <button class="segment-button" id="visualClassicButton">Classic</button>
+        <button class="segment-button" id="visualModernButton">Modern</button>
+      </div>
+    </div>
+
+    <div class="setting">
       <div class="setting-title">Visible elements</div>
       <div class="choice-list">
         <label class="choice-row"><input type="radio" name="viewMode" value="all" id="viewAll">View all</label>
@@ -966,12 +1036,12 @@
     <div class="settings-section-title">Your driving</div>
 
     <div class="setting">
-      <div class="setting-title">Private, on-device statistics</div>
-      <div class="setting-note">Stored only in this browser. Nothing is sent to Super Simple Speedo.</div>
+      <div class="setting-title">Your driving at a glance</div>
+      <div class="setting-note">Private statistics stored only on this device.</div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-value" id="statTrips">0</div><div class="stat-label">Trips</div></div>
-        <div class="stat-card"><div class="stat-value" id="statHours">0.0</div><div class="stat-label">Hours used</div></div>
-        <div class="stat-card"><div class="stat-value" id="statDistance">0.0</div><div class="stat-label">Kilometres</div></div>
+        <div class="stat-card"><div class="stat-value" id="statDistance">0.0</div><div class="stat-label">Distance · km</div></div>
+        <div class="stat-card"><div class="stat-value" id="statHours">0.0</div><div class="stat-label">Time used · h</div></div>
       </div>
       <button class="wide-button secondary" id="resetStats">Reset statistics</button>
     </div>
@@ -985,7 +1055,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.0
+          Version 10.1
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1105,6 +1175,8 @@
     warningStyle: localStorage.getItem("warningStyle") || "voice",
     beepType: localStorage.getItem("beepType") || "elegant",
     theme: localStorage.getItem("speedoTheme") || "dark",
+    experimentalMode: localStorage.getItem("experimentalMode") === "true",
+    visualTheme: localStorage.getItem("visualTheme") || "classic",
     viewMode: localStorage.getItem("speedoViewMode") || "all",
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
@@ -1176,11 +1248,28 @@
     updateStatsDisplay();
   }
 
+  function formatStat(value, decimals = 0) {
+    return new Intl.NumberFormat(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }).format(value);
+  }
+
   function updateStatsDisplay() {
     const liveMs = state.driveStartedAt ? Date.now() - state.driveStartedAt : 0;
-    $("statTrips").textContent = state.stats.trips || 0;
-    $("statHours").textContent = ((state.stats.milliseconds + liveMs) / 3600000).toFixed(1);
-    $("statDistance").textContent = (state.stats.metres / 1000).toFixed(1);
+    $("statTrips").textContent = formatStat(state.stats.trips || 0);
+    $("statDistance").textContent = formatStat(state.stats.metres / 1000, 1);
+    $("statHours").textContent = formatStat((state.stats.milliseconds + liveMs) / 3600000, 1);
+  }
+
+  function applyExperimentalSettings() {
+    const enabled = state.experimentalMode;
+    $("experimentalSwitch").classList.toggle("on", enabled);
+    $("experimentalThemeSetting").classList.toggle("show", enabled);
+    $("experimentalThemeSetting").setAttribute("aria-hidden", String(!enabled));
+    $("visualClassicButton").classList.toggle("active", state.visualTheme === "classic");
+    $("visualModernButton").classList.toggle("active", state.visualTheme === "modern");
+    document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
   }
 
   function setDriverMode(speed) {
@@ -1234,6 +1323,7 @@
     document.body.classList.toggle("light", state.theme === "light");
     $("themeDarkButton")?.classList.toggle("active", state.theme === "dark");
     $("themeLightButton")?.classList.toggle("active", state.theme === "light");
+    applyExperimentalSettings();
   }
 
   function applyVisibility() {
@@ -1468,17 +1558,18 @@
 
   function animateSpeed() {
     const difference = state.targetSpeed - state.displayedSpeed;
-    if (Math.abs(difference) < .08) {
+    if (Math.abs(difference) < .05) {
       state.displayedSpeed = state.targetSpeed;
     } else {
-      state.displayedSpeed += difference * .16;
+      const smoothing = Math.abs(difference) > 12 ? .14 : .10;
+      state.displayedSpeed += difference * smoothing;
     }
 
     const shown = Math.max(0, Math.round(state.displayedSpeed));
     if (speedEl.textContent !== String(shown)) {
       speedEl.textContent = shown;
       speedEl.classList.add("bump");
-      setTimeout(() => speedEl.classList.remove("bump"), 110);
+      setTimeout(() => speedEl.classList.remove("bump"), 150);
     }
 
     const over = state.limit !== null && shown > state.limit;
@@ -1838,6 +1929,23 @@
     applyTheme();
   });
 
+  $("experimentalSwitch").addEventListener("click", () => {
+    state.experimentalMode = !state.experimentalMode;
+    localStorage.setItem("experimentalMode", String(state.experimentalMode));
+    applyExperimentalSettings();
+    showToast(state.experimentalMode ? "Experimental mode enabled" : "Experimental mode disabled");
+  });
+  $("visualClassicButton").addEventListener("click", () => {
+    state.visualTheme = "classic";
+    localStorage.setItem("visualTheme", state.visualTheme);
+    applyExperimentalSettings();
+  });
+  $("visualModernButton").addEventListener("click", () => {
+    state.visualTheme = "modern";
+    localStorage.setItem("visualTheme", state.visualTheme);
+    applyExperimentalSettings();
+  });
+
 
   window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
@@ -1970,6 +2078,7 @@
   runLaunchSequence();
   setTimeout(showInstallCard, 4600);
   applyTheme();
+  applyExperimentalSettings();
   applyVisibility();
   applyAudioSettings();
   updateStatsDisplay();
