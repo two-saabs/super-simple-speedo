@@ -205,9 +205,9 @@
       opacity: .34;
     }
     .settings-button {
-      width: 48px;
-      height: 48px;
-      font-size: 23px;
+      width: 58px;
+      height: 58px;
+      font-size: 26px;
       border: 1px solid var(--soft-border);
       box-shadow: 0 8px 24px rgba(0,0,0,.12);
       opacity: .95;
@@ -339,12 +339,12 @@
     }
 
     .settings-section-title {
-      margin: 4px 0 12px;
-      font-size: 12px;
+      margin: 12px 0 14px;
+      font-size: 18px;
       font-weight: 780;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      opacity: .38;
+      letter-spacing: -.01em;
+      text-transform: none;
+      opacity: .95;
     }
     .segmented {
       display: grid;
@@ -730,6 +730,40 @@
     }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-top: 12px;
+    }
+    .stat-card {
+      padding: 14px 8px;
+      border-radius: 14px;
+      background: var(--soft);
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-label {
+      margin-top: 4px;
+      font-size: 11px;
+      opacity: .48;
+    }
+
+    /* Driver mode: remove diagnostics while the vehicle is moving. */
+    body.driver-mode header { opacity: .22; transition: opacity .2s ease; }
+    body.driver-mode #gps,
+    body.driver-mode #matchPill,
+    body.driver-mode #status { display: none; }
+    body.driver-mode #source { font-size: 11px; opacity: .38; }
+    body.driver-mode footer { min-height: 18px; }
+    body.driver-mode .drive-controls { opacity: .14; transition: opacity .2s ease; }
+    body.driver-mode .drive-controls:focus-within,
+    body.driver-mode .drive-controls:hover { opacity: 1; }
+
     @media (orientation: landscape) and (max-height: 560px) {
       #app {
         grid-template-rows: auto 1fr;
@@ -929,6 +963,19 @@
       </div>
     </div>
 
+    <div class="settings-section-title">Your driving</div>
+
+    <div class="setting">
+      <div class="setting-title">Private, on-device statistics</div>
+      <div class="setting-note">Stored only in this browser. Nothing is sent to Super Simple Speedo.</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="statTrips">0</div><div class="stat-label">Trips</div></div>
+        <div class="stat-card"><div class="stat-value" id="statHours">0.0</div><div class="stat-label">Hours used</div></div>
+        <div class="stat-card"><div class="stat-value" id="statDistance">0.0</div><div class="stat-label">Kilometres</div></div>
+      </div>
+      <button class="wide-button secondary" id="resetStats">Reset statistics</button>
+    </div>
+
     <div class="settings-section-title">About</div>
 
     <div class="setting">
@@ -938,16 +985,25 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 9.0
+          Version 10.0
+        </div>
+
+        <div style="margin-top:18px;font-size:18px;font-weight:780;">
+          Built for drivers, not advertisers.
+        </div>
+
+        <div style="margin-top:10px;opacity:.75;font-weight:700;">
+          Simple. Private. Free.
+        </div>
+
+        <div style="margin-top:18px;line-height:1.6;opacity:.8;">
+          No accounts.<br>
+          No adverts.<br>
+          No tracking.
         </div>
 
         <div style="margin-top:18px;">
           Designed and built with ❤️ in Zurich 🇨🇭
-        </div>
-
-        <div style="margin-top:18px;line-height:1.5;">
-          Created to make driving calmer,<br>
-          simpler and safer.
         </div>
 
         <div style="margin-top:18px;opacity:.7;">
@@ -967,7 +1023,7 @@
       </div>
     </div>
 
-    <div class="settings-section-title">Driving</div>
+    <!-- Driving section title removed -->
 
     <div class="setting">
       <button class="wide-button secondary" id="fullscreenButton">Enter full screen</button>
@@ -1055,7 +1111,12 @@
     showGps: localStorage.getItem("showGps") !== "false",
     warningArmed: true,
     audioContext: null,
-    wakeLock: null
+    wakeLock: null,
+    roadServiceStatus: "unchecked",
+    roadServiceMessage: "",
+    stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0}'),
+    driveStartedAt: null,
+    lastStatsPosition: null
   };
 
 
@@ -1068,7 +1129,7 @@
       collecting: "Collecting road data",
       matching: "Matching road",
       confirming: "Confirming speed limit",
-      matched: "Road matched",
+      matched: "Automatic limit",
       nodata: "No mapped limit",
       error: "Automatic lookup unavailable"
     };
@@ -1109,6 +1170,65 @@
 
 
 
+
+  function saveStats() {
+    localStorage.setItem("speedoStats", JSON.stringify(state.stats));
+    updateStatsDisplay();
+  }
+
+  function updateStatsDisplay() {
+    const liveMs = state.driveStartedAt ? Date.now() - state.driveStartedAt : 0;
+    $("statTrips").textContent = state.stats.trips || 0;
+    $("statHours").textContent = ((state.stats.milliseconds + liveMs) / 3600000).toFixed(1);
+    $("statDistance").textContent = (state.stats.metres / 1000).toFixed(1);
+  }
+
+  function setDriverMode(speed) {
+    document.body.classList.toggle("driver-mode", state.watchId !== null && speed >= 3);
+  }
+
+  function roadServiceFailure(status) {
+    state.roadServiceStatus = "error";
+    if (status === 401 || status === 403) {
+      state.roadServiceMessage = "Road lookup is not authorised for this domain.";
+      sourceEl.textContent = "Automatic unavailable";
+      roadEl.textContent = "Geoapify access needs configuration";
+      setMatchStage("error", "Road lookup authentication failed");
+      statusEl.textContent = "GPS works, but automatic limits are unavailable (Geoapify authentication).";
+      return;
+    }
+    state.roadServiceMessage = `Road service unavailable (${status})`;
+    setMatchStage("error", state.roadServiceMessage);
+  }
+
+  async function validateRoadService(coords) {
+    if (state.roadServiceStatus !== "unchecked") return state.roadServiceStatus === "ready";
+    if (!state.apiKey || state.apiKey.includes("__GEOAPIFY")) {
+      roadServiceFailure(401);
+      state.roadServiceMessage = "Geoapify API key is missing.";
+      return false;
+    }
+
+    state.roadServiceStatus = "checking";
+    setMatchStage("matching", "Checking automatic road lookup");
+    try {
+      const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${encodeURIComponent(coords.latitude)}&lon=${encodeURIComponent(coords.longitude)}&format=json&apiKey=${encodeURIComponent(state.apiKey)}`;
+      const response = await fetch(url, { method: "GET" });
+      if (!response.ok) {
+        roadServiceFailure(response.status);
+        return false;
+      }
+      state.roadServiceStatus = "ready";
+      state.roadServiceMessage = "Automatic road lookup ready";
+      setMatchStage("collecting", "Automatic road lookup ready");
+      return true;
+    } catch (_) {
+      state.roadServiceStatus = "unchecked";
+      state.roadServiceMessage = "Could not verify road lookup yet";
+      setMatchStage("collecting", state.roadServiceMessage);
+      return false;
+    }
+  }
 
   function applyTheme() {
     document.body.classList.toggle("light", state.theme === "light");
@@ -1431,7 +1551,11 @@
   }
 
   async function lookupSpeedLimit(currentCoords) {
-    if (!currentCoords || !state.apiKey) return;
+    if (!currentCoords || !state.apiKey || state.roadServiceStatus === "error") return;
+    if (state.roadServiceStatus !== "ready") {
+      const ready = await validateRoadService(currentCoords);
+      if (!ready) return;
+    }
     state.lookupBusy = true;
     state.lastLookupAt = Date.now();
     state.lastLookupPosition = {
@@ -1475,11 +1599,11 @@
         if (stableCandidate(Math.round(value))) {
           const previous = state.acceptedAutoLimit;
           state.acceptedAutoLimit = Math.round(value);
-          setLimit(value, "Automatic limit", roadName, {
+          setLimit(value, "Automatic limit from:", roadName, {
             chime: previous !== null && previous !== Math.round(value),
             previous
           });
-          setMatchStage("matched", "Road matched ✓");
+          setMatchStage("matched", "Automatic limit confirmed");
         } else {
           sourceEl.textContent = "Confirming change";
           setMatchStage("confirming", `Possible new limit: ${Math.round(value)} km/h`);
@@ -1492,8 +1616,12 @@
         setMatchStage("nodata", "No mapped limit — tap the sign");
       }
     } catch (error) {
-      sourceEl.textContent = "Automatic unavailable";
-      setMatchStage("error", `Lookup failed: ${error.message}`);
+      const status = Number(String(error.message).match(/service (\d+)/)?.[1]);
+      if (status === 401 || status === 403) roadServiceFailure(status);
+      else {
+        sourceEl.textContent = "Automatic unavailable";
+        setMatchStage("error", `Road lookup failed: ${error.message}`);
+      }
     } finally {
       state.lookupBusy = false;
     }
@@ -1517,7 +1645,21 @@
     if (kmh !== null && Number.isFinite(kmh)) {
       if (kmh < 1.8) kmh = 0;
       state.targetSpeed = Math.min(299, kmh);
+      setDriverMode(kmh);
     }
+
+    if (state.lastStatsPosition) {
+      const segment = distanceMetres(state.lastStatsPosition, c);
+      const seconds = Math.max(.001, (position.timestamp - state.lastStatsPosition.timestamp) / 1000);
+      const plausible = segment >= 2 && segment <= 250 && (segment / seconds) <= 75;
+      if (plausible && (kmh || 0) >= 2) {
+        state.stats.metres += segment;
+        if (Math.round(state.stats.metres) % 100 < segment) saveStats();
+      }
+    }
+    state.lastStatsPosition = { latitude: c.latitude, longitude: c.longitude, timestamp: position.timestamp };
+
+    if (state.roadServiceStatus === "unchecked") validateRoadService(c);
 
     const point = {
       timestamp: new Date(position.timestamp).toISOString(),
@@ -1543,7 +1685,7 @@
           : `GPS accuracy about ${accuracy} m · waiting for movement`
       );
     } else if (!state.lookupBusy && state.acceptedAutoLimit) {
-      setMatchStage("matched", `GPS accuracy about ${accuracy} m · road matched ✓`);
+      setMatchStage("matched", `GPS accuracy about ${accuracy} m`);
     }
 
     statusEl.textContent = "Automatic road matching active.";
@@ -1558,7 +1700,7 @@
       3: "GPS request timed out."
     };
     statusEl.textContent = messages[error.code] || error.message;
-    roadEl.textContent = "Check Safari location settings";
+    roadEl.textContent = "Location access blocked. Check your browser settings.";
   }
 
   async function requestWakeLock() {
@@ -1572,6 +1714,13 @@
     $("gpsConnectStatus").textContent = "Acquiring satellites…";
     $("gpsConnectProgress").style.width = "22%";
     audioContext();
+    if (!state.apiKey || state.apiKey.includes("__GEOAPIFY")) {
+      roadServiceFailure(401);
+      state.roadServiceMessage = "Geoapify API key is missing.";
+    } else {
+      state.roadServiceStatus = "unchecked";
+      $("gpsConnectStatus").textContent = "Checking GPS and road service…";
+    }
     if (!("geolocation" in navigator)) {
       statusEl.textContent = "This browser does not support GPS.";
       return;
@@ -1579,6 +1728,10 @@
     if (state.watchId !== null) navigator.geolocation.clearWatch(state.watchId);
 
     state.points = [];
+    state.lastStatsPosition = null;
+    state.driveStartedAt = Date.now();
+    state.stats.trips += 1;
+    saveStats();
     state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {
       enableHighAccuracy: true,
       maximumAge: 0,
@@ -1591,7 +1744,7 @@
     }, 1400);
 
     setTimeout(() => {
-      $("gpsConnectStatus").textContent = "Road intelligence active";
+      $("gpsConnectStatus").textContent = state.roadServiceStatus === "error" ? "GPS active · road lookup unavailable" : "GPS active · checking road lookup";
       $("gpsConnectProgress").style.width = "100%";
     }, 2800);
 
@@ -1745,7 +1898,22 @@
   });
 
 
+  $("resetStats").addEventListener("click", () => {
+    state.stats = { trips: 0, milliseconds: 0, metres: 0 };
+    state.driveStartedAt = state.watchId !== null ? Date.now() : null;
+    state.lastStatsPosition = null;
+    saveStats();
+    showToast("Statistics reset");
+  });
+
   async function disconnectDrive() {
+    if (state.driveStartedAt) {
+      state.stats.milliseconds += Date.now() - state.driveStartedAt;
+      state.driveStartedAt = null;
+      saveStats();
+    }
+    state.lastStatsPosition = null;
+    document.body.classList.remove("driver-mode");
     if (state.watchId !== null) {
       navigator.geolocation.clearWatch(state.watchId);
       state.watchId = null;
@@ -1804,6 +1972,8 @@
   applyTheme();
   applyVisibility();
   applyAudioSettings();
+  updateStatsDisplay();
+  setInterval(updateStatsDisplay, 30000);
   animateSpeed();
 })();
 </script>
