@@ -229,13 +229,15 @@
       opacity: .34;
     }
     .settings-button {
-      width: 58px;
-      height: 58px;
-      font-size: 26px;
-      border: 1px solid var(--soft-border);
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-      opacity: .95;
+      width: 68px;
+      height: 68px;
+      font-size: 32px;
+      border: 2px solid var(--soft-border);
+      background: var(--panel);
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+      opacity: 1;
     }
+    .settings-button:active { transform: scale(.96); }
     .drive-controls {
       display: grid;
       grid-template-columns: 1fr;
@@ -1050,17 +1052,24 @@
       </div>
     </div>
 
-    <div class="settings-section-title">Your driving</div>
+    <div class="settings-section-title">Statistics</div>
 
     <div class="setting">
-      <div class="setting-title">Your driving at a glance</div>
-      <div class="setting-note">Private statistics stored only on this device.</div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-value" id="statTrips">0</div><div class="stat-label">Trips</div></div>
-        <div class="stat-card"><div class="stat-value" id="statDistance">0.0</div><div class="stat-label">Distance · km</div></div>
-        <div class="stat-card"><div class="stat-value" id="statHours">0.0</div><div class="stat-label">Time used · h</div></div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">Private statistics</div>
+          <div class="setting-note">Stored only on this device. Nothing is sent anywhere.</div>
+        </div>
+        <button class="switch" id="statisticsSwitch" aria-label="Toggle private statistics"></button>
       </div>
-      <button class="wide-button secondary" id="resetStats">Reset statistics</button>
+      <div id="statisticsDetails">
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="statTrips">0</div><div class="stat-label">Trips</div></div>
+          <div class="stat-card"><div class="stat-value" id="statDistance">0.0</div><div class="stat-label">Distance · km</div></div>
+          <div class="stat-card"><div class="stat-value" id="statHours">0.0</div><div class="stat-label">Time used · h</div></div>
+        </div>
+        <button class="wide-button secondary" id="resetStats">Reset statistics</button>
+      </div>
     </div>
 
     <div class="settings-section-title">About</div>
@@ -1198,6 +1207,7 @@
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
     showGps: localStorage.getItem("showGps") !== "false",
+    statisticsEnabled: localStorage.getItem("statisticsEnabled") !== "false",
     warningArmed: true,
     audioContext: null,
     wakeLock: null,
@@ -1217,19 +1227,27 @@
 
   function setMatchStage(stage, detail = "") {
     const labels = {
-      waiting: "Waiting for movement",
-      collecting: "Collecting road data",
-      matching: "Matching road",
-      confirming: "Confirming speed limit",
+      locating: "Finding location",
+      waiting: "Finding location",
+      collecting: "Checking road...",
+      matching: "Checking road...",
+      confirming: "Likely road...",
       matched: "Automatic limit",
-      nodata: "No mapped limit",
-      error: "Automatic lookup unavailable"
+      nodata: "Still searching...",
+      error: "Automatic limit unavailable"
     };
 
     $("matchStage").textContent = labels[stage] || stage;
-    $("matchDot").classList.toggle("pulse", ["waiting", "collecting", "matching", "confirming"].includes(stage));
+    $("matchDot").classList.toggle("pulse", ["locating", "waiting", "collecting", "matching", "confirming"].includes(stage));
+    gpsEl.textContent = detail;
+  }
 
-    if (detail) gpsEl.textContent = detail;
+  function displayRoadName(rawRoadName) {
+    const technicalRoadValues = new Set(["service_other", "service", "other", "unknown"]);
+    const cleaned = String(rawRoadName || "").replaceAll("_", " ").trim();
+    if (!cleaned || technicalRoadValues.has(cleaned.toLowerCase())) return "";
+    // House numbers make a provisional match look more certain than it is.
+    return cleaned.replace(/,\s*\d+[a-z]?$/i, "");
   }
 
   function runLaunchSequence() {
@@ -1276,10 +1294,17 @@
   }
 
   function updateStatsDisplay() {
-    const liveMs = state.driveStartedAt ? Date.now() - state.driveStartedAt : 0;
+    const liveMs = state.statisticsEnabled && state.driveStartedAt ? Date.now() - state.driveStartedAt : 0;
     $("statTrips").textContent = formatStat(state.stats.trips || 0);
     $("statDistance").textContent = formatStat(state.stats.metres / 1000, 1);
     $("statHours").textContent = formatStat((state.stats.milliseconds + liveMs) / 3600000, 1);
+  }
+
+  function applyStatisticsSettings() {
+    $("statisticsSwitch").classList.toggle("on", state.statisticsEnabled);
+    $("statisticsSwitch").setAttribute("aria-pressed", String(state.statisticsEnabled));
+    $("statisticsDetails").style.display = state.statisticsEnabled ? "block" : "none";
+    updateStatsDisplay();
   }
 
   function applyExperimentalSettings() {
@@ -1680,8 +1705,13 @@
       latitude: currentCoords.latitude,
       longitude: currentCoords.longitude
     };
-    sourceEl.textContent = "Matching road";
-    setMatchStage("matching", "Sending GPS trail to road matcher");
+    // Keep a confirmed road visible during background refreshes. On startup,
+    // show one calm, confidence-based progress message.
+    if (!state.acceptedAutoLimit) {
+      sourceEl.textContent = "Checking road...";
+      roadEl.textContent = "Finding the best match";
+    }
+    setMatchStage("matching", "");
 
     try {
       const sample = state.points.slice(-10);
@@ -1712,10 +1742,7 @@
 
       const value = Number(step?.speed_limit);
       const rawRoadName = step?.name || step?.road_class || "";
-      const technicalRoadValues = new Set(["service_other", "service", "other", "unknown"]);
-      const roadName = technicalRoadValues.has(String(rawRoadName).toLowerCase())
-        ? ""
-        : String(rawRoadName).replaceAll("_", " ");
+      const roadName = displayRoadName(rawRoadName);
 
       if (Number.isFinite(value) && value > 0) {
         if (stableCandidate(Math.round(value))) {
@@ -1725,24 +1752,24 @@
             chime: previous !== null && previous !== Math.round(value),
             previous
           });
-          setMatchStage("matched", "Automatic limit confirmed");
+          setMatchStage("matched", "");
         } else {
-          sourceEl.textContent = "Checking road match…";
-          roadEl.textContent = roadName ? `Potential road: ${roadName}` : "Still searching…";
-          setMatchStage("confirming", `Possible new limit: ${Math.round(value)} km/h`);
-          gpsEl.textContent = `Possible new limit: ${Math.round(value)} km/h`;
+          sourceEl.textContent = roadName ? "Likely road..." : "Checking road...";
+          roadEl.textContent = roadName || "Finding the best match";
+          setMatchStage("confirming", "");
         }
       } else {
-        sourceEl.textContent = roadName ? "Automatic limit from:" : "Still searching…";
-        roadEl.textContent = roadName || "Looking for a mapped road";
-        setMatchStage("nodata", "No mapped limit — tap the sign");
+        sourceEl.textContent = roadName ? "Likely road..." : "Still searching...";
+        roadEl.textContent = roadName || "No reliable road match yet";
+        setMatchStage("nodata", "");
       }
     } catch (error) {
       const status = Number(String(error.message).match(/service (\d+)/)?.[1]);
       if (status === 401 || status === 403) roadServiceFailure(status);
       else {
-        sourceEl.textContent = "Automatic unavailable";
-        setMatchStage("error", `Road lookup failed: ${error.message}`);
+        sourceEl.textContent = "Automatic limit unavailable";
+        roadEl.textContent = "Road lookup temporarily unavailable";
+        setMatchStage("error", "");
       }
     } finally {
       state.lookupBusy = false;
@@ -1821,16 +1848,20 @@
       }
     }
 
-    if (state.lastStatsPosition) {
-      const segment = distanceMetres(state.lastStatsPosition, c);
-      const seconds = Math.max(.001, (position.timestamp - state.lastStatsPosition.timestamp) / 1000);
-      const plausible = segment >= 2 && segment <= 250 && (segment / seconds) <= 75;
-      if (plausible && (kmh || 0) >= 2) {
-        state.stats.metres += segment;
-        if (Math.round(state.stats.metres) % 100 < segment) saveStats();
+    if (state.statisticsEnabled) {
+      if (state.lastStatsPosition) {
+        const segment = distanceMetres(state.lastStatsPosition, c);
+        const seconds = Math.max(.001, (position.timestamp - state.lastStatsPosition.timestamp) / 1000);
+        const plausible = segment >= 2 && segment <= 250 && (segment / seconds) <= 75;
+        if (plausible && (kmh || 0) >= 2) {
+          state.stats.metres += segment;
+          if (Math.round(state.stats.metres) % 100 < segment) saveStats();
+        }
       }
+      state.lastStatsPosition = { latitude: c.latitude, longitude: c.longitude, timestamp: position.timestamp };
+    } else {
+      state.lastStatsPosition = null;
     }
-    state.lastStatsPosition = { latitude: c.latitude, longitude: c.longitude, timestamp: position.timestamp };
 
     if (state.roadServiceStatus === "unchecked") validateRoadService(c);
 
@@ -1847,33 +1878,40 @@
       state.points = state.points.slice(-14);
     }
 
-    const accuracy = Math.round(c.accuracy);
     const movedEnough = state.points.length >= 2;
 
-    if (state.mode === "auto" && !state.lookupBusy && !state.acceptedAutoLimit) {
-      setMatchStage(
-        movedEnough ? "collecting" : "waiting",
-        movedEnough
-          ? `GPS accuracy about ${accuracy} m · move a little more`
-          : `GPS accuracy about ${accuracy} m · waiting for movement`
-      );
-    } else if (!state.lookupBusy && state.acceptedAutoLimit) {
-      setMatchStage("matched", `GPS accuracy about ${accuracy} m`);
-    }
+    // Any successful position proves permission is currently available, so clear
+    // stale browser-permission messages immediately.
+    statusEl.textContent = "";
 
-    statusEl.textContent = "Automatic road matching active.";
+    if (state.mode === "auto" && !state.lookupBusy && !state.acceptedAutoLimit) {
+      sourceEl.textContent = movedEnough ? "Checking road..." : "Finding your location...";
+      roadEl.textContent = movedEnough ? "Finding the best match" : "This usually takes a moment";
+      setMatchStage(movedEnough ? "collecting" : "locating", "");
+    } else if (!state.lookupBusy && state.acceptedAutoLimit) {
+      setMatchStage("matched", "");
+    }
 
     if (shouldLookup(c, Date.now())) lookupSpeedLimit(c);
   }
 
   function onError(error) {
-    const messages = {
-      1: "Location permission denied.",
-      2: "GPS position unavailable.",
-      3: "GPS request timed out."
-    };
-    statusEl.textContent = messages[error.code] || error.message;
-    roadEl.textContent = "Location access blocked. Check your browser settings.";
+    if (error.code === 1) {
+      statusEl.textContent = "Location permission denied.";
+      sourceEl.textContent = "Automatic limit unavailable";
+      roadEl.textContent = "Location access blocked. Check your browser settings.";
+      setMatchStage("error", "");
+      return;
+    }
+
+    // Temporary GPS failures are not permission failures. Keep the language calm
+    // because watchPosition may recover on the next update.
+    statusEl.textContent = "";
+    sourceEl.textContent = "Finding your location...";
+    roadEl.textContent = error.code === 3
+      ? "GPS is taking a little longer than usual"
+      : "Waiting for a clearer GPS signal";
+    setMatchStage("locating", "");
   }
 
   async function requestWakeLock() {
@@ -1892,7 +1930,7 @@
       state.roadServiceMessage = "Geoapify API key is missing.";
     } else {
       state.roadServiceStatus = "unchecked";
-      $("gpsConnectStatus").textContent = "Checking GPS and road service…";
+      $("gpsConnectStatus").textContent = "Checking GPS and road service...";
     }
     if (!("geolocation" in navigator)) {
       statusEl.textContent = "This browser does not support GPS.";
@@ -1907,9 +1945,13 @@
     state.pendingHighSpeed = null;
     state.targetSpeed = 0;
     state.displayedSpeed = 0;
-    state.driveStartedAt = Date.now();
-    state.stats.trips += 1;
-    saveStats();
+    if (state.statisticsEnabled) {
+      state.driveStartedAt = Date.now();
+      state.stats.trips += 1;
+      saveStats();
+    } else {
+      state.driveStartedAt = null;
+    }
     state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {
       enableHighAccuracy: true,
       maximumAge: 0,
@@ -1935,9 +1977,9 @@
       document.querySelector(".drive-controls").classList.add("connected");
       playGreeting();
     }, 4000);
-    sourceEl.textContent = state.mode === "auto" ? "Finding road" : "Manual limit";
-    roadEl.textContent = "Move briefly for an accurate reading";
-    setMatchStage("waiting", "Move around 20 metres to identify the road");
+    sourceEl.textContent = state.mode === "auto" ? "Finding your location..." : "Manual limit";
+    roadEl.textContent = state.mode === "auto" ? "This usually takes a moment" : "Tap the sign to change";
+    setMatchStage(state.mode === "auto" ? "locating" : "matched", "");
     await requestWakeLock();
   }
 
@@ -2093,9 +2135,27 @@
   });
 
 
+  $("statisticsSwitch").addEventListener("click", () => {
+    if (state.statisticsEnabled) {
+      if (state.driveStartedAt) {
+        state.stats.milliseconds += Date.now() - state.driveStartedAt;
+        state.driveStartedAt = null;
+        saveStats();
+      }
+      state.lastStatsPosition = null;
+      state.statisticsEnabled = false;
+    } else {
+      state.statisticsEnabled = true;
+      if (state.watchId !== null) state.driveStartedAt = Date.now();
+    }
+    localStorage.setItem("statisticsEnabled", String(state.statisticsEnabled));
+    applyStatisticsSettings();
+    showToast(state.statisticsEnabled ? "Private statistics on" : "Private statistics off");
+  });
+
   $("resetStats").addEventListener("click", () => {
     state.stats = { trips: 0, milliseconds: 0, metres: 0 };
-    state.driveStartedAt = state.watchId !== null ? Date.now() : null;
+    state.driveStartedAt = state.statisticsEnabled && state.watchId !== null ? Date.now() : null;
     state.lastStatsPosition = null;
     saveStats();
     showToast("Statistics reset");
@@ -2169,6 +2229,7 @@
   setTimeout(showInstallCard, 4600);
   applyTheme();
   applyExperimentalSettings();
+  applyStatisticsSettings();
   applyVisibility();
   applyAudioSettings();
   updateStatsDisplay();
