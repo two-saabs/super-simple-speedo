@@ -807,8 +807,14 @@
     body.driver-mode #gps,
     body.driver-mode #matchPill,
     body.driver-mode #status { display: none; }
-    body.driver-mode #source { font-size: 11px; opacity: .5; }
-    body.driver-mode #road { margin-top: 5px; }
+    body.driver-mode #gpsSection { display: block; }
+    body.driver-mode #source { font-size: 11px; opacity: .62; }
+    body.driver-mode #road {
+      display: block;
+      margin-top: 5px;
+      opacity: 1;
+      font-weight: 780;
+    }
     body.driver-mode .lower { margin-top: clamp(20px, 4vh, 42px); }
     body.driver-mode footer { min-height: 8px; }
     body.driver-mode .drive-controls { opacity: .07; transition: opacity .25s ease; }
@@ -819,20 +825,22 @@
       #app {
         grid-template-rows: auto 1fr;
         padding: max(8px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right))
-                 max(8px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+                 max(74px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
       }
       header { position: absolute; top: 8px; left: 18px; right: 18px; z-index: 2; }
-      main { place-items: stretch; }
+      main { place-items: center; }
       .cluster {
-        width: 100%;
+        width: min(780px, 78vw);
         height: 100%;
-        grid-template-columns: 1.25fr .75fr;
+        grid-template-columns: minmax(250px, 1fr) minmax(250px, 1fr);
         grid-template-rows: 1fr;
         transform: none;
         align-items: center;
+        justify-self: center;
+        column-gap: clamp(26px, 5vw, 72px);
       }
       .speed-side { display: grid; justify-items: center; }
-      #speed { font-size: min(49vh, 27vw); margin-top: 0; }
+      #speed { font-size: min(49vh, 24vw); margin-top: 0; }
       .lower {
         margin: 0;
         width: auto;
@@ -841,15 +849,24 @@
         gap: 16px;
       }
       #limitButton { width: 126px; height: 126px; }
-      .road-info { text-align: center; max-width: 260px; }
+      .road-info { text-align: center; max-width: 280px; }
       footer {
         position: absolute;
-        right: max(16px, env(safe-area-inset-right));
+        left: max(18px, env(safe-area-inset-left));
+        right: max(18px, env(safe-area-inset-right));
         bottom: max(10px, env(safe-area-inset-bottom));
-        width: 170px;
+        width: auto;
         min-height: 0;
       }
-      #start { min-height: 47px; border-radius: 14px; }
+      .drive-controls,
+      .drive-controls.connected {
+        width: min(560px, 100%);
+        margin: 0 auto;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+      }
+      #start,
+      #disconnect { min-height: 48px; border-radius: 14px; }
       #status { display: none; }
     }
   </style>
@@ -1033,7 +1050,7 @@
       </div>
     </div>
 
-    <div class="settings-section-title">Statistics</div>
+    <div class="settings-section-title">Your driving</div>
 
     <div class="setting">
       <div class="setting-title">Your driving at a glance</div>
@@ -1055,7 +1072,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.1
+          Version 10.3
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1272,8 +1289,12 @@
     document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
   }
 
+  const DRIVER_MODE_MIN_SPEED = 3;
+
   function setDriverMode(speed) {
-    document.body.classList.toggle("driver-mode", state.watchId !== null && speed >= 3);
+    const active = state.watchId !== null && speed >= DRIVER_MODE_MIN_SPEED;
+    document.body.classList.toggle("driver-mode", active);
+    applyVisibility();
   }
 
   function roadServiceFailure(status) {
@@ -1337,7 +1358,10 @@
     $("showGps").checked = state.showGps;
     $("speedSection").classList.toggle("hidden-element", !all && !state.showSpeedo);
     $("limitButton").classList.toggle("hidden-element", !all && !state.showLimit);
-    $("gpsSection").classList.toggle("hidden-element", !all && !state.showGps);
+    // While moving, road name/source remain visible as evidence for the shown limit,
+    // even when optional GPS diagnostics are hidden in the user's custom view.
+    const keepRoadEvidence = document.body.classList.contains("driver-mode");
+    $("gpsSection").classList.toggle("hidden-element", !keepRoadEvidence && !all && !state.showGps);
   }
 
   function saveVisibility() {
@@ -1684,7 +1708,11 @@
       if (!step && legs.length) step = legs.at(-1)?.steps?.at(-1) || null;
 
       const value = Number(step?.speed_limit);
-      const roadName = step?.name || step?.road_class || "Matched road";
+      const rawRoadName = step?.name || step?.road_class || "";
+      const technicalRoadValues = new Set(["service_other", "service", "other", "unknown"]);
+      const roadName = technicalRoadValues.has(String(rawRoadName).toLowerCase())
+        ? ""
+        : String(rawRoadName).replaceAll("_", " ");
 
       if (Number.isFinite(value) && value > 0) {
         if (stableCandidate(Math.round(value))) {
@@ -1696,14 +1724,14 @@
           });
           setMatchStage("matched", "Automatic limit confirmed");
         } else {
-          sourceEl.textContent = "Confirming change";
+          sourceEl.textContent = "Checking road match…";
+          roadEl.textContent = roadName ? `Potential road: ${roadName}` : "Still searching…";
           setMatchStage("confirming", `Possible new limit: ${Math.round(value)} km/h`);
-          roadEl.textContent = roadName;
-          gpsEl.textContent = `Possible new limit: ${Math.round(value)}`;
+          gpsEl.textContent = `Possible new limit: ${Math.round(value)} km/h`;
         }
       } else {
-        sourceEl.textContent = "Automatic";
-        roadEl.textContent = roadName;
+        sourceEl.textContent = roadName ? "Automatic limit from:" : "Still searching…";
+        roadEl.textContent = roadName || "Looking for a mapped road";
         setMatchStage("nodata", "No mapped limit — tap the sign");
       }
     } catch (error) {
