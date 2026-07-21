@@ -1205,7 +1205,10 @@
     roadServiceMessage: "",
     stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0}'),
     driveStartedAt: null,
-    lastStatsPosition: null
+    lastStatsPosition: null,
+    lastAcceptedSpeed: 0,
+    lastSpeedTimestamp: null,
+    pendingHighSpeed: null
   };
 
 
@@ -1763,8 +1766,59 @@
 
     if (kmh !== null && Number.isFinite(kmh)) {
       if (kmh < 1.8) kmh = 0;
-      state.targetSpeed = Math.min(299, kmh);
-      setDriverMode(kmh);
+
+      // Cross-check browser-reported velocity against actual position movement.
+      // iOS can occasionally emit a single 200–300 km/h speed while stationary.
+      let derivedKmh = null;
+      if (previous) {
+        const seconds = (position.timestamp - Date.parse(previous.timestamp)) / 1000;
+        if (seconds > .4) {
+          const metres = distanceMetres(
+            { latitude: previous.location[1], longitude: previous.location[0] }, c
+          );
+          derivedKmh = metres / seconds * 3.6;
+        }
+      }
+
+      const previousSpeed = state.lastAcceptedSpeed ?? 0;
+      const elapsed = state.lastSpeedTimestamp === null
+        ? null
+        : Math.max(0.1, (position.timestamp - state.lastSpeedTimestamp) / 1000);
+      const poorAccuracy = Number.isFinite(c.accuracy) && c.accuracy > 80;
+      const implausibleAbsoluteSpeed = kmh > 260;
+      const contradictedByMovement = derivedKmh !== null &&
+        kmh > 35 && derivedKmh < Math.max(12, kmh * .35);
+      const implausibleJump = elapsed !== null &&
+        Math.abs(kmh - previousSpeed) > Math.max(45, elapsed * 55);
+
+      // A high first reading must be confirmed by the next reading. This still
+      // permits launching the app while travelling quickly, but blocks one-off spikes.
+      let highSpeedConfirmed = true;
+      if (state.lastSpeedTimestamp === null && kmh > 80) {
+        const pending = state.pendingHighSpeed;
+        highSpeedConfirmed = Boolean(
+          pending &&
+          position.timestamp - pending.timestamp < 5000 &&
+          Math.abs(kmh - pending.kmh) < 25 &&
+          (derivedKmh === null || derivedKmh > 40)
+        );
+        state.pendingHighSpeed = { kmh, timestamp: position.timestamp };
+      } else if (kmh <= 80) {
+        state.pendingHighSpeed = null;
+      }
+
+      if (!poorAccuracy && !implausibleJump && !implausibleAbsoluteSpeed &&
+          !contradictedByMovement && highSpeedConfirmed) {
+        state.lastAcceptedSpeed = kmh;
+        state.lastSpeedTimestamp = position.timestamp;
+        state.targetSpeed = Math.min(260, kmh);
+        setDriverMode(kmh);
+      } else {
+        // Keep the last trustworthy reading and do not advance the accepted-speed
+        // timestamp; otherwise one bad reading can make the next good reading fail too.
+        state.targetSpeed = previousSpeed;
+        setDriverMode(previousSpeed);
+      }
     }
 
     if (state.lastStatsPosition) {
@@ -1848,6 +1902,11 @@
 
     state.points = [];
     state.lastStatsPosition = null;
+    state.lastAcceptedSpeed = 0;
+    state.lastSpeedTimestamp = null;
+    state.pendingHighSpeed = null;
+    state.targetSpeed = 0;
+    state.displayedSpeed = 0;
     state.driveStartedAt = Date.now();
     state.stats.trips += 1;
     saveStats();
@@ -2061,6 +2120,9 @@
     }
 
     state.points = [];
+    state.lastAcceptedSpeed = 0;
+    state.lastSpeedTimestamp = null;
+    state.pendingHighSpeed = null;
     state.lookupBusy = false;
     state.lastLookupAt = 0;
     state.lastLookupPosition = null;
