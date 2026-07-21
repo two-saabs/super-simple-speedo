@@ -807,8 +807,14 @@
     body.driver-mode #gps,
     body.driver-mode #matchPill,
     body.driver-mode #status { display: none; }
-    body.driver-mode #source { font-size: 11px; opacity: .5; }
-    body.driver-mode #road { margin-top: 5px; }
+    body.driver-mode #gpsSection { display: block; }
+    body.driver-mode #source { font-size: 11px; opacity: .62; }
+    body.driver-mode #road {
+      display: block;
+      margin-top: 5px;
+      opacity: 1;
+      font-weight: 780;
+    }
     body.driver-mode .lower { margin-top: clamp(20px, 4vh, 42px); }
     body.driver-mode footer { min-height: 8px; }
     body.driver-mode .drive-controls { opacity: .07; transition: opacity .25s ease; }
@@ -1066,7 +1072,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.2
+          Version 10.3
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1283,8 +1289,12 @@
     document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
   }
 
+  const DRIVER_MODE_MIN_SPEED = 3;
+
   function setDriverMode(speed) {
-    document.body.classList.toggle("driver-mode", state.watchId !== null && speed >= 3);
+    const active = state.watchId !== null && speed >= DRIVER_MODE_MIN_SPEED;
+    document.body.classList.toggle("driver-mode", active);
+    applyVisibility();
   }
 
   function roadServiceFailure(status) {
@@ -1348,7 +1358,10 @@
     $("showGps").checked = state.showGps;
     $("speedSection").classList.toggle("hidden-element", !all && !state.showSpeedo);
     $("limitButton").classList.toggle("hidden-element", !all && !state.showLimit);
-    $("gpsSection").classList.toggle("hidden-element", !all && !state.showGps);
+    // While moving, road name/source remain visible as evidence for the shown limit,
+    // even when optional GPS diagnostics are hidden in the user's custom view.
+    const keepRoadEvidence = document.body.classList.contains("driver-mode");
+    $("gpsSection").classList.toggle("hidden-element", !keepRoadEvidence && !all && !state.showGps);
   }
 
   function saveVisibility() {
