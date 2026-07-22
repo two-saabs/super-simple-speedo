@@ -843,9 +843,16 @@
     }
     body.driver-mode .lower { margin-top: clamp(20px, 4vh, 42px); }
     body.driver-mode footer { min-height: 8px; }
-    body.driver-mode .drive-controls { opacity: .07; transition: opacity .25s ease; }
-    body.driver-mode .drive-controls:focus-within,
-    body.driver-mode .drive-controls:hover { opacity: 1; }
+    body.driver-mode .drive-controls {
+      opacity: .07;
+      transition: opacity .25s ease;
+    }
+    /* Avoid sticky :hover / :focus states on iPhone keeping controls fully visible
+       after GPS is connected. Only reveal on devices with a real hover pointer. */
+    @media (hover: hover) and (pointer: fine) {
+      body.driver-mode .drive-controls:hover,
+      body.driver-mode .drive-controls:focus-within { opacity: 1; }
+    }
 
     @media (orientation: landscape) and (max-height: 560px) {
       #app {
@@ -1086,7 +1093,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.12
+          Version 10.13
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1407,8 +1414,22 @@
 
   function applyDriverMode(active) {
     state.driverModeActive = active;
+
+    // A tapped control can retain focus on iOS and keep :focus-within active.
+    // Clear that sticky focus before applying the quieter driving presentation.
+    if (active && document.activeElement?.closest?.(".drive-controls")) {
+      document.activeElement.blur();
+    }
+
     document.body.classList.toggle("driver-mode", active);
     applyVisibility();
+
+    // Re-assert on the next paint so modal transitions or Safari's delayed
+    // pseudo-class updates cannot leave the UI in the stationary appearance.
+    requestAnimationFrame(() => {
+      document.body.classList.toggle("driver-mode", state.driverModeActive);
+      applyVisibility();
+    });
   }
 
   function updateDriverMode(trustedSpeed) {
@@ -1499,7 +1520,7 @@
     $("limitButton").classList.toggle("hidden-element", !all && !state.showLimit);
     // While moving, road name/source remain visible as evidence for the shown limit,
     // even when optional GPS diagnostics are hidden in the user's custom view.
-    const keepRoadEvidence = document.body.classList.contains("driver-mode");
+    const keepRoadEvidence = state.driverModeActive;
     $("gpsSection").classList.toggle("hidden-element", !keepRoadEvidence && !all && !state.showGps);
   }
 
