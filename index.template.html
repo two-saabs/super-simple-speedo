@@ -623,27 +623,40 @@
       text-overflow: ellipsis;
     }
     #source::before {
-      content: "✓";
+      content: "";
       flex: 0 0 auto;
       width: 18px;
       height: 18px;
+      box-sizing: border-box;
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: #666;
+      border: 2px solid #666;
       color: #d8d8d8;
       font-size: 12px;
       font-weight: 900;
       line-height: 1;
       letter-spacing: 0;
+      transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease;
+    }
+    #source.status-pending::before {
+      border-color: #777;
+      border-top-color: #ddd;
+      animation: sourceStatusSpin .9s linear infinite;
+    }
+    #source.status-neutral::before {
+      background: #555;
+      border-color: #555;
       box-shadow: 0 0 0 1px rgba(255,255,255,.05) inset;
-      transition: background .25s ease, color .25s ease, box-shadow .25s ease;
     }
     #source.limit-verified::before {
+      content: "✓";
       background: #34a853;
+      border-color: #34a853;
       color: #fff;
       box-shadow: 0 0 12px rgba(52,168,83,.28);
     }
+    @keyframes sourceStatusSpin { to { transform: rotate(360deg); } }
     #source.manual-source::before { display: none; }
     #gps,
     #matchPill { display: none !important; }
@@ -1138,7 +1151,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.17
+          Version 10.18
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1343,6 +1356,9 @@
     const dotEl = $("matchDot");
     if (stageEl) stageEl.textContent = labels[stage] || stage;
     if (dotEl) dotEl.classList.toggle("pulse", ["locating", "waiting", "collecting", "matching", "confirming"].includes(stage));
+    const pendingStages = ["locating", "waiting", "collecting", "matching", "confirming"];
+    sourceEl.classList.toggle("status-pending", pendingStages.includes(stage));
+    sourceEl.classList.toggle("status-neutral", ["nodata", "error"].includes(stage));
     sourceEl.classList.toggle("limit-verified", stage === "matched");
     if (gpsEl) gpsEl.textContent = detail;
   }
