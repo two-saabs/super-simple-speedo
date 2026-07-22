@@ -170,7 +170,10 @@
     }
 
     .status-pill {
-      display: inline-flex;
+      display: none;
+      /* Internal road-match state remains active, but the duplicate status
+         badge is intentionally hidden from the driving interface. */
+      align-items: center;
       align-items: center;
       gap: 7px;
       margin-top: 10px;
@@ -825,7 +828,7 @@
           <div id="source">Waiting for GPS</div>
           <div id="road">Tap Start GPS</div>
           <div id="gps">Automatic limit ready</div>
-          <div class="status-pill" id="matchPill"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
+          <div class="status-pill" id="matchPill" aria-hidden="true"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
         </div>
       </div>
     </section>
