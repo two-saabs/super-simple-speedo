@@ -598,12 +598,39 @@
     }
     .road-info { min-width: 0; }
     #source {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 13px;
       font-weight: 760;
       letter-spacing: .1em;
       text-transform: uppercase;
-      opacity: .48;
+      opacity: .56;
     }
+    #source::before {
+      content: "✓";
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #666;
+      color: #d8d8d8;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.05) inset;
+      transition: background .25s ease, color .25s ease, box-shadow .25s ease;
+    }
+    #source.limit-verified::before {
+      background: #34a853;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(52,168,83,.28);
+    }
+    #gps,
+    #matchPill { display: none !important; }
     #road {
       min-height: 31px;
       margin-top: 7px;
@@ -1093,7 +1120,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.13
+          Version 10.14
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1291,9 +1318,12 @@
       error: "Automatic limit unavailable"
     };
 
-    $("matchStage").textContent = labels[stage] || stage;
-    $("matchDot").classList.toggle("pulse", ["locating", "waiting", "collecting", "matching", "confirming"].includes(stage));
-    gpsEl.textContent = detail;
+    const stageEl = $("matchStage");
+    const dotEl = $("matchDot");
+    if (stageEl) stageEl.textContent = labels[stage] || stage;
+    if (dotEl) dotEl.classList.toggle("pulse", ["locating", "waiting", "collecting", "matching", "confirming"].includes(stage));
+    sourceEl.classList.toggle("limit-verified", stage === "matched");
+    if (gpsEl) gpsEl.textContent = detail;
   }
 
   function displayRoadName(rawRoadName) {
