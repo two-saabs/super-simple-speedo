@@ -194,9 +194,7 @@
     }
 
     .status-pill {
-      display: none;
-      /* Road-match state remains available internally, but is not duplicated
-         as a second status badge in the driving interface. */
+      display: inline-flex;
       align-items: center;
       gap: 7px;
       margin-top: 10px;
@@ -603,11 +601,16 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      min-width: 0;
+      height: 18px;
       font-size: 13px;
       font-weight: 760;
       letter-spacing: .1em;
       text-transform: uppercase;
       opacity: .56;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     #source::before {
       content: "✓";
@@ -631,19 +634,18 @@
       color: #fff;
       box-shadow: 0 0 12px rgba(52,168,83,.28);
     }
+    #source.manual-source::before { display: none; }
     #gps,
     #matchPill { display: none !important; }
     #road {
-      min-height: 31px;
+      height: 25px;
       margin-top: 7px;
       font-size: 21px;
-      line-height: 1.15;
+      line-height: 25px;
       font-weight: 690;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
     }
     #gps {
       margin-top: 9px;
@@ -982,7 +984,7 @@
           <div id="source">Waiting for GPS</div>
           <div id="road">Tap Start GPS</div>
           <div id="gps">Automatic limit ready</div>
-          <div class="status-pill" id="matchPill" aria-hidden="true"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
+          <div class="status-pill" id="matchPill"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
         </div>
       </div>
     </section>
@@ -1122,7 +1124,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.14
+          Version 10.15
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1271,6 +1273,8 @@
     lastLookupPosition: null,
     autoCandidates: [],
     acceptedAutoLimit: null,
+    acceptedAutoRoad: "",
+    roadMatchStage: "waiting",
     apiKey: "__GEOAPIFY_API_KEY__",
     sounds: localStorage.getItem("limitSounds") === "true",
     warning: localStorage.getItem("overspeedWarning") !== "false",
@@ -1314,12 +1318,13 @@
       waiting: "Finding location",
       collecting: "Checking road...",
       matching: "Checking road...",
-      confirming: "Likely road...",
+      confirming: "Potential road",
       matched: "Automatic limit",
-      nodata: "Still searching...",
-      error: "Automatic limit unavailable"
+      nodata: "No road identified",
+      error: "Lookup unavailable"
     };
 
+    state.roadMatchStage = stage;
     const stageEl = $("matchStage");
     const dotEl = $("matchDot");
     if (stageEl) stageEl.textContent = labels[stage] || stage;
@@ -1328,36 +1333,39 @@
     if (gpsEl) gpsEl.textContent = detail;
   }
 
-  function displayRoadName(rawRoadName) {
-    const technicalRoadValues = new Set([
-      "service_other",
-      "service other",
-      "service",
-      "other",
-      "unknown",
-      "unnamed road"
-    ]);
-    const cleaned = String(rawRoadName || "").replaceAll("_", " ").trim();
-    if (!cleaned || technicalRoadValues.has(cleaned.toLowerCase())) return "";
-    if (/^\d+[a-z]?$/i.test(cleaned)) return "";
+  function setAutomaticStatus(stage, message = "") {
+    const hasLastConfirmed = state.acceptedAutoLimit !== null;
+    setMatchStage(stage, "");
 
-    // House numbers make a provisional match look more certain than it is.
-    return cleaned.replace(/,\s*\d+[a-z]?$/i, "").trim();
-  }
-
-  function selectRoadName(step) {
-    const candidates = [
-      ["name", step?.name],
-      ["street", step?.street],
-      ["road", step?.road]
-    ];
-
-    for (const [selectedField, rawValue] of candidates) {
-      const roadName = displayRoadName(rawValue);
-      if (roadName) return { roadName, selectedField };
+    if (stage === "matched") {
+      sourceEl.textContent = "Automatic limit from:";
+      roadEl.textContent = message || state.acceptedAutoRoad || "Confirmed road";
+      return;
     }
 
-    return { roadName: "", selectedField: null };
+    if (stage === "error") {
+      sourceEl.textContent = hasLastConfirmed ? "Last confirmed limit" : "Automatic limit unavailable";
+      roadEl.textContent = "Lookup unavailable";
+      return;
+    }
+
+    sourceEl.textContent = hasLastConfirmed ? "Last confirmed limit" : "Automatic limit";
+    roadEl.textContent = message || ({
+      locating: "Finding location...",
+      waiting: "Connect GPS to begin",
+      collecting: "Checking road...",
+      matching: "Checking road...",
+      confirming: "Checking road...",
+      nodata: "No road identified"
+    }[stage] || "Checking road...");
+  }
+
+  function displayRoadName(rawRoadName) {
+    const technicalRoadValues = new Set(["service_other", "service", "other", "unknown"]);
+    const cleaned = String(rawRoadName || "").replaceAll("_", " ").trim();
+    if (!cleaned || technicalRoadValues.has(cleaned.toLowerCase())) return "";
+    // House numbers make a provisional match look more certain than it is.
+    return cleaned.replace(/,\s*\d+[a-z]?$/i, "");
   }
 
   function runLaunchSequence() {
@@ -1517,14 +1525,12 @@
     state.roadServiceStatus = "error";
     if (status === 401 || status === 403) {
       state.roadServiceMessage = "Road lookup is not authorised for this domain.";
-      sourceEl.textContent = "Automatic unavailable";
-      roadEl.textContent = "Geoapify access needs configuration";
-      setMatchStage("error", "Road lookup authentication failed");
+      setAutomaticStatus("error");
       statusEl.textContent = "GPS works, but automatic limits are unavailable (Geoapify authentication).";
       return;
     }
     state.roadServiceMessage = `Road service unavailable (${status})`;
-    setMatchStage("error", state.roadServiceMessage);
+    setAutomaticStatus("error");
   }
 
   async function validateRoadService(coords) {
@@ -1536,7 +1542,7 @@
     }
 
     state.roadServiceStatus = "checking";
-    setMatchStage("matching", "Checking automatic road lookup");
+    setAutomaticStatus("matching", "Checking road...");
     try {
       const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${encodeURIComponent(coords.latitude)}&lon=${encodeURIComponent(coords.longitude)}&format=json&apiKey=${encodeURIComponent(state.apiKey)}`;
       const response = await fetch(url, { method: "GET" });
@@ -1546,12 +1552,12 @@
       }
       state.roadServiceStatus = "ready";
       state.roadServiceMessage = "Automatic road lookup ready";
-      setMatchStage("collecting", "Automatic road lookup ready");
+      setAutomaticStatus("collecting", "Checking road...");
       return true;
     } catch (_) {
       state.roadServiceStatus = "unchecked";
       state.roadServiceMessage = "Could not verify road lookup yet";
-      setMatchStage("collecting", state.roadServiceMessage);
+      setAutomaticStatus("collecting", "Checking road...");
       return false;
     }
   }
@@ -1751,6 +1757,7 @@
     limitEl.textContent = nextLimit ?? "?";
     limitButton.classList.toggle("unknown", nextLimit === null);
     sourceEl.textContent = source;
+    sourceEl.classList.toggle("manual-source", state.mode === "manual");
     roadEl.textContent = road || (nextLimit ? "Speed limit selected" : "No mapped limit");
     document.body.classList.toggle(
       "over",
@@ -1774,10 +1781,13 @@
     state.mode = "auto";
     localStorage.setItem("limitMode", "auto");
     state.autoCandidates = [];
+    sourceEl.classList.remove("manual-source");
     if (state.acceptedAutoLimit) {
-      setLimit(state.acceptedAutoLimit, "Automatic", roadEl.textContent);
+      setLimit(state.acceptedAutoLimit, "Last confirmed limit", state.acceptedAutoRoad || "Checking road...");
+      setAutomaticStatus("matching", "Checking road...");
     } else {
-      setLimit(null, "Automatic", "Drive briefly to match the road");
+      setLimit(null, "Automatic limit", "Checking road...");
+      setAutomaticStatus("matching", "Checking road...");
     }
     closeModal(limitModal);
     showToast("Automatic limits enabled");
@@ -1895,11 +1905,7 @@
     };
     // Keep a confirmed road visible during background refreshes. On startup,
     // show one calm, confidence-based progress message.
-    if (!state.acceptedAutoLimit) {
-      sourceEl.textContent = "Checking road...";
-      roadEl.textContent = "Finding the best match";
-    }
-    setMatchStage("matching", "");
+    setAutomaticStatus("matching", "Checking road...");
 
     try {
       const sample = state.points.slice(-10);
@@ -1929,66 +1935,30 @@
       if (!step && legs.length) step = legs.at(-1)?.steps?.at(-1) || null;
 
       const value = Number(step?.speed_limit);
-      const { roadName, selectedField } = selectRoadName(step);
-
-      console.debug("[road lookup]", {
-        lookupTime: new Date().toISOString(),
-        latitude: currentCoords.latitude,
-        longitude: currentCoords.longitude,
-        status: response.status,
-        selectedRoadName: roadName || null,
-        selectedField,
-        step: {
-          name: step?.name ?? null,
-          street: step?.street ?? null,
-          road: step?.road ?? null,
-          roadClass: step?.road_class ?? null,
-          speedLimit: step?.speed_limit ?? null
-        }
-      });
+      const rawRoadName = step?.name || step?.road_class || "";
+      const roadName = displayRoadName(rawRoadName);
 
       if (Number.isFinite(value) && value > 0) {
         if (stableCandidate(Math.round(value))) {
           const previous = state.acceptedAutoLimit;
           state.acceptedAutoLimit = Math.round(value);
-
-          if (roadName) {
-            setLimit(value, "Automatic limit from:", roadName, {
-              chime: previous !== null && previous !== Math.round(value),
-              previous
-            });
-            setMatchStage("matched", "");
-          } else {
-            setLimit(value, "Automatic limit", "No road identified", {
-              chime: previous !== null && previous !== Math.round(value),
-              previous
-            });
-            // A usable limit was found, but the road identity was not confirmed.
-            setMatchStage("nodata", "Speed limit found, but no road name was identified");
-          }
+          state.acceptedAutoRoad = roadName || state.acceptedAutoRoad;
+          setLimit(value, "Automatic limit from:", state.acceptedAutoRoad || "Confirmed road", {
+            chime: previous !== null && previous !== Math.round(value),
+            previous
+          });
+          setAutomaticStatus("matched", state.acceptedAutoRoad);
         } else {
-          sourceEl.textContent = "Automatic limit";
-          roadEl.textContent = roadName ? `Potential road: ${roadName}` : "Checking road match...";
-          setMatchStage("confirming", "");
+          setAutomaticStatus("confirming", roadName ? `Potential road: ${roadName}` : "Checking road...");
         }
       } else {
-        sourceEl.textContent = "Automatic limit";
-        roadEl.textContent = roadName || "No road identified";
-        setMatchStage("nodata", roadName ? "No mapped limit — tap the sign" : "");
+        setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
       }
     } catch (error) {
       const status = Number(String(error.message).match(/service (\d+)/)?.[1]);
       if (status === 401 || status === 403) roadServiceFailure(status);
       else {
-        console.warn("[road lookup failed]", {
-          lookupTime: new Date().toISOString(),
-          latitude: currentCoords.latitude,
-          longitude: currentCoords.longitude,
-          message: error.message
-        });
-        sourceEl.textContent = "Automatic limit unavailable";
-        roadEl.textContent = "Road lookup temporarily unavailable";
-        setMatchStage("error", "");
+        setAutomaticStatus("error");
       }
     } finally {
       state.lookupBusy = false;
@@ -2200,11 +2170,7 @@
     statusEl.textContent = "";
 
     if (state.mode === "auto" && !state.lookupBusy && !state.acceptedAutoLimit) {
-      sourceEl.textContent = movedEnough ? "Checking road..." : "Finding your location...";
-      roadEl.textContent = movedEnough ? "Finding the best match" : "This usually takes a moment";
-      setMatchStage(movedEnough ? "collecting" : "locating", "");
-    } else if (!state.lookupBusy && state.acceptedAutoLimit) {
-      setMatchStage("matched", "");
+      setAutomaticStatus(movedEnough ? "collecting" : "locating");
     }
 
     if (shouldLookup(c, Date.now())) lookupSpeedLimit(c);
@@ -2213,20 +2179,14 @@
   function onError(error) {
     if (error.code === 1) {
       statusEl.textContent = "Location permission denied.";
-      sourceEl.textContent = "Automatic limit unavailable";
-      roadEl.textContent = "Location access blocked. Check your browser settings.";
-      setMatchStage("error", "");
+      setAutomaticStatus("error");
       return;
     }
 
     // Temporary GPS failures are not permission failures. Keep the language calm
     // because watchPosition may recover on the next update.
     statusEl.textContent = "";
-    sourceEl.textContent = "Finding your location...";
-    roadEl.textContent = error.code === 3
-      ? "GPS is taking a little longer than usual"
-      : "Waiting for a clearer GPS signal";
-    setMatchStage("locating", "");
+    setAutomaticStatus("locating", error.code === 3 ? "GPS taking longer..." : "Waiting for GPS signal...");
   }
 
   async function requestWakeLock() {
@@ -2297,9 +2257,15 @@
       document.querySelector(".drive-controls").classList.add("connected");
       playGreeting();
     }, 4000);
-    sourceEl.textContent = state.mode === "auto" ? "Finding your location..." : "Manual limit";
-    roadEl.textContent = state.mode === "auto" ? "This usually takes a moment" : "Tap the sign to change";
-    setMatchStage(state.mode === "auto" ? "locating" : "matched", "");
+    if (state.mode === "auto") {
+      sourceEl.classList.remove("manual-source");
+      setAutomaticStatus("locating");
+    } else {
+      sourceEl.textContent = "Manual limit";
+      sourceEl.classList.add("manual-source");
+      roadEl.textContent = "Tap the sign to change";
+      setMatchStage("matched", "");
+    }
     await requestWakeLock();
   }
 
@@ -2537,8 +2503,9 @@
     state.targetSpeed = 0;
     state.displayedSpeed = 0;
     state.acceptedAutoLimit = null;
-    setLimit(null, "Automatic", "Connect GPS to begin");
-    setMatchStage("waiting", "GPS disconnected");
+    state.acceptedAutoRoad = "";
+    setLimit(null, "Automatic limit", "Connect GPS to begin");
+    setAutomaticStatus("waiting", "Connect GPS to begin");
 
     $("disconnect").classList.add("hidden");
     startEl.textContent = "Connect GPS";
@@ -2560,8 +2527,8 @@
     const saved = Number(localStorage.getItem("manualLimit") || 50);
     setLimit(saved, "Manual limit", "Tap the sign to change");
   } else {
-    setLimit(null, "Automatic", "Tap Connect GPS to begin");
-    setMatchStage("waiting", "Move around 20 metres after starting");
+    setLimit(null, "Automatic limit", "Connect GPS to begin");
+    setAutomaticStatus("waiting", "Connect GPS to begin");
   }
 
 
