@@ -804,6 +804,30 @@
     }
 
     /* Driver mode: retain only speed, limit and road evidence while moving. */
+    .diagnostics-panel {
+      margin-top: 14px;
+      display: none;
+    }
+    .diagnostics-panel.show { display: block; }
+    .diagnostics-summary {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(127,127,127,.10);
+      max-height: 220px;
+      overflow: auto;
+    }
+    .diagnostics-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
     body.driver-mode header { opacity: .16; transition: opacity .25s ease; }
     body.driver-mode .app-title { visibility: hidden; }
     body.driver-mode #gps,
@@ -1021,25 +1045,6 @@
     </div>
 
     <div class="setting">
-      <div class="setting-row">
-        <div>
-          <div class="setting-title">Experimental mode</div>
-          <div class="setting-note">Preview new visual ideas without changing the simple default experience.</div>
-        </div>
-        <button class="switch" id="experimentalSwitch" aria-label="Toggle experimental mode"></button>
-      </div>
-    </div>
-
-    <div class="setting experimental-theme-setting" id="experimentalThemeSetting" aria-hidden="true">
-      <div class="setting-title">Theme</div>
-      <div class="setting-note">Modern adds a calm, Volvo-inspired blue accent.</div>
-      <div class="segmented">
-        <button class="segment-button" id="visualClassicButton">Classic</button>
-        <button class="segment-button" id="visualModernButton">Modern</button>
-      </div>
-    </div>
-
-    <div class="setting">
       <div class="setting-title">Visible elements</div>
       <div class="choice-list">
         <label class="choice-row"><input type="radio" name="viewMode" value="all" id="viewAll">View all</label>
@@ -1081,7 +1086,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.3
+          Version 10.11
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1119,7 +1124,43 @@
       </div>
     </div>
 
-    <!-- Driving section title removed -->
+    <div class="settings-section-title">Advanced and Experimental Features</div>
+
+    <div class="setting">
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">Experimental mode</div>
+          <div class="setting-note">Preview new visual ideas without changing the simple default experience.</div>
+        </div>
+        <button class="switch" id="experimentalSwitch" aria-label="Toggle experimental mode"></button>
+      </div>
+    </div>
+
+    <div class="setting experimental-theme-setting" id="experimentalThemeSetting" aria-hidden="true">
+      <div class="setting-title">Theme</div>
+      <div class="setting-note">Choose Classic or preview the calmer, Volvo-inspired Modern theme.</div>
+      <div class="segmented">
+        <button class="segment-button" id="visualClassicButton">Classic</button>
+        <button class="segment-button" id="visualModernButton">Modern</button>
+      </div>
+    </div>
+
+    <div class="setting">
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">GPS diagnostics</div>
+          <div class="setting-note">Private, on-device logging to explain why speed readings are accepted, held or rejected.</div>
+        </div>
+        <button class="switch" id="diagnosticsSwitch" aria-label="Toggle GPS diagnostics"></button>
+      </div>
+      <div class="diagnostics-panel" id="diagnosticsPanel">
+        <div class="diagnostics-summary" id="diagnosticsSummary">No GPS samples recorded yet.</div>
+        <div class="diagnostics-actions">
+          <button class="wide-button secondary" id="copyDiagnostics">Copy log</button>
+          <button class="wide-button secondary" id="clearDiagnostics">Clear log</button>
+        </div>
+      </div>
+    </div>
 
     <div class="setting">
       <button class="wide-button secondary" id="fullscreenButton">Enter full screen</button>
@@ -1218,7 +1259,13 @@
     lastStatsPosition: null,
     lastAcceptedSpeed: 0,
     lastSpeedTimestamp: null,
-    pendingHighSpeed: null
+    pendingHighSpeed: null,
+    lastGpsSample: null,
+    pendingSpeedCandidate: null,
+    driverModeActive: false,
+    driverExitTimer: null,
+    diagnosticsEnabled: localStorage.getItem("diagnosticsEnabled") === "true",
+    diagnosticLog: []
   };
 
 
@@ -1281,6 +1328,43 @@
 
 
 
+  function roundDiagnostic(value, decimals = 1) {
+    return Number.isFinite(value) ? Number(value.toFixed(decimals)) : null;
+  }
+
+  function addDiagnostic(entry) {
+    if (!state.diagnosticsEnabled) return;
+    state.diagnosticLog.push({
+      time: new Date().toISOString(),
+      ...entry
+    });
+    state.diagnosticLog = state.diagnosticLog.slice(-200);
+    updateDiagnosticsDisplay();
+  }
+
+  function updateDiagnosticsDisplay() {
+    const panel = $("diagnosticsPanel");
+    const output = $("diagnosticsSummary");
+    if (!panel || !output) return;
+    $("diagnosticsSwitch").classList.toggle("on", state.diagnosticsEnabled);
+    $("diagnosticsSwitch").setAttribute("aria-pressed", String(state.diagnosticsEnabled));
+    panel.classList.toggle("show", state.diagnosticsEnabled);
+    if (!state.diagnosticLog.length) {
+      output.textContent = "No GPS samples recorded yet.";
+      return;
+    }
+    output.textContent = state.diagnosticLog.slice(-12).map(item => {
+      const reasons = item.reasons?.length ? item.reasons.join(", ") : "none";
+      return [
+        item.time.slice(11, 19),
+        `raw ${item.rawKmh ?? "—"} · derived ${item.derivedKmh ?? "—"} · shown ${item.displayedKmh ?? "—"} km/h`,
+        `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m`,
+        `${item.decision}: ${reasons} · driver ${item.driverMode ? "ON" : "OFF"}`
+      ].join("\n");
+    }).join("\n\n");
+    output.scrollTop = output.scrollHeight;
+  }
+
   function saveStats() {
     localStorage.setItem("speedoStats", JSON.stringify(state.stats));
     updateStatsDisplay();
@@ -1317,12 +1401,39 @@
     document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
   }
 
-  const DRIVER_MODE_MIN_SPEED = 3;
+  const DRIVER_MODE_ENTER_SPEED = 3;
+  const DRIVER_MODE_EXIT_SPEED = 2;
+  const DRIVER_MODE_EXIT_DELAY_MS = 5000;
 
-  function setDriverMode(speed) {
-    const active = state.watchId !== null && speed >= DRIVER_MODE_MIN_SPEED;
+  function applyDriverMode(active) {
+    state.driverModeActive = active;
     document.body.classList.toggle("driver-mode", active);
     applyVisibility();
+  }
+
+  function updateDriverMode(trustedSpeed) {
+    if (state.watchId === null) {
+      if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
+      state.driverExitTimer = null;
+      applyDriverMode(false);
+      return;
+    }
+
+    if (trustedSpeed >= DRIVER_MODE_ENTER_SPEED) {
+      if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
+      state.driverExitTimer = null;
+      if (!state.driverModeActive) applyDriverMode(true);
+      return;
+    }
+
+    if (state.driverModeActive && trustedSpeed < DRIVER_MODE_EXIT_SPEED && !state.driverExitTimer) {
+      state.driverExitTimer = setTimeout(() => {
+        state.driverExitTimer = null;
+        if (state.watchId !== null && state.lastAcceptedSpeed < DRIVER_MODE_EXIT_SPEED) {
+          applyDriverMode(false);
+        }
+      }, DRIVER_MODE_EXIT_DELAY_MS);
+    }
   }
 
   function roadServiceFailure(status) {
@@ -1778,110 +1889,140 @@
 
   function onPosition(position) {
     const c = position.coords;
-    let kmh = (typeof c.speed === "number" && c.speed >= 0) ? c.speed * 3.6 : null;
-    const previous = state.points.at(-1);
+    const sampleTime = position.timestamp;
+    const previousGps = state.lastGpsSample;
+    let rawKmh = (typeof c.speed === "number" && c.speed >= 0) ? c.speed * 3.6 : null;
+    let derivedKmh = null;
+    let elapsedSeconds = null;
+    let movedMetres = null;
 
-    if (kmh === null && previous) {
-      const seconds = (position.timestamp - Date.parse(previous.timestamp)) / 1000;
-      if (seconds > .4) {
-        const metres = distanceMetres(
-          { latitude: previous.location[1], longitude: previous.location[0] }, c
-        );
-        kmh = metres / seconds * 3.6;
-      }
+    if (previousGps) {
+      elapsedSeconds = Math.max(.001, (sampleTime - previousGps.timestamp) / 1000);
+      movedMetres = distanceMetres(previousGps, c);
+      if (elapsedSeconds > .35) derivedKmh = movedMetres / elapsedSeconds * 3.6;
     }
 
-    if (kmh !== null && Number.isFinite(kmh)) {
-      if (kmh < 1.8) kmh = 0;
+    // Browser velocity is preferred. Coordinate-derived velocity is only a fallback,
+    // because poor horizontal accuracy can make position deltas misleading on trains.
+    let candidateKmh = rawKmh;
+    if (candidateKmh === null && derivedKmh !== null) candidateKmh = derivedKmh;
+    if (candidateKmh !== null && candidateKmh < 1.8) candidateKmh = 0;
 
-      // Cross-check browser-reported velocity against actual position movement.
-      // iOS can occasionally emit a single 200–300 km/h speed while stationary.
-      let derivedKmh = null;
-      if (previous) {
-        const seconds = (position.timestamp - Date.parse(previous.timestamp)) / 1000;
-        if (seconds > .4) {
-          const metres = distanceMetres(
-            { latitude: previous.location[1], longitude: previous.location[0] }, c
-          );
-          derivedKmh = metres / seconds * 3.6;
-        }
-      }
+    let decision = "NO_SPEED";
+    const reasons = [];
 
+    if (candidateKmh !== null && Number.isFinite(candidateKmh)) {
       const previousSpeed = state.lastAcceptedSpeed ?? 0;
-      const elapsed = state.lastSpeedTimestamp === null
+      const acceptedElapsed = state.lastSpeedTimestamp === null
         ? null
-        : Math.max(0.1, (position.timestamp - state.lastSpeedTimestamp) / 1000);
+        : Math.max(.1, (sampleTime - state.lastSpeedTimestamp) / 1000);
       const poorAccuracy = Number.isFinite(c.accuracy) && c.accuracy > 80;
-      const implausibleAbsoluteSpeed = kmh > 260;
-      const contradictedByMovement = derivedKmh !== null &&
-        kmh > 35 && derivedKmh < Math.max(12, kmh * .35);
-      const implausibleJump = elapsed !== null &&
-        Math.abs(kmh - previousSpeed) > Math.max(45, elapsed * 55);
+      const implausibleAbsoluteSpeed = candidateKmh > 260;
+      const strongMovementContradiction = !poorAccuracy && Number.isFinite(c.accuracy) && c.accuracy <= 50 &&
+        derivedKmh !== null && candidateKmh > 35 && derivedKmh < Math.max(8, candidateKmh * .25);
+      const implausibleJump = acceptedElapsed !== null &&
+        Math.abs(candidateKmh - previousSpeed) > Math.max(45, acceptedElapsed * 55);
 
-      // A high first reading must be confirmed by the next reading. This still
-      // permits launching the app while travelling quickly, but blocks one-off spikes.
-      let highSpeedConfirmed = true;
-      if (state.lastSpeedTimestamp === null && kmh > 80) {
-        const pending = state.pendingHighSpeed;
-        highSpeedConfirmed = Boolean(
-          pending &&
-          position.timestamp - pending.timestamp < 5000 &&
-          Math.abs(kmh - pending.kmh) < 25 &&
-          (derivedKmh === null || derivedKmh > 40)
-        );
-        state.pendingHighSpeed = { kmh, timestamp: position.timestamp };
-      } else if (kmh <= 80) {
-        state.pendingHighSpeed = null;
-      }
+      if (poorAccuracy) reasons.push("POOR_POSITION_ACCURACY");
+      if (implausibleAbsoluteSpeed) reasons.push("ABSOLUTE_SPEED_LIMIT");
+      if (strongMovementContradiction) reasons.push("MOVEMENT_CONTRADICTION");
+      if (implausibleJump) reasons.push("LARGE_SPEED_JUMP");
 
-      if (!poorAccuracy && !implausibleJump && !implausibleAbsoluteSpeed &&
-          !contradictedByMovement && highSpeedConfirmed) {
-        state.lastAcceptedSpeed = kmh;
-        state.lastSpeedTimestamp = position.timestamp;
-        state.targetSpeed = Math.min(260, kmh);
-        setDriverMode(kmh);
+      const needsConfirmation = !implausibleAbsoluteSpeed && (implausibleJump ||
+        (state.lastSpeedTimestamp === null && candidateKmh > 80));
+      let confirmed = !needsConfirmation;
+
+      if (needsConfirmation) {
+        const pending = state.pendingSpeedCandidate;
+        const tolerance = Math.max(12, candidateKmh * .20);
+        if (pending && sampleTime - pending.timestamp < 5000 &&
+            Math.abs(candidateKmh - pending.kmh) <= tolerance) {
+          pending.count += 1;
+          pending.kmh = (pending.kmh + candidateKmh) / 2;
+          pending.timestamp = sampleTime;
+          confirmed = pending.count >= 2;
+        } else {
+          state.pendingSpeedCandidate = { kmh: candidateKmh, timestamp: sampleTime, count: 1 };
+        }
+        if (!confirmed) reasons.push("AWAITING_CONFIRMATION");
       } else {
-        // Keep the last trustworthy reading and do not advance the accepted-speed
-        // timestamp; otherwise one bad reading can make the next good reading fail too.
-        state.targetSpeed = previousSpeed;
-        setDriverMode(previousSpeed);
+        state.pendingSpeedCandidate = null;
       }
+
+      // A reliable coordinate history can veto a high velocity while stationary.
+      // With poor position accuracy, consistent browser speed readings are allowed
+      // to confirm each other instead of being blocked by noisy coordinate deltas.
+      if (strongMovementContradiction) confirmed = false;
+
+      if (!implausibleAbsoluteSpeed && confirmed) {
+        state.lastAcceptedSpeed = candidateKmh;
+        state.lastSpeedTimestamp = sampleTime;
+        state.targetSpeed = Math.min(260, candidateKmh);
+        decision = needsConfirmation ? "ACCEPTED_CONFIRMED" : "ACCEPTED";
+        updateDriverMode(candidateKmh);
+      } else {
+        state.targetSpeed = previousSpeed;
+        decision = implausibleAbsoluteSpeed || strongMovementContradiction ? "REJECTED" : "HELD";
+        // A rejected or pending sample is not proof that the vehicle stopped.
+        updateDriverMode(previousSpeed);
+      }
+    } else {
+      updateDriverMode(state.lastAcceptedSpeed);
     }
+
+    addDiagnostic({
+      rawKmh: roundDiagnostic(rawKmh),
+      derivedKmh: roundDiagnostic(derivedKmh),
+      displayedKmh: roundDiagnostic(state.targetSpeed),
+      accuracyMetres: roundDiagnostic(c.accuracy, 0),
+      elapsedSeconds: roundDiagnostic(elapsedSeconds, 2),
+      distanceMetres: roundDiagnostic(movedMetres, 1),
+      previousAcceptedKmh: roundDiagnostic(state.lastAcceptedSpeed),
+      decision,
+      reasons,
+      driverMode: state.driverModeActive
+    });
+
+    // Keep speed validation independent from road-matching sampling.
+    state.lastGpsSample = {
+      latitude: c.latitude,
+      longitude: c.longitude,
+      timestamp: sampleTime,
+      rawKmh
+    };
 
     if (state.statisticsEnabled) {
       if (state.lastStatsPosition) {
         const segment = distanceMetres(state.lastStatsPosition, c);
-        const seconds = Math.max(.001, (position.timestamp - state.lastStatsPosition.timestamp) / 1000);
+        const seconds = Math.max(.001, (sampleTime - state.lastStatsPosition.timestamp) / 1000);
         const plausible = segment >= 2 && segment <= 250 && (segment / seconds) <= 75;
-        if (plausible && (kmh || 0) >= 2) {
+        if (plausible && state.lastAcceptedSpeed >= 2) {
           state.stats.metres += segment;
           if (Math.round(state.stats.metres) % 100 < segment) saveStats();
         }
       }
-      state.lastStatsPosition = { latitude: c.latitude, longitude: c.longitude, timestamp: position.timestamp };
+      state.lastStatsPosition = { latitude: c.latitude, longitude: c.longitude, timestamp: sampleTime };
     } else {
       state.lastStatsPosition = null;
     }
 
     if (state.roadServiceStatus === "unchecked") validateRoadService(c);
 
+    const previousRoadPoint = state.points.at(-1);
     const point = {
-      timestamp: new Date(position.timestamp).toISOString(),
+      timestamp: new Date(sampleTime).toISOString(),
       location: [c.longitude, c.latitude]
     };
     if (typeof c.heading === "number" && c.heading >= 0) point.bearing = c.heading;
 
-    if (!previous || distanceMetres(
-      { latitude: previous.location[1], longitude: previous.location[0] }, c
+    if (!previousRoadPoint || distanceMetres(
+      { latitude: previousRoadPoint.location[1], longitude: previousRoadPoint.location[0] }, c
     ) >= 4) {
       state.points.push(point);
       state.points = state.points.slice(-14);
     }
 
     const movedEnough = state.points.length >= 2;
-
-    // Any successful position proves permission is currently available, so clear
-    // stale browser-permission messages immediately.
     statusEl.textContent = "";
 
     if (state.mode === "auto" && !state.lookupBusy && !state.acceptedAutoLimit) {
@@ -1943,6 +2084,11 @@
     state.lastAcceptedSpeed = 0;
     state.lastSpeedTimestamp = null;
     state.pendingHighSpeed = null;
+    state.pendingSpeedCandidate = null;
+    state.lastGpsSample = null;
+    if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
+    state.driverExitTimer = null;
+    state.driverModeActive = false;
     state.targetSpeed = 0;
     state.displayedSpeed = 0;
     if (state.statisticsEnabled) {
@@ -2161,6 +2307,29 @@
     showToast("Statistics reset");
   });
 
+  $("diagnosticsSwitch").addEventListener("click", () => {
+    state.diagnosticsEnabled = !state.diagnosticsEnabled;
+    localStorage.setItem("diagnosticsEnabled", String(state.diagnosticsEnabled));
+    updateDiagnosticsDisplay();
+    showToast(state.diagnosticsEnabled ? "GPS diagnostics on" : "GPS diagnostics off");
+  });
+
+  $("copyDiagnostics").addEventListener("click", async () => {
+    const text = JSON.stringify(state.diagnosticLog, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("Diagnostic log copied");
+    } catch (_) {
+      showToast("Could not copy diagnostic log");
+    }
+  });
+
+  $("clearDiagnostics").addEventListener("click", () => {
+    state.diagnosticLog = [];
+    updateDiagnosticsDisplay();
+    showToast("Diagnostic log cleared");
+  });
+
   async function disconnectDrive() {
     if (state.driveStartedAt) {
       state.stats.milliseconds += Date.now() - state.driveStartedAt;
@@ -2168,6 +2337,9 @@
       saveStats();
     }
     state.lastStatsPosition = null;
+    if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
+    state.driverExitTimer = null;
+    state.driverModeActive = false;
     document.body.classList.remove("driver-mode");
     if (state.watchId !== null) {
       navigator.geolocation.clearWatch(state.watchId);
@@ -2183,6 +2355,8 @@
     state.lastAcceptedSpeed = 0;
     state.lastSpeedTimestamp = null;
     state.pendingHighSpeed = null;
+    state.pendingSpeedCandidate = null;
+    state.lastGpsSample = null;
     state.lookupBusy = false;
     state.lastLookupAt = 0;
     state.lastLookupPosition = null;
@@ -2219,8 +2393,22 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js")
-        .then(registration => registration.update())
+      navigator.serviceWorker.register("/service-worker.js?v=10.11")
+        .then(registration => {
+          registration.update();
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: "SKIP_WAITING" });
+          }
+          registration.addEventListener("updatefound", () => {
+            const worker = registration.installing;
+            if (!worker) return;
+            worker.addEventListener("statechange", () => {
+              if (worker.state === "installed" && navigator.serviceWorker.controller) {
+                worker.postMessage({ type: "SKIP_WAITING" });
+              }
+            });
+          });
+        })
         .catch(() => {});
     });
   }
@@ -2230,6 +2418,7 @@
   applyTheme();
   applyExperimentalSettings();
   applyStatisticsSettings();
+  updateDiagnosticsDisplay();
   applyVisibility();
   applyAudioSettings();
   updateStatsDisplay();
