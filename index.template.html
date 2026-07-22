@@ -1086,7 +1086,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.11
+          Version 10.12
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1358,7 +1358,7 @@
       return [
         item.time.slice(11, 19),
         `raw ${item.rawKmh ?? "—"} · derived ${item.derivedKmh ?? "—"} · shown ${item.displayedKmh ?? "—"} km/h`,
-        `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m`,
+        `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m · confidence ${item.movementConfidence ?? "—"}×`,
         `${item.decision}: ${reasons} · driver ${item.driverMode ? "ON" : "OFF"}`
       ].join("\n");
     }).join("\n\n");
@@ -1902,56 +1902,119 @@
       if (elapsedSeconds > .35) derivedKmh = movedMetres / elapsedSeconds * 3.6;
     }
 
-    // Browser velocity is preferred. Coordinate-derived velocity is only a fallback,
-    // because poor horizontal accuracy can make position deltas misleading on trains.
+    // Browser velocity is preferred. Coordinate-derived velocity is only a fallback.
+    // Indoor GPS can jump tens of metres while the phone is stationary, so derived
+    // speed must pass stricter confidence and continuity checks.
     let candidateKmh = rawKmh;
     if (candidateKmh === null && derivedKmh !== null) candidateKmh = derivedKmh;
     if (candidateKmh !== null && candidateKmh < 1.8) candidateKmh = 0;
 
     let decision = "NO_SPEED";
     const reasons = [];
+    const previousAcceptedKmh = state.lastAcceptedSpeed ?? 0;
 
     if (candidateKmh !== null && Number.isFinite(candidateKmh)) {
-      const previousSpeed = state.lastAcceptedSpeed ?? 0;
+      const previousSpeed = previousAcceptedKmh;
       const acceptedElapsed = state.lastSpeedTimestamp === null
         ? null
         : Math.max(.1, (sampleTime - state.lastSpeedTimestamp) / 1000);
       const poorAccuracy = Number.isFinite(c.accuracy) && c.accuracy > 80;
       const implausibleAbsoluteSpeed = candidateKmh > 260;
+      const derivedOnly = rawKmh === null && derivedKmh !== null;
+      const previousAccuracy = Number.isFinite(previousGps?.accuracy) ? previousGps.accuracy : c.accuracy;
+      const combinedAccuracy = Math.max(
+        Number.isFinite(c.accuracy) ? c.accuracy : 0,
+        Number.isFinite(previousAccuracy) ? previousAccuracy : 0
+      );
+      const movementConfidence = movedMetres !== null && combinedAccuracy > 0
+        ? movedMetres / combinedAccuracy
+        : null;
+
       const strongMovementContradiction = !poorAccuracy && Number.isFinite(c.accuracy) && c.accuracy <= 50 &&
         derivedKmh !== null && candidateKmh > 35 && derivedKmh < Math.max(8, candidateKmh * .25);
       const implausibleJump = acceptedElapsed !== null &&
         Math.abs(candidateKmh - previousSpeed) > Math.max(45, acceptedElapsed * 55);
 
+      // A derived driving speed is not trustworthy when the displacement is still
+      // small compared with the GPS uncertainty radius. This is the indoor-jump case.
+      const uncertainDerivedMovement = derivedOnly && candidateKmh >= DRIVER_MODE_ENTER_SPEED &&
+        movedMetres !== null && movedMetres < Math.max(50, combinedAccuracy * 2.5);
+      const unconfirmedStartFromStationary = derivedOnly && previousSpeed < DRIVER_MODE_EXIT_SPEED &&
+        candidateKmh >= DRIVER_MODE_ENTER_SPEED;
+      const suddenDerivedStop = derivedOnly && previousSpeed >= DRIVER_MODE_ENTER_SPEED &&
+        candidateKmh <= 2 && acceptedElapsed !== null && acceptedElapsed < 2.5;
+
       if (poorAccuracy) reasons.push("POOR_POSITION_ACCURACY");
       if (implausibleAbsoluteSpeed) reasons.push("ABSOLUTE_SPEED_LIMIT");
       if (strongMovementContradiction) reasons.push("MOVEMENT_CONTRADICTION");
       if (implausibleJump) reasons.push("LARGE_SPEED_JUMP");
+      if (uncertainDerivedMovement) reasons.push("GPS_DISPLACEMENT_UNCERTAIN");
+      if (unconfirmedStartFromStationary) reasons.push("START_FROM_STATIONARY_UNCONFIRMED");
+      if (suddenDerivedStop) reasons.push("STOP_UNCONFIRMED");
 
-      const needsConfirmation = !implausibleAbsoluteSpeed && (implausibleJump ||
-        (state.lastSpeedTimestamp === null && candidateKmh > 80));
+      const needsConfirmation = !implausibleAbsoluteSpeed && (
+        implausibleJump ||
+        uncertainDerivedMovement ||
+        unconfirmedStartFromStationary ||
+        suddenDerivedStop ||
+        (state.lastSpeedTimestamp === null && candidateKmh > 80)
+      );
       let confirmed = !needsConfirmation;
 
       if (needsConfirmation) {
         const pending = state.pendingSpeedCandidate;
-        const tolerance = Math.max(12, candidateKmh * .20);
-        if (pending && sampleTime - pending.timestamp < 5000 &&
-            Math.abs(candidateKmh - pending.kmh) <= tolerance) {
+        const tolerance = Math.max(15, candidateKmh * .35);
+        let directionConsistent = true;
+
+        if (derivedOnly && pending?.segment && previousGps) {
+          const metresPerLat = 111320;
+          const metresPerLon = metresPerLat * Math.cos(c.latitude * Math.PI / 180);
+          const oldX = (pending.segment.toLon - pending.segment.fromLon) * metresPerLon;
+          const oldY = (pending.segment.toLat - pending.segment.fromLat) * metresPerLat;
+          const newX = (c.longitude - previousGps.longitude) * metresPerLon;
+          const newY = (c.latitude - previousGps.latitude) * metresPerLat;
+          const oldLength = Math.hypot(oldX, oldY);
+          const newLength = Math.hypot(newX, newY);
+          if (oldLength > 3 && newLength > 3) {
+            const cosine = (oldX * newX + oldY * newY) / (oldLength * newLength);
+            directionConsistent = cosine > 0;
+          }
+        }
+
+        if (!directionConsistent) reasons.push("INCONSISTENT_DIRECTION");
+
+        if (pending && sampleTime - pending.timestamp < 7000 &&
+            Math.abs(candidateKmh - pending.kmh) <= tolerance && directionConsistent) {
           pending.count += 1;
           pending.kmh = (pending.kmh + candidateKmh) / 2;
           pending.timestamp = sampleTime;
-          confirmed = pending.count >= 2;
+          pending.segment = previousGps ? {
+            fromLat: previousGps.latitude,
+            fromLon: previousGps.longitude,
+            toLat: c.latitude,
+            toLon: c.longitude
+          } : null;
+          // Derived-only movement needs three consistent samples. Native browser
+          // velocity still needs only two because it is already sensor-filtered.
+          confirmed = pending.count >= (derivedOnly ? 3 : 2);
         } else {
-          state.pendingSpeedCandidate = { kmh: candidateKmh, timestamp: sampleTime, count: 1 };
+          state.pendingSpeedCandidate = {
+            kmh: candidateKmh,
+            timestamp: sampleTime,
+            count: 1,
+            segment: previousGps ? {
+              fromLat: previousGps.latitude,
+              fromLon: previousGps.longitude,
+              toLat: c.latitude,
+              toLon: c.longitude
+            } : null
+          };
         }
         if (!confirmed) reasons.push("AWAITING_CONFIRMATION");
       } else {
         state.pendingSpeedCandidate = null;
       }
 
-      // A reliable coordinate history can veto a high velocity while stationary.
-      // With poor position accuracy, consistent browser speed readings are allowed
-      // to confirm each other instead of being blocked by noisy coordinate deltas.
       if (strongMovementContradiction) confirmed = false;
 
       if (!implausibleAbsoluteSpeed && confirmed) {
@@ -1977,7 +2040,10 @@
       accuracyMetres: roundDiagnostic(c.accuracy, 0),
       elapsedSeconds: roundDiagnostic(elapsedSeconds, 2),
       distanceMetres: roundDiagnostic(movedMetres, 1),
-      previousAcceptedKmh: roundDiagnostic(state.lastAcceptedSpeed),
+      movementConfidence: previousGps && movedMetres !== null
+        ? roundDiagnostic(movedMetres / Math.max(1, c.accuracy, previousGps.accuracy || 0), 2)
+        : null,
+      previousAcceptedKmh: roundDiagnostic(previousAcceptedKmh),
       decision,
       reasons,
       driverMode: state.driverModeActive
