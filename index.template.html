@@ -608,9 +608,6 @@
     }
     .road-info { min-width: 0; }
     #source {
-      display: flex;
-      align-items: center;
-      gap: 8px;
       min-width: 0;
       height: 18px;
       font-size: 13px;
@@ -622,47 +619,11 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    #source::before {
-      content: "";
-      flex: 0 0 auto;
-      width: 18px;
-      height: 18px;
-      box-sizing: border-box;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      border: 2px solid #666;
-      color: #d8d8d8;
-      font-size: 12px;
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: 0;
-      transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease;
-    }
-    #source.status-pending::before {
-      border-color: #777;
-      border-top-color: #ddd;
-      animation: sourceStatusSpin .9s linear infinite;
-    }
-    #source.status-neutral::before {
-      background: #555;
-      border-color: #555;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.05) inset;
-    }
-    #source.limit-verified::before {
-      content: "✓";
-      background: #34a853;
-      border-color: #34a853;
-      color: #fff;
-      box-shadow: 0 0 12px rgba(52,168,83,.28);
-    }
-    @keyframes sourceStatusSpin { to { transform: rotate(360deg); } }
-    #source.manual-source::before { display: none; }
     #gps,
     #matchPill { display: none !important; }
     #road {
       height: 25px;
-      margin-top: 7px;
+      margin-top: 4px;
       font-size: 21px;
       line-height: 25px;
       font-weight: 690;
@@ -670,6 +631,19 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    #roadConfidence {
+      min-height: 20px;
+      margin-top: 7px;
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 700;
+      opacity: .74;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #roadConfidence.confirmed { opacity: .9; }
+    #roadConfidence.estimate { opacity: .62; }
     #gps {
       margin-top: 9px;
       font-size: 13px;
@@ -1010,6 +984,7 @@
         <div class="road-info" id="gpsSection">
           <div id="source">Waiting for GPS</div>
           <div id="road">Tap Start GPS</div>
+          <div id="roadConfidence"></div>
           <div id="gps">Automatic limit ready</div>
           <div class="status-pill" id="matchPill"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
         </div>
@@ -1280,6 +1255,7 @@
   const limitButton = $("limitButton");
   const sourceEl = $("source");
   const roadEl = $("road");
+  const roadConfidenceEl = $("roadConfidence");
   const gpsEl = $("gps");
   const statusEl = $("status");
   const startEl = $("start");
@@ -1347,8 +1323,8 @@
       waiting: "Finding road",
       collecting: "Checking road...",
       matching: "Checking road...",
-      confirming: "Potential road",
-      matched: "Automatic limit",
+      confirming: "Best estimate",
+      matched: "Confirmed",
       nodata: "No road identified",
       error: "Lookup unavailable"
     };
@@ -1357,12 +1333,14 @@
     const stageEl = $("matchStage");
     const dotEl = $("matchDot");
     if (stageEl) stageEl.textContent = labels[stage] || stage;
-    if (dotEl) dotEl.classList.toggle("pulse", ["locating", "waiting", "collecting", "matching", "confirming"].includes(stage));
-    const pendingStages = ["locating", "waiting", "collecting", "matching", "confirming"];
-    sourceEl.classList.toggle("status-pending", pendingStages.includes(stage));
-    sourceEl.classList.toggle("status-neutral", ["nodata", "error"].includes(stage));
-    sourceEl.classList.toggle("limit-verified", stage === "matched");
+    if (dotEl) dotEl.classList.toggle("pulse", ["locating", "waiting", "collecting", "matching"].includes(stage));
     if (gpsEl) gpsEl.textContent = detail;
+  }
+
+  function setRoadConfidence(kind, text = "") {
+    if (!roadConfidenceEl) return;
+    roadConfidenceEl.className = kind || "";
+    roadConfidenceEl.textContent = text;
   }
 
   function setAutomaticStatus(stage, message = "") {
@@ -1370,26 +1348,35 @@
     setMatchStage(stage, "");
 
     if (stage === "matched") {
-      sourceEl.textContent = "Automatic limit from:";
+      sourceEl.textContent = "From:";
       roadEl.textContent = message || state.acceptedAutoRoad || "Confirmed road";
+      setRoadConfidence("confirmed", "✅ Confirmed");
+      return;
+    }
+
+    if (stage === "confirming" && message) {
+      sourceEl.textContent = "From:";
+      roadEl.textContent = message;
+      setRoadConfidence("estimate", "⚪ Best estimate");
       return;
     }
 
     if (stage === "error") {
-      sourceEl.textContent = hasLastConfirmed ? "Last confirmed limit" : "Automatic limit unavailable";
-      roadEl.textContent = "Lookup unavailable";
+      sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit unavailable";
+      roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : "Lookup unavailable";
+      setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "✅ Confirmed" : "");
       return;
     }
 
-    sourceEl.textContent = hasLastConfirmed ? "Last confirmed limit" : "Automatic limit";
-    roadEl.textContent = message || ({
+    sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit";
+    roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : (message || ({
       locating: "Finding road...",
       waiting: "Connect GPS to begin",
       collecting: "Checking road...",
       matching: "Checking road...",
-      confirming: "Checking road...",
       nodata: "No road identified"
-    }[stage] || "Checking road...");
+    }[stage] || "Checking road..."));
+    setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "✅ Confirmed" : "");
   }
 
   function displayRoadName(rawRoadName) {
@@ -1488,8 +1475,8 @@
       return [
         (item.timeUtc || item.time || "").slice(11, 19),
         item.event ? `${item.event}: ${item.reason || item.roadDecision?.reason || ""}` : `raw ${item.rawKmh ?? "—"} · derived ${item.derivedKmh ?? "—"} · shown ${item.displayedKmh ?? "—"} km/h`,
-        item.event ? `driver UI ${item.driverUiActive === true ? "ON" : item.driverUiActive === false ? "OFF" : "—"}` : `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m · confidence ${item.movementConfidence ?? "—"}×`,
-        item.event ? "" : `${item.decision}: ${reasons} · driver UI ${item.driverUiActive ? "ON" : "OFF"}`
+        item.event ? `driver UI ${item.driverUiActive === true ? "ON" : item.driverUiActive === false ? "OFF" : "—"}` : `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m · movement score ${item.movementScore ?? "—"}×`,
+        item.event ? "" : `${item.speedDecision || item.decision}: ${reasons} · source ${item.speedSource || "—"} · driver UI ${item.driverUiActive ? "ON" : "OFF"}`
       ].join("\n");
     }).join("\n\n");
     output.scrollTop = output.scrollHeight;
@@ -1823,6 +1810,7 @@
     sourceEl.textContent = source;
     sourceEl.classList.toggle("manual-source", state.mode === "manual");
     roadEl.textContent = road || (nextLimit ? "Speed limit selected" : "No mapped limit");
+    if (state.mode === "manual") setRoadConfidence("", "");
     document.body.classList.toggle(
       "over",
       nextLimit !== null && Math.round(state.displayedSpeed) > nextLimit
@@ -2010,8 +1998,13 @@
       const rawRoadName = step?.name || step?.road_class || "";
       const roadName = displayRoadName(rawRoadName);
 
+      const previousConfirmedLimit = state.acceptedAutoLimit;
+      const previousConfirmedRoad = state.acceptedAutoRoad || null;
+      let roadOutcome = "NO_LIMIT";
+
       if (Number.isFinite(value) && value > 0) {
         if (stableCandidate(Math.round(value))) {
+          roadOutcome = "CONFIRMED";
           const previous = state.acceptedAutoLimit;
           state.acceptedAutoLimit = Math.round(value);
           state.acceptedAutoRoad = roadName || state.acceptedAutoRoad;
@@ -2021,7 +2014,8 @@
           });
           setAutomaticStatus("matched", state.acceptedAutoRoad);
         } else {
-          setAutomaticStatus("confirming", roadName ? `Potential road: ${roadName}` : "Checking road...");
+          roadOutcome = "BEST_ESTIMATE";
+          setAutomaticStatus("confirming", roadName || "");
         }
       } else {
         setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
@@ -2046,9 +2040,13 @@
           matchType: latest?.match_type || (step ? "matched" : "unmatched")
         },
         roadDecision: {
-          previousConfirmedLimit: state.acceptedAutoLimit,
-          previousConfirmedRoad: state.acceptedAutoRoad || null,
+          previousConfirmedLimit,
+          previousConfirmedRoad,
+          outcome: roadOutcome,
+          displayedLimit: state.acceptedAutoLimit,
+          displayedRoad: state.acceptedAutoRoad || null,
           candidate: Number.isFinite(value) ? { limit: Math.round(value), road: roadName || null } : null,
+          candidateHistory: [...state.autoCandidates],
           validRoadName: Boolean(roadName)
         },
         durationMs: Math.round(performance.now() - lookupStartedAt)
@@ -2248,10 +2246,17 @@
       accuracyMetres: roundDiagnostic(c.accuracy, 0),
       elapsedSeconds: roundDiagnostic(elapsedSeconds, 2),
       distanceMetres: roundDiagnostic(movedMetres, 1),
-      movementConfidence: previousGps && movedMetres !== null
+      movementScore: previousGps && movedMetres !== null
         ? roundDiagnostic(movedMetres / Math.max(1, c.accuracy, previousGps.accuracy || 0), 2)
         : null,
+      speedSource: rawKmh !== null ? "NATIVE_GPS" : derivedKmh !== null ? "POSITION_DERIVED" : "NONE",
+      displayDecision: state.targetSpeed === 0 && derivedKmh !== null && derivedKmh >= DRIVER_MODE_ENTER_SPEED
+        ? "HELD_AT_ZERO"
+        : state.targetSpeed === previousAcceptedKmh && decision === "HELD"
+          ? "HELD_PREVIOUS_SPEED"
+          : "UPDATED",
       previousAcceptedKmh: roundDiagnostic(previousAcceptedKmh),
+      speedDecision: decision,
       decision,
       reasons,
       driverUiActive: state.driverModeActive
