@@ -24,6 +24,8 @@
       --soft-border: rgba(255,255,255,.12);
       --accent: #fff;
       --accent-soft: rgba(255,255,255,.12);
+      --good: #237a43;
+      --danger: #ff453a;
     }
     body.light {
       color-scheme: light;
@@ -562,7 +564,7 @@
       margin: 1.5vh 0 0;
     }
     #speed.bump { transform: scale(1.004); }
-    body.over #speed, body.modern-theme.over #speed { color: #ff453a; }
+    body.over #speed, body.modern-theme.over #speed { color: var(--danger); }
     .unit {
       margin-top: 12px;
       font-size: 20px;
@@ -583,7 +585,7 @@
       position: relative;
       width: 138px; height: 138px;
       border-radius: 50%;
-      border: 11px solid #d9151d;
+      border: 11px solid var(--danger);
       background: #fff; color: #050505;
       display: grid; place-items: center;
       padding: 0;
@@ -644,6 +646,29 @@
     }
     #roadConfidence.confirmed { opacity: .9; }
     #roadConfidence.estimate { opacity: .62; }
+    #roadConfidence.confirmed::before,
+    #roadConfidence.estimate::before {
+      content: "";
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      margin-right: 6px;
+      border-radius: 50%;
+      vertical-align: -3px;
+      box-sizing: border-box;
+    }
+    #roadConfidence.confirmed::before {
+      content: "✓";
+      background: var(--good);
+      color: rgba(255,255,255,.72);
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 900;
+    }
+    #roadConfidence.estimate::before {
+      background: #8a8a8a;
+    }
     #gps {
       margin-top: 9px;
       font-size: 13px;
@@ -856,8 +881,17 @@
       margin-top: 10px;
     }
 
-    body.driver-mode header { opacity: .16; transition: opacity .25s ease; }
-    body.driver-mode .app-title { visibility: hidden; }
+    header,
+    .drive-controls,
+    .app-title {
+      transition: opacity .55s ease, visibility 0s linear 0s;
+    }
+    body.driver-mode header { opacity: .16; }
+    body.driver-mode .app-title {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .55s ease, visibility 0s linear .55s;
+    }
     body.driver-mode #gps,
     body.driver-mode #matchPill,
     body.driver-mode #status { display: none; }
@@ -873,7 +907,6 @@
     body.driver-mode footer { min-height: 8px; }
     body.driver-mode .drive-controls {
       opacity: .07;
-      transition: opacity .25s ease;
     }
     /* Avoid sticky :hover / :focus states on iPhone keeping controls fully visible
        after GPS is connected. Only reveal on devices with a real hover pointer. */
@@ -1126,7 +1159,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 10.19
+          Build v1.10.13
         </div>
 
         <div style="margin-top:18px;font-size:18px;font-weight:780;">
@@ -1350,21 +1383,21 @@
     if (stage === "matched") {
       sourceEl.textContent = "From:";
       roadEl.textContent = message || state.acceptedAutoRoad || "Confirmed road";
-      setRoadConfidence("confirmed", "✅ Confirmed");
+      setRoadConfidence("confirmed", "Confirmed");
       return;
     }
 
     if (stage === "confirming" && message) {
       sourceEl.textContent = "From:";
       roadEl.textContent = message;
-      setRoadConfidence("estimate", "⚪ Best estimate");
+      setRoadConfidence("estimate", "Best estimate");
       return;
     }
 
     if (stage === "error") {
       sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit unavailable";
       roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : "Lookup unavailable";
-      setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "✅ Confirmed" : "");
+      setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
       return;
     }
 
@@ -1376,7 +1409,7 @@
       matching: "Checking road...",
       nodata: "No road identified"
     }[stage] || "Checking road..."));
-    setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "✅ Confirmed" : "");
+    setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
   }
 
   function displayRoadName(rawRoadName) {
