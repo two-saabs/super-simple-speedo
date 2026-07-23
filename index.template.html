@@ -25,7 +25,7 @@
       --accent: #fff;
       --accent-soft: rgba(255,255,255,.12);
       --good: #237a43;
-      --danger: #ff453a;
+      --danger: #a3101b;
     }
     body.light {
       color-scheme: light;
@@ -636,6 +636,9 @@
     #roadConfidence {
       min-height: 20px;
       margin-top: 7px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 14px;
       line-height: 20px;
       font-weight: 700;
@@ -653,9 +656,8 @@
       place-items: center;
       width: 18px;
       height: 18px;
-      margin-right: 6px;
+      flex: 0 0 18px;
       border-radius: 50%;
-      vertical-align: -3px;
       box-sizing: border-box;
     }
     #roadConfidence.confirmed::before {
