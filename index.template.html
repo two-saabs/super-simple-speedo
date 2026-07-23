@@ -1175,14 +1175,15 @@
         <div style="margin-top:18px;line-height:1.6;opacity:.8;">
           No accounts.<br>
           No adverts.<br>
-          No tracking.
+          No behavioural tracking.
         </div>
 
         <div style="margin-top:18px;">
           Designed and built with ❤️ in Zurich 🇨🇭
         </div>
 
-        <div style="margin-top:18px;opacity:.7;">
+        <div style="margin-top:18px;opacity:.7;line-height:1.5;">
+          Location is sent only to Geoapify when automatic road matching is enabled.<br>
           Road intelligence powered by Geoapify.
         </div>
 
@@ -1229,6 +1230,7 @@
         <button class="switch" id="diagnosticsSwitch" aria-label="Toggle GPS diagnostics"></button>
       </div>
       <div class="diagnostics-panel" id="diagnosticsPanel">
+        <div class="setting-note" style="margin-bottom:10px;">Diagnostic logs may contain precise locations and travel history. Review them before sharing.</div>
         <div class="diagnostics-summary" id="diagnosticsSummary">No GPS samples recorded yet.</div>
         <div class="diagnostics-actions">
           <button class="wide-button secondary" id="copyDiagnostics">Copy log</button>
@@ -1299,40 +1301,86 @@
   const iosInstallModal = $("iosInstallModal");
   let deferredInstallPrompt = null;
 
+  const allowedSettings = {
+    limitMode: new Set(["auto", "manual"]),
+    warningStyle: new Set(["voice", "beep"]),
+    beepType: new Set(["elegant", "classic", "soft"]),
+    speedoTheme: new Set(["dark", "light"]),
+    visualTheme: new Set(["classic", "modern"]),
+    speedoViewMode: new Set(["all", "custom"])
+  };
+
+  function safeStoredChoice(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      return value && allowedSettings[key]?.has(value) ? value : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function safeStoredBoolean(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      if (value === "true") return true;
+      if (value === "false") return false;
+      return fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function loadStats() {
+    const fallback = { trips: 0, milliseconds: 0, metres: 0 };
+    try {
+      const parsed = JSON.parse(localStorage.getItem("speedoStats") || "null");
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return fallback;
+      return {
+        trips: Number.isFinite(parsed.trips) && parsed.trips >= 0 ? parsed.trips : 0,
+        milliseconds: Number.isFinite(parsed.milliseconds) && parsed.milliseconds >= 0 ? parsed.milliseconds : 0,
+        metres: Number.isFinite(parsed.metres) && parsed.metres >= 0 ? parsed.metres : 0
+      };
+    } catch (_) {
+      try { localStorage.removeItem("speedoStats"); } catch (_) {}
+      return fallback;
+    }
+  }
+
   const state = {
     displayedSpeed: 0,
     targetSpeed: 0,
     limit: null,
-    mode: localStorage.getItem("limitMode") || "auto",
+    mode: safeStoredChoice("limitMode", "auto"),
     watchId: null,
     points: [],
     lookupBusy: false,
     lastLookupAt: 0,
     lastLookupPosition: null,
-    autoCandidates: [],
+    limitCandidates: [],
+    roadCandidates: [],
     acceptedAutoLimit: null,
     acceptedAutoRoad: "",
     roadMatchStage: "waiting",
     apiKey: "__GEOAPIFY_API_KEY__",
-    sounds: localStorage.getItem("limitSounds") === "true",
-    warning: localStorage.getItem("overspeedWarning") !== "false",
-    greetingAudio: localStorage.getItem("greetingAudio") !== "false",
-    warningStyle: localStorage.getItem("warningStyle") || "voice",
-    beepType: localStorage.getItem("beepType") || "elegant",
-    theme: localStorage.getItem("speedoTheme") || "dark",
-    experimentalMode: localStorage.getItem("experimentalMode") === "true",
-    visualTheme: localStorage.getItem("visualTheme") || "classic",
-    viewMode: localStorage.getItem("speedoViewMode") || "all",
-    showSpeedo: localStorage.getItem("showSpeedo") !== "false",
-    showLimit: localStorage.getItem("showLimit") !== "false",
-    showGps: localStorage.getItem("showGps") !== "false",
-    statisticsEnabled: localStorage.getItem("statisticsEnabled") !== "false",
+    sounds: safeStoredBoolean("limitSounds", false),
+    warning: safeStoredBoolean("overspeedWarning", true),
+    greetingAudio: safeStoredBoolean("greetingAudio", true),
+    warningStyle: safeStoredChoice("warningStyle", "voice"),
+    beepType: safeStoredChoice("beepType", "elegant"),
+    theme: safeStoredChoice("speedoTheme", "dark"),
+    experimentalMode: safeStoredBoolean("experimentalMode", false),
+    visualTheme: safeStoredChoice("visualTheme", "classic"),
+    viewMode: safeStoredChoice("speedoViewMode", "all"),
+    showSpeedo: safeStoredBoolean("showSpeedo", true),
+    showLimit: safeStoredBoolean("showLimit", true),
+    showGps: safeStoredBoolean("showGps", true),
+    statisticsEnabled: safeStoredBoolean("statisticsEnabled", true),
     warningArmed: true,
     audioContext: null,
     wakeLock: null,
     roadServiceStatus: "unchecked",
     roadServiceMessage: "",
-    stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0}'),
+    stats: loadStats(),
     driveStartedAt: null,
     lastStatsPosition: null,
     lastAcceptedSpeed: 0,
@@ -1342,7 +1390,7 @@
     pendingSpeedCandidate: null,
     driverModeActive: false,
     driverExitTimer: null,
-    diagnosticsEnabled: localStorage.getItem("diagnosticsEnabled") === "true",
+    diagnosticsEnabled: safeStoredBoolean("diagnosticsEnabled", false),
     diagnosticLog: [],
     lastDriverUiLogState: false,
     stationarySince: null
@@ -1867,7 +1915,8 @@
   function setAutomaticMode() {
     state.mode = "auto";
     localStorage.setItem("limitMode", "auto");
-    state.autoCandidates = [];
+    state.limitCandidates = [];
+    state.roadCandidates = [];
     sourceEl.classList.remove("manual-source");
     if (state.acceptedAutoLimit) {
       setLimit(state.acceptedAutoLimit, "Last confirmed limit", state.acceptedAutoRoad || "Checking road...");
@@ -1973,16 +2022,28 @@
     return moved >= 22 || now - state.lastLookupAt >= interval;
   }
 
-  function stableCandidate(value) {
-    state.autoCandidates.push(value);
-    state.autoCandidates = state.autoCandidates.slice(-3);
+  function stableLimitCandidate(value) {
+    state.limitCandidates.push(value);
+    state.limitCandidates = state.limitCandidates.slice(-3);
 
     if (state.acceptedAutoLimit === null) return true;
     if (value === state.acceptedAutoLimit) return true;
 
-    // Require two consecutive identical results before changing an existing limit.
-    const lastTwo = state.autoCandidates.slice(-2);
+    const lastTwo = state.limitCandidates.slice(-2);
     return lastTwo.length === 2 && lastTwo.every(item => item === value);
+  }
+
+  function stableRoadCandidate(roadName) {
+    if (!roadName) return false;
+    state.roadCandidates.push(roadName);
+    state.roadCandidates = state.roadCandidates.slice(-3);
+
+    if (roadName === state.acceptedAutoRoad) return true;
+
+    // Road names are more vulnerable than limits to GPS drift near junctions.
+    // Require two consecutive identical matches before confirming a new road.
+    const lastTwo = state.roadCandidates.slice(-2);
+    return lastTwo.length === 2 && lastTwo.every(item => item === roadName);
   }
 
   async function lookupSpeedLimit(currentCoords) {
@@ -2038,19 +2099,33 @@
       let roadOutcome = "NO_LIMIT";
 
       if (Number.isFinite(value) && value > 0) {
-        if (stableCandidate(Math.round(value))) {
-          roadOutcome = "CONFIRMED";
+        const roundedLimit = Math.round(value);
+        const limitStable = stableLimitCandidate(roundedLimit);
+        const roadStable = stableRoadCandidate(roadName);
+
+        if (limitStable) {
           const previous = state.acceptedAutoLimit;
-          state.acceptedAutoLimit = Math.round(value);
-          state.acceptedAutoRoad = roadName || state.acceptedAutoRoad;
-          setLimit(value, "Automatic limit from:", state.acceptedAutoRoad || "Confirmed road", {
-            chime: previous !== null && previous !== Math.round(value),
+          state.acceptedAutoLimit = roundedLimit;
+          setLimit(roundedLimit, "Automatic limit from:", state.acceptedAutoRoad || roadName || "Matched road", {
+            chime: previous !== null && previous !== roundedLimit,
             previous
           });
-          setAutomaticStatus("matched", state.acceptedAutoRoad);
+
+          if (roadStable) {
+            state.acceptedAutoRoad = roadName;
+            roadOutcome = "CONFIRMED";
+            setAutomaticStatus("matched", state.acceptedAutoRoad);
+          } else if (state.acceptedAutoRoad) {
+            roadOutcome = "LIMIT_CONFIRMED_ROAD_PENDING";
+            // Keep the last confirmed road visible while checking a neighbouring candidate.
+            setAutomaticStatus("matched", state.acceptedAutoRoad);
+          } else {
+            roadOutcome = "BEST_ESTIMATE";
+            setAutomaticStatus("confirming", roadName || "");
+          }
         } else {
           roadOutcome = "BEST_ESTIMATE";
-          setAutomaticStatus("confirming", roadName || "");
+          setAutomaticStatus("confirming", roadName || state.acceptedAutoRoad || "");
         }
       } else {
         setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
@@ -2081,7 +2156,8 @@
           displayedLimit: state.acceptedAutoLimit,
           displayedRoad: state.acceptedAutoRoad || null,
           candidate: Number.isFinite(value) ? { limit: Math.round(value), road: roadName || null } : null,
-          candidateHistory: [...state.autoCandidates],
+          limitCandidateHistory: [...state.limitCandidates],
+          roadCandidateHistory: [...state.roadCandidates],
           validRoadName: Boolean(roadName)
         },
         durationMs: Math.round(performance.now() - lookupStartedAt)
@@ -2674,6 +2750,8 @@
     state.displayedSpeed = 0;
     state.acceptedAutoLimit = null;
     state.acceptedAutoRoad = "";
+    state.limitCandidates = [];
+    state.roadCandidates = [];
     setLimit(null, "Automatic limit", "Connect GPS to begin");
     setAutomaticStatus("waiting", "Connect GPS to begin");
 
@@ -2694,7 +2772,11 @@
 
   // Restore the previous manual choice, while automatic mode waits for a road match.
   if (state.mode === "manual") {
-    const saved = Number(localStorage.getItem("manualLimit") || 50);
+    let saved = 50;
+    try {
+      const candidate = Number(localStorage.getItem("manualLimit"));
+      if (Number.isFinite(candidate) && candidate >= 5 && candidate <= 200) saved = candidate;
+    } catch (_) {}
     setLimit(saved, "Manual limit", "Tap the sign to change");
   } else {
     setLimit(null, "Automatic limit", "Connect GPS to begin");
@@ -2704,7 +2786,7 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js?v=10.11")
+      navigator.serviceWorker.register("/service-worker.js?v=1.10.13")
         .then(registration => {
           registration.update();
           if (registration.waiting) {
