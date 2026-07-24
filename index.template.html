@@ -1041,7 +1041,7 @@
       <button id="start" class="connect-button">Connect GPS</button>
       <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
-    <div id="status">Connect GPS to begin road matching.</div>
+    <div id="status"></div>
     <div id="driverResponsibility">Driving safely and respecting speed limits is always the responsibility of the driver.</div>
   </footer>
 </div>
@@ -1452,11 +1452,11 @@
 
   function runLaunchSequence() {
     const steps = [
-      ["Connecting to Skynet…", 12],
-      ["Application initialising…", 28],
-      ["Loading interface…", 48],
-      ["Calibrating display…", 68],
-      ["Preparing road intelligence…", 88],
+      ["Application initialising…", 18],
+      ["Loading interface…", 38],
+      ["Calibrating display…", 58],
+      ["Preparing road intelligence…", 78],
+      ["Connecting to Skynet…", 92],
       ["Systems ready", 100]
     ];
 
