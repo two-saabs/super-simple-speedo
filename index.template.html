@@ -143,13 +143,11 @@
       border: 2px solid transparent;
       border-top-color: var(--fg);
       opacity: .7;
-      animation: spin 1.15s linear infinite;
+      animation: none;
     }
     .launch-ring::before { inset: 10px; }
     .launch-ring::after {
       inset: 24px;
-      animation-direction: reverse;
-      animation-duration: .85s;
       opacity: .35;
     }
     .launch-mark {
@@ -1377,6 +1375,8 @@
   let startupGpsPending = false;
   let startupGpsFinished = false;
   let startupGpsFallbackTimer = null;
+  let startupMinimumCompleteAt = 0;
+  let startupCompletionScheduled = false;
 
   const state = {
     displayedSpeed: 0,
@@ -1505,22 +1505,31 @@
 
   function runLaunchSequence() {
     const autoStarting = state.autoConnect && state.autoConnectChoiceMade;
+    // The complete successful boot, including the final GPS-lock pulse, lasts
+    // approximately three seconds. GPS failures remain visible long enough to
+    // explain what happened instead of pretending the connection succeeded.
+    startupMinimumCompleteAt = Date.now() + 2350;
+    startupCompletionScheduled = false;
+
     const steps = autoStarting
       ? [
-          ["Application initialising…", 16],
-          ["Loading interface…", 32],
-          ["Preparing navigation systems…", 46]
+          ["Application initialising…", 14],
+          ["Loading interface…", 28],
+          ["Checking for Skynet…", 40],
+          ["Skynet not detected ✓", 50]
         ]
       : [
-          ["Application initialising…", 18],
-          ["Loading interface…", 38],
-          ["Calibrating display…", 58],
-          ["Preparing road intelligence…", 78],
-          ["Connecting to Skynet…", 92],
+          ["Application initialising…", 14],
+          ["Loading interface…", 30],
+          ["Checking for Skynet…", 46],
+          ["Skynet not detected ✓", 60],
+          ["Preparing navigation systems…", 78],
           ["Systems ready", 100]
         ];
 
-    const stepTimes = autoStarting ? [0, 600, 1200] : [0, 650, 1300, 1950, 2600, 3250];
+    const stepTimes = autoStarting
+      ? [0, 500, 1000, 1450]
+      : [0, 500, 1000, 1450, 2050, 2550];
 
     steps.forEach(([text, progress], index) => {
       setTimeout(() => {
@@ -1532,13 +1541,13 @@
     if (autoStarting) {
       setTimeout(() => {
         if (state.watchId === null) startGPS({ startup: true });
-      }, 1350);
+      }, 1700);
       return;
     }
 
     setTimeout(() => {
       $("launchScreen").classList.add("hide");
-    }, 4000);
+    }, 3000);
   }
 
 
@@ -2447,6 +2456,17 @@
   function completeGpsConnection({ startup = false } = {}) {
     if (startup && startupGpsFinished) return;
     if (startup) {
+      const remaining = startupMinimumCompleteAt - Date.now();
+      if (remaining > 0) {
+        if (!startupCompletionScheduled) {
+          startupCompletionScheduled = true;
+          setTimeout(() => {
+            startupCompletionScheduled = false;
+            completeGpsConnection({ startup: true });
+          }, remaining);
+        }
+        return;
+      }
       startupGpsFinished = true;
       startupGpsPending = false;
       if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);
@@ -2459,8 +2479,8 @@
           ? "GPS active · road lookup unavailable"
           : "Systems ready";
         $("launchProgress").style.width = "100%";
-      }, 450);
-      setTimeout(() => $("launchScreen").classList.add("hide"), 950);
+      }, 300);
+      setTimeout(() => $("launchScreen").classList.add("hide"), 650);
     } else {
       $("gpsConnectStatus").textContent = "GPS lock acquired";
       $("gpsConnectProgress").style.width = "100%";
