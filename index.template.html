@@ -24,8 +24,6 @@
       --soft-border: rgba(255,255,255,.12);
       --accent: #fff;
       --accent-soft: rgba(255,255,255,.12);
-      --good: #237a43;
-      --danger: #a3101b;
     }
     body.light {
       color-scheme: light;
@@ -564,7 +562,7 @@
       margin: 1.5vh 0 0;
     }
     #speed.bump { transform: scale(1.004); }
-    body.over #speed, body.modern-theme.over #speed { color: var(--danger); }
+    body.over #speed, body.modern-theme.over #speed { color: #ff453a; }
     .unit {
       margin-top: 12px;
       font-size: 20px;
@@ -585,7 +583,7 @@
       position: relative;
       width: 138px; height: 138px;
       border-radius: 50%;
-      border: 11px solid var(--danger);
+      border: 11px solid #d9151d;
       background: #fff; color: #050505;
       display: grid; place-items: center;
       padding: 0;
@@ -610,6 +608,9 @@
     }
     .road-info { min-width: 0; }
     #source {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       min-width: 0;
       height: 18px;
       font-size: 13px;
@@ -621,55 +622,55 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    #source::before {
+      content: "";
+      flex: 0 0 auto;
+      width: 18px;
+      height: 18px;
+      box-sizing: border-box;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 2px solid #666;
+      color: #d8d8d8;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0;
+      transition: background .25s ease, border-color .25s ease, color .25s ease, box-shadow .25s ease;
+    }
+    #source.status-pending::before {
+      border-color: #777;
+      border-top-color: #ddd;
+      animation: sourceStatusSpin .9s linear infinite;
+    }
+    #source.status-neutral::before {
+      background: #555;
+      border-color: #555;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.05) inset;
+    }
+    #source.limit-verified::before {
+      content: "✓";
+      background: #34a853;
+      border-color: #34a853;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(52,168,83,.28);
+    }
+    @keyframes sourceStatusSpin { to { transform: rotate(360deg); } }
+    #source.manual-source::before { display: none; }
     #gps,
     #matchPill { display: none !important; }
     #road {
       height: 25px;
-      margin-top: 4px;
+      margin-top: 7px;
+      padding-left: 26px;
+      box-sizing: border-box;
       font-size: 21px;
       line-height: 25px;
       font-weight: 690;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-    #roadConfidence {
-      min-height: 20px;
-      margin-top: 7px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 14px;
-      line-height: 20px;
-      font-weight: 700;
-      opacity: .74;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    #roadConfidence.confirmed { opacity: .9; }
-    #roadConfidence.estimate { opacity: .62; }
-    #roadConfidence.confirmed::before,
-    #roadConfidence.estimate::before {
-      content: "";
-      display: inline-grid;
-      place-items: center;
-      width: 18px;
-      height: 18px;
-      flex: 0 0 18px;
-      border-radius: 50%;
-      box-sizing: border-box;
-    }
-    #roadConfidence.confirmed::before {
-      content: "✓";
-      background: var(--good);
-      color: rgba(255,255,255,.72);
-      font-size: 14px;
-      line-height: 1;
-      font-weight: 900;
-    }
-    #roadConfidence.estimate::before {
-      background: #8a8a8a;
     }
     #gps {
       margin-top: 9px;
@@ -704,14 +705,6 @@
       text-align: center;
       font-size: 12px;
       opacity: .42;
-    }
-
-    #driverResponsibility {
-      margin-top: 7px;
-      text-align: center;
-      font-size: 10px;
-      line-height: 1.3;
-      opacity: .28;
     }
 
     .modal {
@@ -891,17 +884,8 @@
       margin-top: 10px;
     }
 
-    header,
-    .drive-controls,
-    .app-title {
-      transition: opacity .55s ease, visibility 0s linear 0s;
-    }
-    body.driver-mode header { opacity: .16; }
-    body.driver-mode .app-title {
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .55s ease, visibility 0s linear .55s;
-    }
+    body.driver-mode header { opacity: .16; transition: opacity .25s ease; }
+    body.driver-mode .app-title { visibility: hidden; }
     body.driver-mode #gps,
     body.driver-mode #matchPill,
     body.driver-mode #status { display: none; }
@@ -914,10 +898,10 @@
       font-weight: 780;
     }
     body.driver-mode .lower { margin-top: clamp(20px, 4vh, 42px); }
-    body.driver-mode footer { min-height: 32px; }
-    body.driver-mode #driverResponsibility { opacity: .22; }
+    body.driver-mode footer { min-height: 8px; }
     body.driver-mode .drive-controls {
       opacity: .07;
+      transition: opacity .25s ease;
     }
     /* Avoid sticky :hover / :focus states on iPhone keeping controls fully visible
        after GPS is connected. Only reveal on devices with a real hover pointer. */
@@ -993,6 +977,18 @@
   </div>
 </div>
 
+<div class="modal" id="autoConnectModal" aria-hidden="true">
+  <div class="sheet">
+    <div class="grabber"></div>
+    <h2>Connect GPS automatically?</h2>
+    <div class="setting-note" style="font-size:16px;line-height:1.5;margin-bottom:18px;">
+      Super Simple Speedo can reconnect GPS automatically whenever you open the app, so you do not need to tap Connect GPS every time.
+    </div>
+    <button class="wide-button" id="enableAutoConnect">Connect automatically</button>
+    <button class="wide-button secondary" id="connectOnce">Just this time</button>
+  </div>
+</div>
+
 <div class="launch-screen" id="launchScreen" aria-hidden="true">
   <div class="launch-core">
     <div class="launch-ring">
@@ -1028,7 +1024,6 @@
         <div class="road-info" id="gpsSection">
           <div id="source">Waiting for GPS</div>
           <div id="road">Tap Start GPS</div>
-          <div id="roadConfidence"></div>
           <div id="gps">Automatic limit ready</div>
           <div class="status-pill" id="matchPill"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
         </div>
@@ -1041,8 +1036,7 @@
       <button id="start" class="connect-button">Connect GPS</button>
       <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
-    <div id="status"></div>
-    <div id="driverResponsibility">Driving safely and respecting speed limits is always the responsibility of the driver.</div>
+    <div id="status">Connect GPS to begin road matching.</div>
   </footer>
 </div>
 
@@ -1072,6 +1066,18 @@
   <div class="sheet">
     <div class="grabber"></div>
     <h2>Settings</h2>
+
+    <div class="settings-section-title">Connection</div>
+
+    <div class="setting">
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">Connect GPS automatically</div>
+          <div class="setting-note">Reconnect when the app opens. You can still disconnect at any time.</div>
+        </div>
+        <button class="switch" id="autoConnectSwitch" aria-label="Toggle automatic GPS connection"></button>
+      </div>
+    </div>
 
     <div class="settings-section-title">Audio</div>
 
@@ -1165,56 +1171,38 @@
     <div class="settings-section-title">About</div>
 
     <div class="setting">
-      <div style="padding:4px 0 8px;">
+      <div style="text-align:center; padding:10px 0;">
         <div style="font-size:20px;font-weight:780;">
           Super Simple Speedo
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 0.9
+          Version 11.1
         </div>
 
-        <div style="margin-top:18px;line-height:1.55;opacity:.82;">
-          Super Simple Speedo was built with one goal: to create a clean, reliable speedometer without the clutter.
+        <div style="margin-top:18px;font-size:18px;font-weight:780;">
+          Built for drivers, not advertisers.
         </div>
 
-        <div style="margin-top:14px;line-height:1.55;opacity:.82;">
-          No ads. No subscriptions. No account. Just a simple speedometer with automatic speed limit detection where available.
+        <div style="margin-top:10px;opacity:.75;font-weight:700;">
+          Simple. Private. Free.
         </div>
 
-        <div style="margin-top:14px;line-height:1.55;opacity:.82;">
-          Built with the help of modern AI tools, but carefully designed, tested and refined by a human who believes simple software is often the best software.
+        <div style="margin-top:18px;line-height:1.6;opacity:.8;">
+          No accounts.<br>
+          No adverts.<br>
+          No tracking.
         </div>
 
-        <div style="margin-top:16px;line-height:1.55;font-weight:700;opacity:.9;">
-          Driving safely and respecting speed limits is always the responsibility of the driver.
-        </div>
-      </div>
-    </div>
-
-    <div class="settings-section-title">Privacy</div>
-
-    <div class="setting">
-      <div style="padding:4px 0 8px;line-height:1.55;opacity:.82;">
-        <div>Your journeys are your business.</div>
-
-        <div style="margin-top:14px;">
-          Super Simple Speedo does not require an account and does not collect or sell your personal data.
+        <div style="margin-top:18px;">
+          Designed and built with ❤️ in Zurich 🇨🇭
         </div>
 
-        <div style="margin-top:14px;">
-          Any optional statistics are stored locally on your device and never leave it.
-        </div>
-
-        <div style="margin-top:16px;font-weight:780;opacity:1;">
-          No tracking. No surprises.
-        </div>
-
-        <div style="margin-top:18px;opacity:.72;">
+        <div style="margin-top:18px;opacity:.7;">
           Road intelligence powered by Geoapify.
         </div>
 
-        <div style="margin-top:16px;">
+        <div style="margin-top:20px;">
           <a
             href="https://supersimplespeedo.app"
             target="_blank"
@@ -1318,13 +1306,13 @@
   const limitButton = $("limitButton");
   const sourceEl = $("source");
   const roadEl = $("road");
-  const roadConfidenceEl = $("roadConfidence");
   const gpsEl = $("gps");
   const statusEl = $("status");
   const startEl = $("start");
   const limitModal = $("limitModal");
   const settingsModal = $("settingsModal");
   const iosInstallModal = $("iosInstallModal");
+  const autoConnectModal = $("autoConnectModal");
   let deferredInstallPrompt = null;
 
   const state = {
@@ -1333,6 +1321,8 @@
     limit: null,
     mode: localStorage.getItem("limitMode") || "auto",
     watchId: null,
+    autoConnect: localStorage.getItem("autoConnectGps") === "true",
+    autoConnectChoiceMade: localStorage.getItem("autoConnectChoiceMade") === "true",
     points: [],
     lookupBusy: false,
     lastLookupAt: 0,
@@ -1370,10 +1360,11 @@
     pendingSpeedCandidate: null,
     driverModeActive: false,
     driverExitTimer: null,
+    pendingRoadStatusTimer: null,
+    pendingRoadCandidate: null,
+    lastRoadLookupResult: null,
     diagnosticsEnabled: localStorage.getItem("diagnosticsEnabled") === "true",
-    diagnosticLog: [],
-    lastDriverUiLogState: false,
-    stationarySince: null
+    diagnosticLog: []
   };
 
 
@@ -1386,8 +1377,8 @@
       waiting: "Finding road",
       collecting: "Checking road...",
       matching: "Checking road...",
-      confirming: "Best estimate",
-      matched: "Confirmed",
+      confirming: "Potential road",
+      matched: "Automatic limit",
       nodata: "No road identified",
       error: "Lookup unavailable"
     };
@@ -1396,14 +1387,12 @@
     const stageEl = $("matchStage");
     const dotEl = $("matchDot");
     if (stageEl) stageEl.textContent = labels[stage] || stage;
-    if (dotEl) dotEl.classList.toggle("pulse", ["locating", "waiting", "collecting", "matching"].includes(stage));
+    if (dotEl) dotEl.classList.toggle("pulse", ["locating", "waiting", "collecting", "matching", "confirming"].includes(stage));
+    const pendingStages = ["locating", "waiting", "collecting", "matching", "confirming"];
+    sourceEl.classList.toggle("status-pending", pendingStages.includes(stage));
+    sourceEl.classList.toggle("status-neutral", ["nodata", "error"].includes(stage));
+    sourceEl.classList.toggle("limit-verified", stage === "matched");
     if (gpsEl) gpsEl.textContent = detail;
-  }
-
-  function setRoadConfidence(kind, text = "") {
-    if (!roadConfidenceEl) return;
-    roadConfidenceEl.className = kind || "";
-    roadConfidenceEl.textContent = text;
   }
 
   function setAutomaticStatus(stage, message = "") {
@@ -1411,41 +1400,40 @@
     setMatchStage(stage, "");
 
     if (stage === "matched") {
-      sourceEl.textContent = "From:";
+      sourceEl.textContent = "Automatic limit from:";
       roadEl.textContent = message || state.acceptedAutoRoad || "Confirmed road";
-      setRoadConfidence("confirmed", "Confirmed");
-      return;
-    }
-
-    if (stage === "confirming" && message) {
-      sourceEl.textContent = "From:";
-      roadEl.textContent = message;
-      setRoadConfidence("estimate", "Best estimate");
       return;
     }
 
     if (stage === "error") {
-      sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit unavailable";
-      roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : "Lookup unavailable";
-      setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
+      sourceEl.textContent = hasLastConfirmed ? "Last confirmed:" : "Automatic limit unavailable";
+      roadEl.textContent = "Lookup unavailable";
       return;
     }
 
-    sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit";
-    roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : (message || ({
+    sourceEl.textContent = hasLastConfirmed ? "Last confirmed:" : "Automatic limit";
+    roadEl.textContent = message || ({
       locating: "Finding road...",
       waiting: "Connect GPS to begin",
       collecting: "Checking road...",
       matching: "Checking road...",
+      confirming: "Checking road...",
       nodata: "No road identified"
-    }[stage] || "Checking road..."));
-    setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
+    }[stage] || "Checking road...");
   }
 
   function displayRoadName(rawRoadName) {
-    const technicalRoadValues = new Set(["service_other", "service other", "service", "other", "unknown", "primary", "secondary", "tertiary", "residential", "track", "path"]);
-    const cleaned = String(rawRoadName || "").replaceAll("_", " ").trim();
-    if (!cleaned || technicalRoadValues.has(cleaned.toLowerCase())) return "";
+    const cleaned = String(rawRoadName || "")
+      .replaceAll("_", " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const lower = cleaned.toLowerCase();
+    const technicalRoadValues = new Set([
+      "service", "service other", "other", "unknown", "unnamed", "unclassified",
+      "road", "street", "residential", "primary", "secondary", "tertiary",
+      "trunk", "motorway", "living street"
+    ]);
+    if (!cleaned || technicalRoadValues.has(lower) || /^\d+$/.test(cleaned)) return "";
     // House numbers make a provisional match look more certain than it is.
     return cleaned.replace(/,\s*\d+[a-z]?$/i, "");
   }
@@ -1453,14 +1441,13 @@
   function runLaunchSequence() {
     const steps = [
       ["Application initialising…", 18],
-      ["Loading interface…", 38],
-      ["Calibrating display…", 58],
-      ["Preparing road intelligence…", 78],
-      ["Connecting to Skynet…", 92],
+      ["Loading interface…", 42],
+      ["Calibrating display…", 68],
+      ["Preparing road intelligence…", 88],
       ["Systems ready", 100]
     ];
 
-    const stepTimes = [0, 650, 1300, 1950, 2600, 3250];
+    const stepTimes = [0, 800, 1600, 2400, 3200];
 
     steps.forEach(([text, progress], index) => {
       setTimeout(() => {
@@ -1486,41 +1473,31 @@
     return Number.isFinite(value) ? Number(value.toFixed(decimals)) : null;
   }
 
-  function diagnosticTimestamp() {
-    const now = new Date();
+  function diagnosticTimes(date = new Date()) {
+    const parts = new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Europe/Zurich",
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+      hour12: false
+    }).formatToParts(date).reduce((acc, part) => {
+      if (part.type !== "literal") acc[part.type] = part.value;
+      return acc;
+    }, {});
     return {
-      timeUtc: now.toISOString(),
-      timeLocal: new Intl.DateTimeFormat("sv-SE", {
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        year: "numeric", month: "2-digit", day: "2-digit",
-        hour: "2-digit", minute: "2-digit", second: "2-digit",
-        hour12: false
-      }).format(now),
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      timeUtc: date.toISOString(),
+      timeLocal: `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`,
+      timeZone: "Europe/Zurich"
     };
   }
 
   function addDiagnostic(entry) {
     if (!state.diagnosticsEnabled) return;
     state.diagnosticLog.push({
-      ...diagnosticTimestamp(),
+      ...diagnosticTimes(),
       ...entry
     });
-    state.diagnosticLog = state.diagnosticLog.slice(-250);
+    state.diagnosticLog = state.diagnosticLog.slice(-400);
     updateDiagnosticsDisplay();
-  }
-
-  function logDriverUiChange(active, reason) {
-    if (state.lastDriverUiLogState === active) return;
-    state.lastDriverUiLogState = active;
-    addDiagnostic({
-      event: "DRIVER_UI_CHANGE",
-      driverUiActive: active,
-      reason,
-      enterThresholdKmh: DRIVER_MODE_ENTER_SPEED,
-      exitThresholdKmh: DRIVER_MODE_EXIT_SPEED,
-      exitDelayMs: DRIVER_MODE_EXIT_DELAY_MS
-    });
   }
 
   function updateDiagnosticsDisplay() {
@@ -1535,12 +1512,29 @@
       return;
     }
     output.textContent = state.diagnosticLog.slice(-12).map(item => {
+      const clock = (item.timeLocal || item.timeUtc || "").slice(11, 19);
+      if (item.event === "DRIVER_MODE_CHANGED") {
+        return [
+          `${clock} · DRIVER UI ${item.to ? "ON" : "OFF"}`,
+          `${item.from ? "ON" : "OFF"} → ${item.to ? "ON" : "OFF"} at ${item.speedKmh ?? "—"} km/h`,
+          item.reason || "Mode threshold crossed"
+        ].join("\n");
+      }
+      if (item.event === "ROAD_LOOKUP") {
+        const response = item.response || {};
+        const decision = item.roadDecision || {};
+        return [
+          `${clock} · GEOAPIFY ${response.httpStatus ?? "—"}`,
+          `raw road ${response.roadNameRaw ?? "—"} · shown ${response.roadNameSanitised ?? "—"} · limit ${response.speedLimit ?? "—"}`,
+          decision.reason || `previous ${decision.previousConfirmedRoad ?? "—"} · ${item.durationMs ?? "—"} ms`
+        ].join("\n");
+      }
       const reasons = item.reasons?.length ? item.reasons.join(", ") : "none";
       return [
-        (item.timeUtc || item.time || "").slice(11, 19),
-        item.event ? `${item.event}: ${item.reason || item.roadDecision?.reason || ""}` : `raw ${item.rawKmh ?? "—"} · derived ${item.derivedKmh ?? "—"} · shown ${item.displayedKmh ?? "—"} km/h`,
-        item.event ? `driver UI ${item.driverUiActive === true ? "ON" : item.driverUiActive === false ? "OFF" : "—"}` : `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m · movement score ${item.movementScore ?? "—"}×`,
-        item.event ? "" : `${item.speedDecision || item.decision}: ${reasons} · source ${item.speedSource || "—"} · driver UI ${item.driverUiActive ? "ON" : "OFF"}`
+        clock,
+        `raw ${item.rawKmh ?? "—"} · derived ${item.derivedKmh ?? "—"} · shown ${item.displayedKmh ?? "—"} km/h`,
+        `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m · confidence ${item.movementConfidence ?? "—"}×`,
+        `${item.decision}: ${reasons} · driver UI ${item.driverUiActive ? "ON" : "OFF"}`
       ].join("\n");
     }).join("\n\n");
     output.scrollTop = output.scrollHeight;
@@ -1585,14 +1579,25 @@
   const DRIVER_MODE_ENTER_SPEED = 10;
   const DRIVER_MODE_EXIT_SPEED = 6;
   const DRIVER_MODE_EXIT_DELAY_MS = 5000;
-  const GPS_BASELINE_RESET_SECONDS = 30;
-  const STATIONARY_LOOKUP_INTERVAL_MS = 60000;
-  const MOVING_LOOKUP_INTERVAL_MS = 16000;
-  const LOOKUP_MIN_INTERVAL_MS = 7000;
 
-  function applyDriverMode(active, reason = active ? "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH" : "BELOW_EXIT_THRESHOLD_AFTER_DELAY") {
+  function applyDriverMode(active, reason = "UI state refreshed", trustedSpeed = state.lastAcceptedSpeed) {
+    const previous = state.driverModeActive;
     state.driverModeActive = active;
-    logDriverUiChange(active, reason);
+    if (previous !== active) {
+      addDiagnostic({
+        event: "DRIVER_MODE_CHANGED",
+        from: previous,
+        to: active,
+        speedKmh: roundDiagnostic(trustedSpeed),
+        movementConfidence: null,
+        reason,
+        thresholds: {
+          enterSpeedKmh: DRIVER_MODE_ENTER_SPEED,
+          exitSpeedKmh: DRIVER_MODE_EXIT_SPEED,
+          exitDelayMs: DRIVER_MODE_EXIT_DELAY_MS
+        }
+      });
+    }
 
     // A tapped control can retain focus on iOS and keep :focus-within active.
     // Clear that sticky focus before applying the quieter driving presentation.
@@ -1615,14 +1620,14 @@
     if (state.watchId === null) {
       if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
       state.driverExitTimer = null;
-      applyDriverMode(false, "GPS_STOPPED");
+      applyDriverMode(false, "GPS disconnected", trustedSpeed);
       return;
     }
 
     if (trustedSpeed >= DRIVER_MODE_ENTER_SPEED) {
       if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
       state.driverExitTimer = null;
-      if (!state.driverModeActive) applyDriverMode(true, "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH");
+      if (!state.driverModeActive) applyDriverMode(true, "Speed reached driver-mode entry threshold", trustedSpeed);
       return;
     }
 
@@ -1630,7 +1635,7 @@
       state.driverExitTimer = setTimeout(() => {
         state.driverExitTimer = null;
         if (state.watchId !== null && state.lastAcceptedSpeed < DRIVER_MODE_EXIT_SPEED) {
-          applyDriverMode(false, "BELOW_6_KMH_FOR_5_SECONDS");
+          applyDriverMode(false, "Speed remained below exit threshold", state.lastAcceptedSpeed);
         }
       }, DRIVER_MODE_EXIT_DELAY_MS);
     }
@@ -1874,7 +1879,6 @@
     sourceEl.textContent = source;
     sourceEl.classList.toggle("manual-source", state.mode === "manual");
     roadEl.textContent = road || (nextLimit ? "Speed limit selected" : "No mapped limit");
-    if (state.mode === "manual") setRoadConfidence("", "");
     document.body.classList.toggle(
       "over",
       nextLimit !== null && Math.round(state.displayedSpeed) > nextLimit
@@ -1899,7 +1903,7 @@
     state.autoCandidates = [];
     sourceEl.classList.remove("manual-source");
     if (state.acceptedAutoLimit) {
-      setLimit(state.acceptedAutoLimit, "Last confirmed limit", state.acceptedAutoRoad || "Checking road...");
+      setLimit(state.acceptedAutoLimit, "Last confirmed:", state.acceptedAutoRoad || "Checking road...");
       setAutomaticStatus("matching", "Checking road...");
     } else {
       setLimit(null, "Automatic limit", "Checking road...");
@@ -1990,16 +1994,9 @@
 
   function shouldLookup(c, now) {
     if (state.mode !== "auto" || !state.apiKey || state.points.length < 2 || state.lookupBusy) return false;
-    if (now - state.lastLookupAt < LOOKUP_MIN_INTERVAL_MS) return false;
+    if (now - state.lastLookupAt < 7000) return false;
     if (!state.lastLookupPosition) return true;
-
-    const moved = distanceMetres(state.lastLookupPosition, c);
-    const stationary = state.targetSpeed < 2;
-    const interval = stationary && state.acceptedAutoLimit !== null
-      ? STATIONARY_LOOKUP_INTERVAL_MS
-      : MOVING_LOOKUP_INTERVAL_MS;
-
-    return moved >= 22 || now - state.lastLookupAt >= interval;
+    return distanceMetres(state.lastLookupPosition, c) >= 22 || now - state.lastLookupAt >= 16000;
   }
 
   function stableCandidate(value) {
@@ -2021,7 +2018,6 @@
       if (!ready) return;
     }
     state.lookupBusy = true;
-    const lookupStartedAt = performance.now();
     state.lastLookupAt = Date.now();
     state.lastLookupPosition = {
       latitude: currentCoords.latitude,
@@ -2029,9 +2025,12 @@
     };
     // Keep a confirmed road visible during background refreshes. On startup,
     // show one calm, confidence-based progress message.
-    setAutomaticStatus("matching", "Checking road...");
+    if (state.acceptedAutoLimit === null) {
+      setAutomaticStatus("matching", "Checking road...");
+    }
 
     try {
+      const lookupStartedAt = performance.now();
       const sample = state.points.slice(-10);
       const response = await fetch(
         `https://api.geoapify.com/v1/mapmatching?apiKey=${encodeURIComponent(state.apiKey)}`,
@@ -2061,29 +2060,9 @@
       const value = Number(step?.speed_limit);
       const rawRoadName = step?.name || step?.road_class || "";
       const roadName = displayRoadName(rawRoadName);
-
-      const previousConfirmedLimit = state.acceptedAutoLimit;
-      const previousConfirmedRoad = state.acceptedAutoRoad || null;
-      let roadOutcome = "NO_LIMIT";
-
-      if (Number.isFinite(value) && value > 0) {
-        if (stableCandidate(Math.round(value))) {
-          roadOutcome = "CONFIRMED";
-          const previous = state.acceptedAutoLimit;
-          state.acceptedAutoLimit = Math.round(value);
-          state.acceptedAutoRoad = roadName || state.acceptedAutoRoad;
-          setLimit(value, "Automatic limit from:", state.acceptedAutoRoad || "Confirmed road", {
-            chime: previous !== null && previous !== Math.round(value),
-            previous
-          });
-          setAutomaticStatus("matched", state.acceptedAutoRoad);
-        } else {
-          roadOutcome = "BEST_ESTIMATE";
-          setAutomaticStatus("confirming", roadName || "");
-        }
-      } else {
-        setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
-      }
+      const roundedLimit = Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+      const lookupDurationMs = Math.round(performance.now() - lookupStartedAt);
+      const candidate = { limit: roundedLimit, road: roadName };
 
       addDiagnostic({
         event: "ROAD_LOOKUP",
@@ -2092,53 +2071,73 @@
           latitude: roundDiagnostic(currentCoords.latitude, 6),
           longitude: roundDiagnostic(currentCoords.longitude, 6),
           accuracyMetres: roundDiagnostic(currentCoords.accuracy, 0),
-          speedKmh: roundDiagnostic(state.targetSpeed),
+          speedKmh: roundDiagnostic(state.lastAcceptedSpeed),
           waypointCount: sample.length
         },
         response: {
           httpStatus: response.status,
-          roadNameRaw: rawRoadName,
-          roadNameSanitised: roadName,
+          roadNameRaw: rawRoadName || null,
+          roadNameSanitised: roadName || null,
           roadClass: step?.road_class || null,
-          speedLimit: Number.isFinite(value) ? Math.round(value) : null,
-          matchType: latest?.match_type || (step ? "matched" : "unmatched")
+          speedLimit: roundedLimit,
+          matchType: latest?.match_type || null
         },
         roadDecision: {
-          previousConfirmedLimit,
-          previousConfirmedRoad,
-          outcome: roadOutcome,
-          displayedLimit: state.acceptedAutoLimit,
-          displayedRoad: state.acceptedAutoRoad || null,
-          candidate: Number.isFinite(value) ? { limit: Math.round(value), road: roadName || null } : null,
-          candidateHistory: [...state.autoCandidates],
+          previousConfirmedLimit: state.acceptedAutoLimit,
+          previousConfirmedRoad: state.acceptedAutoRoad || null,
+          candidate,
           validRoadName: Boolean(roadName)
         },
-        durationMs: Math.round(performance.now() - lookupStartedAt)
+        durationMs: lookupDurationMs
       });
-    } catch (error) {
-      const statusMatch = String(error.message).match(/service (\d+)/);
-      const status = statusMatch ? Number(statusMatch[1]) : null;
-      const wasAborted = error?.name === "AbortError";
-      const errorType = status ? "HTTP" : wasAborted ? "ABORTED" : "NETWORK_OR_FETCH";
 
+      if (roundedLimit !== null) {
+        if (state.pendingRoadStatusTimer) clearTimeout(state.pendingRoadStatusTimer);
+        state.pendingRoadCandidate = candidate;
+        state.pendingRoadStatusTimer = setTimeout(() => {
+          state.pendingRoadStatusTimer = null;
+          if (state.pendingRoadCandidate !== candidate) return;
+          if (stableCandidate(roundedLimit)) {
+            const previous = state.acceptedAutoLimit;
+            state.acceptedAutoLimit = roundedLimit;
+            state.acceptedAutoRoad = roadName || "";
+            setLimit(roundedLimit, roadName ? "Automatic limit from:" : "Automatic limit", roadName || "No road identified", {
+              chime: previous !== null && previous !== roundedLimit,
+              previous
+            });
+            setAutomaticStatus(roadName ? "matched" : "nodata", roadName || "No road identified");
+          } else if (state.acceptedAutoLimit === null) {
+            setAutomaticStatus("confirming", roadName ? `Potential road: ${roadName}` : "Checking road...");
+          }
+        }, 1000);
+      } else {
+        if (state.pendingRoadStatusTimer) clearTimeout(state.pendingRoadStatusTimer);
+        state.pendingRoadStatusTimer = setTimeout(() => {
+          state.pendingRoadStatusTimer = null;
+          setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
+        }, state.acceptedAutoLimit !== null ? 3000 : 1000);
+      }
+    } catch (error) {
+      const status = Number(String(error.message).match(/service (\d+)/)?.[1]);
       addDiagnostic({
         event: "ROAD_LOOKUP",
         provider: "Geoapify",
-        response: { httpStatus: status },
+        response: { httpStatus: status || null },
         roadDecision: {
           previousConfirmedLimit: state.acceptedAutoLimit,
           previousConfirmedRoad: state.acceptedAutoRoad || null,
           state: "ERROR",
-          reason: String(error?.message || error)
-        },
-        errorType,
-        wasAborted,
-        online: navigator.onLine,
-        durationMs: Math.round(performance.now() - lookupStartedAt)
+          reason: error.message
+        }
       });
-
       if (status === 401 || status === 403) roadServiceFailure(status);
-      else setAutomaticStatus("error");
+      else {
+        if (state.pendingRoadStatusTimer) clearTimeout(state.pendingRoadStatusTimer);
+        state.pendingRoadStatusTimer = setTimeout(() => {
+          state.pendingRoadStatusTimer = null;
+          setAutomaticStatus("error");
+        }, state.acceptedAutoLimit !== null ? 3000 : 0);
+      }
     } finally {
       state.lookupBusy = false;
     }
@@ -2152,16 +2151,11 @@
     let derivedKmh = null;
     let elapsedSeconds = null;
     let movedMetres = null;
-    let baselineReset = false;
 
     if (previousGps) {
       elapsedSeconds = Math.max(.001, (sampleTime - previousGps.timestamp) / 1000);
       movedMetres = distanceMetres(previousGps, c);
-      if (elapsedSeconds > GPS_BASELINE_RESET_SECONDS) {
-        baselineReset = true;
-      } else if (elapsedSeconds > .35) {
-        derivedKmh = movedMetres / elapsedSeconds * 3.6;
-      }
+      if (elapsedSeconds > .35) derivedKmh = movedMetres / elapsedSeconds * 3.6;
     }
 
     // Browser velocity is preferred. Coordinate-derived velocity is only a fallback.
@@ -2171,17 +2165,9 @@
     if (candidateKmh === null && derivedKmh !== null) candidateKmh = derivedKmh;
     if (candidateKmh !== null && candidateKmh < 1.8) candidateKmh = 0;
 
-    let decision = baselineReset ? "RESET_BASELINE" : "NO_SPEED";
+    let decision = "NO_SPEED";
     const reasons = [];
-    if (baselineReset) reasons.push("LONG_LOCATION_GAP");
-    else if (previousGps && elapsedSeconds !== null && elapsedSeconds <= .35) reasons.push("ELAPSED_TIME_TOO_SHORT");
-    else if (rawKmh === null && derivedKmh === null) reasons.push("SPEED_NOT_AVAILABLE");
     const previousAcceptedKmh = state.lastAcceptedSpeed ?? 0;
-
-    if (baselineReset) {
-      state.pendingSpeedCandidate = null;
-      state.lastSpeedTimestamp = null;
-    }
 
     if (candidateKmh !== null && Number.isFinite(candidateKmh)) {
       const previousSpeed = previousAcceptedKmh;
@@ -2310,17 +2296,10 @@
       accuracyMetres: roundDiagnostic(c.accuracy, 0),
       elapsedSeconds: roundDiagnostic(elapsedSeconds, 2),
       distanceMetres: roundDiagnostic(movedMetres, 1),
-      movementScore: previousGps && movedMetres !== null
+      movementConfidence: previousGps && movedMetres !== null
         ? roundDiagnostic(movedMetres / Math.max(1, c.accuracy, previousGps.accuracy || 0), 2)
         : null,
-      speedSource: rawKmh !== null ? "NATIVE_GPS" : derivedKmh !== null ? "POSITION_DERIVED" : "NONE",
-      displayDecision: state.targetSpeed === 0 && derivedKmh !== null && derivedKmh >= DRIVER_MODE_ENTER_SPEED
-        ? "HELD_AT_ZERO"
-        : state.targetSpeed === previousAcceptedKmh && decision === "HELD"
-          ? "HELD_PREVIOUS_SPEED"
-          : "UPDATED",
       previousAcceptedKmh: roundDiagnostic(previousAcceptedKmh),
-      speedDecision: decision,
       decision,
       reasons,
       driverUiActive: state.driverModeActive
@@ -2468,6 +2447,27 @@
     await requestWakeLock();
   }
 
+  function applyAutoConnectSetting() {
+    const autoConnectSwitch = $("autoConnectSwitch");
+    if (autoConnectSwitch) autoConnectSwitch.classList.toggle("on", state.autoConnect);
+  }
+
+  function rememberAutoConnect(enabled) {
+    state.autoConnect = enabled;
+    state.autoConnectChoiceMade = true;
+    localStorage.setItem("autoConnectGps", String(enabled));
+    localStorage.setItem("autoConnectChoiceMade", "true");
+    applyAutoConnectSetting();
+  }
+
+  function requestGpsConnection() {
+    if (state.autoConnectChoiceMade) {
+      startGPS();
+      return;
+    }
+    openModal(autoConnectModal);
+  }
+
   function toggleSwitch(element, key, stateKey) {
     state[stateKey] = !state[stateKey];
     localStorage.setItem(key, String(state[stateKey]));
@@ -2587,6 +2587,23 @@
   $("settingsButton").addEventListener("click", () => openModal(settingsModal));
   $("closeSettings").addEventListener("click", () => closeModal(settingsModal));
 
+  $("enableAutoConnect").addEventListener("click", () => {
+    rememberAutoConnect(true);
+    closeModal(autoConnectModal);
+    startGPS();
+  });
+
+  $("connectOnce").addEventListener("click", () => {
+    rememberAutoConnect(false);
+    closeModal(autoConnectModal);
+    startGPS();
+  });
+
+  $("autoConnectSwitch").addEventListener("click", () => {
+    rememberAutoConnect(!state.autoConnect);
+    showToast(state.autoConnect ? "Automatic GPS connection on" : "Automatic GPS connection off");
+  });
+
   $("fullscreenButton").addEventListener("click", async () => {
     try {
       if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
@@ -2678,7 +2695,7 @@
     state.lastStatsPosition = null;
     if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
     state.driverExitTimer = null;
-    state.driverModeActive = false;
+    applyDriverMode(false, "GPS disconnected", state.lastAcceptedSpeed);
     document.body.classList.remove("driver-mode");
     if (state.watchId !== null) {
       navigator.geolocation.clearWatch(state.watchId);
@@ -2696,6 +2713,9 @@
     state.pendingHighSpeed = null;
     state.pendingSpeedCandidate = null;
     state.lastGpsSample = null;
+    if (state.pendingRoadStatusTimer) clearTimeout(state.pendingRoadStatusTimer);
+    state.pendingRoadStatusTimer = null;
+    state.pendingRoadCandidate = null;
     state.lookupBusy = false;
     state.lastLookupAt = 0;
     state.lastLookupPosition = null;
@@ -2715,7 +2735,7 @@
     showToast("Drive ended");
   }
 
-  startEl.addEventListener("click", startGPS);
+  startEl.addEventListener("click", requestGpsConnection);
   $("disconnect").addEventListener("click", disconnectDrive);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && state.watchId !== null) requestWakeLock();
@@ -2733,7 +2753,7 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js?v=10.11")
+      navigator.serviceWorker.register("/service-worker.js?v=11.1")
         .then(registration => {
           registration.update();
           if (registration.waiting) {
@@ -2756,6 +2776,7 @@
   runLaunchSequence();
   setTimeout(showInstallCard, 4600);
   applyTheme();
+  applyAutoConnectSetting();
   applyExperimentalSettings();
   applyStatisticsSettings();
   updateDiagnosticsDisplay();
@@ -2764,6 +2785,14 @@
   updateStatsDisplay();
   setInterval(updateStatsDisplay, 30000);
   animateSpeed();
+
+  // After the first explicit choice, reconnect automatically on future launches.
+  // A small delay lets the launch animation settle first.
+  if (state.autoConnect && state.autoConnectChoiceMade) {
+    setTimeout(() => {
+      if (state.watchId === null) startGPS();
+    }, 4300);
+  }
 })();
 </script>
 </body>
