@@ -907,6 +907,72 @@
       letter-spacing: .02em;
       opacity: .52;
     }
+    .data-usage-panel {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--soft-border);
+    }
+    .data-usage-title {
+      font-size: 17px;
+      font-weight: 780;
+    }
+    .data-usage-summary {
+      margin-top: 4px;
+      font-size: 14px;
+      line-height: 1.4;
+      opacity: .62;
+    }
+    .data-usage-session {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .data-usage-item {
+      padding: 13px 14px;
+      border: 1px solid var(--soft-border);
+      border-radius: 14px;
+      background: var(--soft);
+    }
+    .data-usage-value {
+      font-size: 18px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .data-usage-label {
+      margin-top: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      opacity: .52;
+    }
+    .technical-details {
+      margin-top: 10px;
+      border-radius: 12px;
+    }
+    .technical-details summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 9px 2px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: .66;
+    }
+    .technical-details summary::-webkit-details-marker { display: none; }
+    .technical-details summary::after {
+      content: "⌄";
+      margin-left: 6px;
+    }
+    .technical-details[open] summary::after { content: "⌃"; }
+    .technical-details-content {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--soft);
+      font-size: 12px;
+      opacity: .72;
+    }
 
     /* Driver mode: retain only speed, limit and road evidence while moving. */
     .diagnostics-panel {
@@ -1213,7 +1279,7 @@
       <div class="setting-row">
         <div>
           <div class="setting-title">Private statistics</div>
-          <div class="setting-note">Stored only on this device. Nothing is sent anywhere.</div>
+          <div class="setting-note">Your statistics stay on this device.</div>
         </div>
         <button class="switch" id="statisticsSwitch" aria-label="Toggle private statistics"></button>
       </div>
@@ -1222,11 +1288,32 @@
           <div class="stat-card"><div class="stat-value" id="statTrips">0</div><div class="stat-label">Trips</div></div>
           <div class="stat-card"><div class="stat-value" id="statDistance">0.0</div><div class="stat-label">Distance · km</div></div>
           <div class="stat-card"><div class="stat-value" id="statHours">0.0</div><div class="stat-label">Time used · h</div></div>
-          <div class="stat-card"><div class="stat-value" id="statSessionData">0 KB</div><div class="stat-label">API data · this session</div></div>
-          <div class="stat-card"><div class="stat-value" id="statApiRequests">0</div><div class="stat-label">Road API requests</div></div>
-          <div class="stat-card"><div class="stat-value" id="statAverageResponse">0 KB</div><div class="stat-label">Average response</div></div>
         </div>
-        <div class="setting-note" style="margin:12px 2px 14px;">Data usage is an estimate of Geoapify request and response payloads. Mobile-network overhead is controlled by the browser and carrier.</div>
+
+        <div class="data-usage-panel">
+          <div class="data-usage-title">Very low data usage</div>
+          <div class="data-usage-summary">Road lookups use only a few kilobytes of data.</div>
+
+          <div class="data-usage-session">
+            <div class="data-usage-item">
+              <div class="data-usage-value" id="statSessionData">0 KB</div>
+              <div class="data-usage-label">Used this session</div>
+            </div>
+            <div class="data-usage-item">
+              <div class="data-usage-value" id="statApiRequests">0</div>
+              <div class="data-usage-label">Road lookups</div>
+            </div>
+          </div>
+
+          <details class="technical-details">
+            <summary>Technical details</summary>
+            <div class="technical-details-content">
+              <span>Average response</span>
+              <strong id="statAverageResponse">0 KB</strong>
+            </div>
+          </details>
+        </div>
+
         <button class="wide-button secondary" id="resetStats">Reset statistics</button>
       </div>
     </div>
