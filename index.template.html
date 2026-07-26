@@ -166,29 +166,56 @@
       text-transform: uppercase;
       opacity: .42;
     }
-    .launch-status {
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: .02em;
+    .launch-checklist {
+      width: min(310px, 100%);
+      margin: 18px auto 0;
+      display: grid;
+      gap: 12px;
+      text-align: left;
+    }
+    .launch-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       min-height: 24px;
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 700;
+      color: rgba(255,255,255,.38);
+      transition: color .28s ease, opacity .28s ease;
     }
-    .launch-progress {
-      width: 100%;
-      height: 3px;
-      margin-top: 18px;
-      border-radius: 999px;
-      background: var(--soft);
-      overflow: hidden;
+    .launch-step::before {
+      content: "";
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      border-radius: 50%;
+      box-sizing: border-box;
+      background: #8a8a8a;
+      transition: background .28s ease, color .28s ease;
     }
-    .launch-progress > span {
-      display: block;
-      width: 0%;
-      height: 100%;
-      background: var(--fg);
-      border-radius: inherit;
-      transition: width .45s ease;
+    .launch-step.active { color: rgba(255,255,255,.72); }
+    .launch-step.complete { color: var(--fg); }
+    .launch-step.complete::before {
+      content: "✓";
+      background: var(--good);
+      color: rgba(255,255,255,.72);
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 900;
     }
+    .launch-step.error { color: var(--fg); }
+    .launch-step.error::before {
+      content: "!";
+      background: #8a8a8a;
+      color: rgba(255,255,255,.85);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .launch-status,
+    .launch-progress { display: none; }
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -249,7 +276,7 @@
     }
     .settings-button:active { transform: scale(.96); }
     .drive-controls {
-      display: grid;
+      display: none !important;
       grid-template-columns: 1fr;
       gap: 10px;
     }
@@ -1031,8 +1058,13 @@
       <div class="signal-wave"></div>
       <div class="signal-wave"></div>
     </div>
-    <div class="launch-status" id="launchStatus">Application initialising…</div>
-    <div class="launch-progress"><span id="launchProgress"></span></div>
+    <div class="launch-checklist" id="launchChecklist" aria-live="polite">
+      <div class="launch-step active" id="launchStepStart">Starting Super Simple Speedo…</div>
+      <div class="launch-step" id="launchStepLocation">Finding your location…</div>
+      <div class="launch-step" id="launchStepReady">Systems ready</div>
+    </div>
+    <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
+    <div class="launch-progress" aria-hidden="true"><span id="launchProgress"></span></div>
   </div>
 </div>
 
@@ -1060,7 +1092,7 @@
         </button>
         <div class="road-info" id="gpsSection">
           <div id="source">Waiting for GPS</div>
-          <div id="road">Tap Start GPS</div>
+          <div id="road">Finding your location…</div>
           <div id="roadConfidence"></div>
           <div id="gps">Automatic limit ready</div>
           <div class="status-pill" id="matchPill"><span class="status-dot pulse" id="matchDot"></span><span id="matchStage">Waiting</span></div>
@@ -1105,18 +1137,6 @@
   <div class="sheet">
     <div class="grabber"></div>
     <h2>Settings</h2>
-
-    <div class="settings-section-title">Connection</div>
-
-    <div class="setting">
-      <div class="setting-row">
-        <div>
-          <div class="setting-title">Connect GPS automatically</div>
-          <div class="setting-note">Reconnect when the app opens. You can still disconnect at any time.</div>
-        </div>
-        <button class="switch" id="autoConnectSwitch" aria-label="Toggle automatic GPS connection"></button>
-      </div>
-    </div>
 
     <div class="settings-section-title">Audio</div>
 
@@ -1384,8 +1404,8 @@
     limit: null,
     mode: localStorage.getItem("limitMode") || "auto",
     watchId: null,
-    autoConnect: localStorage.getItem("autoConnectGps") === "true",
-    autoConnectChoiceMade: localStorage.getItem("autoConnectChoiceMade") === "true",
+    autoConnect: true,
+    autoConnectChoiceMade: true,
     points: [],
     lookupBusy: false,
     lastLookupAt: 0,
@@ -1487,7 +1507,7 @@
     sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit";
     roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : (message || ({
       locating: "Finding road...",
-      waiting: "Connect GPS to begin",
+      waiting: "Finding your location…",
       collecting: "Checking road...",
       matching: "Checking road...",
       nodata: "No road identified"
@@ -1503,54 +1523,31 @@
     return cleaned.replace(/,\s*\d+[a-z]?$/i, "");
   }
 
-  function runLaunchSequence() {
-    const autoStarting = state.autoConnect && state.autoConnectChoiceMade;
-    // The complete successful boot, including the final GPS-lock pulse, lasts
-    // approximately three seconds. GPS failures remain visible long enough to
-    // explain what happened instead of pretending the connection succeeded.
-    startupMinimumCompleteAt = Date.now() + 2350;
-    startupCompletionScheduled = false;
-
-    const steps = autoStarting
-      ? [
-          ["Application initialising…", 14],
-          ["Loading interface…", 28],
-          ["Checking for Skynet…", 40],
-          ["Skynet not detected ✓", 50]
-        ]
-      : [
-          ["Application initialising…", 14],
-          ["Loading interface…", 30],
-          ["Checking for Skynet…", 46],
-          ["Skynet not detected ✓", 60],
-          ["Preparing navigation systems…", 78],
-          ["Systems ready", 100]
-        ];
-
-    const stepTimes = autoStarting
-      ? [0, 500, 1000, 1450]
-      : [0, 500, 1000, 1450, 2050, 2550];
-
-    steps.forEach(([text, progress], index) => {
-      setTimeout(() => {
-        $("launchStatus").textContent = text;
-        $("launchProgress").style.width = `${progress}%`;
-      }, stepTimes[index]);
+  function setLaunchSteps(startState, locationState, readyState, readyText = "Systems ready") {
+    const states = [
+      [$("launchStepStart"), startState],
+      [$("launchStepLocation"), locationState],
+      [$("launchStepReady"), readyState]
+    ];
+    states.forEach(([element, stateName]) => {
+      if (!element) return;
+      element.classList.remove("active", "complete", "error");
+      if (stateName) element.classList.add(stateName);
     });
-
-    if (autoStarting) {
-      setTimeout(() => {
-        if (state.watchId === null) startGPS({ startup: true });
-      }, 1700);
-      return;
-    }
-
-    setTimeout(() => {
-      $("launchScreen").classList.add("hide");
-    }, 3000);
+    if ($("launchStepReady")) $("launchStepReady").textContent = readyText;
   }
 
+  function runLaunchSequence() {
+    // A calm, persistent checklist: completed steps remain visible.
+    startupMinimumCompleteAt = Date.now() + 1700;
+    startupCompletionScheduled = false;
+    setLaunchSteps("active", "", "");
 
+    setTimeout(() => {
+      setLaunchSteps("complete", "active", "");
+      if (state.watchId === null) startGPS({ startup: true });
+    }, 500);
+  }
 
 
 
@@ -2472,26 +2469,22 @@
       if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);
       const track = $("launchSatelliteTrack");
       track?.classList.add("locked");
-      $("launchStatus").textContent = "GPS lock acquired";
-      $("launchProgress").style.width = "92%";
+      setLaunchSteps("complete", "complete", "active");
       setTimeout(() => {
-        $("launchStatus").textContent = state.roadServiceStatus === "error"
-          ? "GPS active · road lookup unavailable"
-          : "Systems ready";
-        $("launchProgress").style.width = "100%";
+        setLaunchSteps(
+          "complete",
+          "complete",
+          "complete",
+          state.roadServiceStatus === "error" ? "GPS ready · road lookup unavailable" : "Systems ready"
+        );
       }, 300);
-      setTimeout(() => $("launchScreen").classList.add("hide"), 650);
+      setTimeout(() => $("launchScreen").classList.add("hide"), 850);
     } else {
       $("gpsConnectStatus").textContent = "GPS lock acquired";
       $("gpsConnectProgress").style.width = "100%";
       $("gpsConnectOverlay").querySelector(".satellite-track")?.classList.add("locked");
       setTimeout(() => $("gpsConnectOverlay").classList.remove("open"), 650);
     }
-    startEl.textContent = "GPS Connected ✓";
-    startEl.disabled = true;
-    startEl.classList.add("connected-status");
-    $("disconnect").classList.remove("hidden");
-    document.querySelector(".drive-controls").classList.add("connected");
     playGreeting();
   }
 
@@ -2500,8 +2493,8 @@
     startupGpsFinished = true;
     startupGpsPending = false;
     if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);
-    $("launchStatus").textContent = message;
-    $("launchProgress").style.width = "100%";
+    $("launchStepLocation").textContent = message;
+    setLaunchSteps("complete", "error", "");
     startEl.textContent = "Connect GPS";
     startEl.disabled = false;
     startEl.classList.remove("connected-status");
@@ -2512,15 +2505,17 @@
     if (error.code === 1) {
       statusEl.textContent = "Location permission denied.";
       setAutomaticStatus("error");
-      if (startupGpsPending) finishStartupWithoutGps("Location permission needed · tap Connect GPS");
+      if (startupGpsPending) finishStartupWithoutGps("Location permission needed");
       return;
     }
 
     if (startupGpsPending) {
       if (!navigator.onLine) {
-        $("launchStatus").textContent = "Offline · still searching for GPS…";
+        $("launchStepLocation").textContent = "Offline · still searching for GPS…";
+        setLaunchSteps("complete", "active", "");
       } else {
-        $("launchStatus").textContent = error.code === 3 ? "No GPS signal yet…" : "Waiting for GPS signal…";
+        $("launchStepLocation").textContent = error.code === 3 ? "No GPS signal yet…" : "Waiting for GPS signal…";
+        setLaunchSteps("complete", "active", "");
       }
       $("launchProgress").style.width = "76%";
     }
@@ -2541,9 +2536,15 @@
     const statusTarget = startup ? $("launchStatus") : $("gpsConnectStatus");
     const progressTarget = startup ? $("launchProgress") : $("gpsConnectProgress");
 
-    if (!startup) $("gpsConnectOverlay").classList.add("open");
-    statusTarget.textContent = "Acquiring satellites…";
-    progressTarget.style.width = startup ? "55%" : "22%";
+    // Normal users never see a separate connect screen; the app recovers automatically.
+    if (!startup) $("gpsConnectOverlay").classList.remove("open");
+    if (startup) {
+      $("launchStepLocation").textContent = "Finding your location…";
+      setLaunchSteps("complete", "active", "");
+    } else {
+      statusTarget.textContent = "Acquiring satellites…";
+      progressTarget.style.width = "22%";
+    }
     audioContext();
     if (!state.apiKey || state.apiKey.includes("__GEOAPIFY")) {
       roadServiceFailure(401);
@@ -2598,7 +2599,7 @@
       progressTarget.style.width = "58%";
       startupGpsFallbackTimer = setTimeout(() => {
         finishStartupWithoutGps(navigator.onLine
-          ? "GPS unavailable · tap Connect GPS"
+          ? "GPS unavailable · trying again…"
           : "Offline · GPS unavailable");
       }, 11000);
     } else {
@@ -2633,11 +2634,7 @@
   }
 
   function requestGpsConnection() {
-    if (state.autoConnectChoiceMade) {
-      startGPS();
-      return;
-    }
-    openModal(autoConnectModal);
+    startGPS();
   }
 
   function toggleSwitch(element, key, stateKey) {
@@ -2772,9 +2769,8 @@
     startGPS();
   });
 
-  $("autoConnectSwitch").addEventListener("click", () => {
+  $("autoConnectSwitch")?.addEventListener("click", () => {
     rememberAutoConnect(!state.autoConnect);
-    showToast(state.autoConnect ? "Automatic GPS connection on" : "Automatic GPS connection off");
   });
 
   $("fullscreenButton").addEventListener("click", async () => {
@@ -2893,22 +2889,38 @@
     state.displayedSpeed = 0;
     state.acceptedAutoLimit = null;
     state.acceptedAutoRoad = "";
-    setLimit(null, "Automatic limit", "Connect GPS to begin");
-    setAutomaticStatus("waiting", "Connect GPS to begin");
+    setLimit(null, "Automatic limit", "Finding your location…");
+    setAutomaticStatus("waiting", "Finding your location…");
 
     $("disconnect").classList.add("hidden");
     startEl.textContent = "Connect GPS";
     startEl.disabled = false;
     startEl.classList.remove("connected-status");
     document.querySelector(".drive-controls").classList.remove("connected");
-    statusEl.textContent = "Drive ended. Connect GPS when ready.";
+    statusEl.textContent = "GPS paused.";
     showToast("Drive ended");
   }
 
-  startEl.addEventListener("click", requestGpsConnection);
-  $("disconnect").addEventListener("click", disconnectDrive);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible" && state.watchId !== null) requestWakeLock();
+  startEl?.addEventListener("click", requestGpsConnection);
+  $("disconnect")?.addEventListener("click", disconnectDrive);
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "hidden") {
+      if (state.watchId !== null) {
+        navigator.geolocation.clearWatch(state.watchId);
+        state.watchId = null;
+      }
+      if (state.wakeLock) {
+        try { await state.wakeLock.release(); } catch (_) {}
+        state.wakeLock = null;
+      }
+      return;
+    }
+
+    if (state.watchId === null) {
+      startGPS();
+    } else {
+      requestWakeLock();
+    }
   });
 
   // Restore the previous manual choice, while automatic mode waits for a road match.
@@ -2916,8 +2928,8 @@
     const saved = Number(localStorage.getItem("manualLimit") || 50);
     setLimit(saved, "Manual limit", "Tap the sign to change");
   } else {
-    setLimit(null, "Automatic limit", "Connect GPS to begin");
-    setAutomaticStatus("waiting", "Connect GPS to begin");
+    setLimit(null, "Automatic limit", "Finding your location…");
+    setAutomaticStatus("waiting", "Finding your location…");
   }
 
 
