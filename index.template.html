@@ -1222,7 +1222,11 @@
           <div class="stat-card"><div class="stat-value" id="statTrips">0</div><div class="stat-label">Trips</div></div>
           <div class="stat-card"><div class="stat-value" id="statDistance">0.0</div><div class="stat-label">Distance · km</div></div>
           <div class="stat-card"><div class="stat-value" id="statHours">0.0</div><div class="stat-label">Time used · h</div></div>
+          <div class="stat-card"><div class="stat-value" id="statSessionData">0 KB</div><div class="stat-label">API data · this session</div></div>
+          <div class="stat-card"><div class="stat-value" id="statApiRequests">0</div><div class="stat-label">Road API requests</div></div>
+          <div class="stat-card"><div class="stat-value" id="statAverageResponse">0 KB</div><div class="stat-label">Average response</div></div>
         </div>
+        <div class="setting-note" style="margin:12px 2px 14px;">Data usage is an estimate of Geoapify request and response payloads. Mobile-network overhead is controlled by the browser and carrier.</div>
         <button class="wide-button secondary" id="resetStats">Reset statistics</button>
       </div>
     </div>
@@ -1253,6 +1257,10 @@
 
         <div style="margin-top:16px;line-height:1.55;font-weight:700;opacity:.9;">
           Driving safely and respecting speed limits is always the responsibility of the driver.
+        </div>
+
+        <div style="margin-top:18px;line-height:1.55;font-weight:780;opacity:.9;">
+          Made in Switzerland 🇨🇭
         </div>
       </div>
     </div>
@@ -1433,7 +1441,8 @@
     wakeLock: null,
     roadServiceStatus: "unchecked",
     roadServiceMessage: "",
-    stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0}'),
+    stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0,"apiBytes":0,"apiRequests":0,"apiResponses":0,"apiResponseBytes":0}'),
+    sessionNetwork: { bytes: 0, requests: 0, responses: 0, responseBytes: 0 },
     driveStartedAt: null,
     lastStatsPosition: null,
     lastAcceptedSpeed: 0,
@@ -1539,7 +1548,7 @@
 
   function runLaunchSequence() {
     // A calm, persistent checklist: completed steps remain visible.
-    startupMinimumCompleteAt = Date.now() + 1700;
+    startupMinimumCompleteAt = Date.now() + 3150;
     startupCompletionScheduled = false;
     setLaunchSteps("active", "", "");
 
@@ -1624,6 +1633,41 @@
     updateStatsDisplay();
   }
 
+  function byteLength(value) {
+    return new TextEncoder().encode(value || "").length;
+  }
+
+  function formatBytes(bytes) {
+    const value = Math.max(0, Number(bytes) || 0);
+    if (value < 1024) return `${Math.round(value)} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(value < 10240 ? 1 : 0)} KB`;
+    return `${(value / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  function beginNetworkMeasurement(requestBytes = 0) {
+    const bytes = Math.max(0, Number(requestBytes) || 0);
+    state.sessionNetwork.requests += 1;
+    state.sessionNetwork.bytes += bytes;
+    state.stats.apiRequests = (state.stats.apiRequests || 0) + 1;
+    state.stats.apiBytes = (state.stats.apiBytes || 0) + bytes;
+    saveStats();
+  }
+
+  function measureNetworkResponse(response) {
+    if (!response) return;
+    const clone = response.clone();
+    clone.arrayBuffer().then(buffer => {
+      const bytes = buffer.byteLength || 0;
+      state.sessionNetwork.responses += 1;
+      state.sessionNetwork.responseBytes += bytes;
+      state.sessionNetwork.bytes += bytes;
+      state.stats.apiResponses = (state.stats.apiResponses || 0) + 1;
+      state.stats.apiResponseBytes = (state.stats.apiResponseBytes || 0) + bytes;
+      state.stats.apiBytes = (state.stats.apiBytes || 0) + bytes;
+      saveStats();
+    }).catch(() => {});
+  }
+
   function formatStat(value, decimals = 0) {
     return new Intl.NumberFormat(undefined, {
       minimumFractionDigits: decimals,
@@ -1636,6 +1680,12 @@
     $("statTrips").textContent = formatStat(state.stats.trips || 0);
     $("statDistance").textContent = formatStat(state.stats.metres / 1000, 1);
     $("statHours").textContent = formatStat((state.stats.milliseconds + liveMs) / 3600000, 1);
+    $("statSessionData").textContent = formatBytes(state.sessionNetwork.bytes);
+    $("statApiRequests").textContent = formatStat(state.sessionNetwork.requests || 0);
+    const averageResponse = state.sessionNetwork.responses
+      ? state.sessionNetwork.responseBytes / state.sessionNetwork.responses
+      : 0;
+    $("statAverageResponse").textContent = formatBytes(averageResponse);
   }
 
   function applyStatisticsSettings() {
@@ -1733,7 +1783,9 @@
     setAutomaticStatus("matching", "Checking road...");
     try {
       const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${encodeURIComponent(coords.latitude)}&lon=${encodeURIComponent(coords.longitude)}&format=json&apiKey=${encodeURIComponent(state.apiKey)}`;
+      beginNetworkMeasurement(byteLength(url));
       const response = await fetch(url, { method: "GET" });
+      measureNetworkResponse(response);
       if (!response.ok) {
         roadServiceFailure(response.status);
         return false;
@@ -2106,14 +2158,18 @@
 
     try {
       const sample = state.points.slice(-10);
+      const lookupUrl = `https://api.geoapify.com/v1/mapmatching?apiKey=${encodeURIComponent(state.apiKey)}`;
+      const lookupBody = JSON.stringify({ mode: "drive", waypoints: sample });
+      beginNetworkMeasurement(byteLength(lookupUrl) + byteLength(lookupBody));
       const response = await fetch(
-        `https://api.geoapify.com/v1/mapmatching?apiKey=${encodeURIComponent(state.apiKey)}`,
+        lookupUrl,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "drive", waypoints: sample })
+          body: lookupBody
         }
       );
+      measureNetworkResponse(response);
 
       if (!response.ok) throw new Error(`service ${response.status}`);
 
@@ -2825,7 +2881,8 @@
   });
 
   $("resetStats").addEventListener("click", () => {
-    state.stats = { trips: 0, milliseconds: 0, metres: 0 };
+    state.stats = { trips: 0, milliseconds: 0, metres: 0, apiBytes: 0, apiRequests: 0, apiResponses: 0, apiResponseBytes: 0 };
+    state.sessionNetwork = { bytes: 0, requests: 0, responses: 0, responseBytes: 0 };
     state.driveStartedAt = state.statisticsEnabled && state.watchId !== null ? Date.now() : null;
     state.lastStatsPosition = null;
     saveStats();
