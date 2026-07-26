@@ -349,7 +349,7 @@
       left: -70px;
       font-size: 54px;
       filter: drop-shadow(0 0 18px rgba(255,255,255,.35));
-      animation: satelliteFly 2.2s ease-in-out infinite;
+      animation: satelliteFly 3s ease-in-out infinite;
     }
     .signal-wave {
       position: absolute;
@@ -1059,9 +1059,9 @@
       <div class="signal-wave"></div>
     </div>
     <div class="launch-checklist" id="launchChecklist" aria-live="polite">
-      <div class="launch-step active" id="launchStepStart">Starting Super Simple Speedo…</div>
+      <div class="launch-step active" id="launchStepStart">Starting application…</div>
       <div class="launch-step" id="launchStepLocation">Finding your location…</div>
-      <div class="launch-step" id="launchStepReady">Systems ready</div>
+      <div class="launch-step" id="launchStepReady">Ready to drive</div>
     </div>
     <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
     <div class="launch-progress" aria-hidden="true"><span id="launchProgress"></span></div>
@@ -1523,7 +1523,7 @@
     return cleaned.replace(/,\s*\d+[a-z]?$/i, "");
   }
 
-  function setLaunchSteps(startState, locationState, readyState, readyText = "Systems ready") {
+  function setLaunchSteps(startState, locationState, readyState, readyText = "Ready to drive") {
     const states = [
       [$("launchStepStart"), startState],
       [$("launchStepLocation"), locationState],
@@ -2475,7 +2475,7 @@
           "complete",
           "complete",
           "complete",
-          state.roadServiceStatus === "error" ? "GPS ready · road lookup unavailable" : "Systems ready"
+          state.roadServiceStatus === "error" ? "GPS ready · road lookup unavailable" : "Ready to drive"
         );
       }, 300);
       setTimeout(() => $("launchScreen").classList.add("hide"), 850);
