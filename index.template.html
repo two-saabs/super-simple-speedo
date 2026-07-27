@@ -214,6 +214,27 @@
       font-size: 12px;
       font-weight: 900;
     }
+
+    .launch-action {
+      width: min(310px, 100%);
+      margin: 32px auto 0;
+      min-height: 58px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--fg);
+      color: var(--bg);
+      font: inherit;
+      font-size: 18px;
+      font-weight: 820;
+      letter-spacing: -.01em;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .14s ease, opacity .2s ease;
+    }
+    .launch-action:active { transform: scale(.98); }
+    .launch-action[disabled] { opacity: .55; cursor: default; }
+    .launch-action.hidden { display: none; }
+    .launch-checklist.hidden { display: none; }
     .launch-status,
     .launch-progress { display: none; }
     @keyframes spin {
@@ -1124,11 +1145,12 @@
       <div class="signal-wave"></div>
       <div class="signal-wave"></div>
     </div>
-    <div class="launch-checklist" id="launchChecklist" aria-live="polite">
+    <div class="launch-checklist hidden" id="launchChecklist" aria-live="polite">
       <div class="launch-step active" id="launchStepStart">Starting application…</div>
       <div class="launch-step" id="launchStepLocation">Finding your location…</div>
       <div class="launch-step" id="launchStepReady">Ready to drive</div>
     </div>
+    <button class="launch-action" id="letsDriveButton" type="button">Let’s drive</button>
     <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
     <div class="launch-progress" aria-hidden="true"><span id="launchProgress"></span></div>
   </div>
@@ -1327,7 +1349,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 12.1
+          Version 12.3
         </div>
 
         <div style="margin-top:18px;line-height:1.55;opacity:.82;">
@@ -1637,15 +1659,40 @@
   }
 
   function runLaunchSequence() {
-    // A calm, persistent checklist: completed steps remain visible.
-    startupMinimumCompleteAt = Date.now() + 3150;
+    // Wait for one deliberate tap. This gives iOS the user gesture required
+    // to grant the screen wake lock while keeping the startup simple.
+    startupMinimumCompleteAt = 0;
     startupCompletionScheduled = false;
+    const checklist = $("launchChecklist");
+    if (checklist) checklist.classList.add("hidden");
     setLaunchSteps("active", "", "");
+    const button = $("letsDriveButton");
+    if (button) {
+      button.disabled = false;
+      button.classList.remove("hidden");
+      button.textContent = "Let’s drive";
+    }
+  }
 
-    setTimeout(() => {
-      setLaunchSteps("complete", "active", "");
-      if (state.watchId === null) startGPS({ startup: true });
-    }, 500);
+  async function beginDriveFromLaunch() {
+    const button = $("letsDriveButton");
+    if (button?.disabled) return;
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Starting…";
+    }
+
+    startupMinimumCompleteAt = Date.now() + 2200;
+    const checklist = $("launchChecklist");
+    if (checklist) checklist.classList.remove("hidden");
+    setLaunchSteps("complete", "active", "");
+    state.wakeLockWanted = true;
+
+    // Keep this request directly inside the click handler: iOS accepts it as
+    // a genuine user-initiated action.
+    await requestWakeLock({ fromUserGesture: true });
+    if (button) button.classList.add("hidden");
+    if (state.watchId === null) startGPS({ startup: true });
   }
 
 
@@ -3115,6 +3162,7 @@
     showToast("Drive ended");
   }
 
+  $("letsDriveButton")?.addEventListener("click", beginDriveFromLaunch);
   startEl?.addEventListener("click", requestGpsConnection);
   $("disconnect")?.addEventListener("click", disconnectDrive);
   document.addEventListener("visibilitychange", async () => {
@@ -3137,16 +3185,6 @@
     if (state.watchId === null && state.autoConnect) startGPS();
   });
 
-  // iOS may deny an automatic wake-lock request until the first interaction
-  // inside the installed app. Retry invisibly on the user's first normal touch;
-  // there is no dedicated wake-lock button or interruption to the driving UI.
-  const retryWakeLockFromInteraction = () => {
-    if (state.watchId === null || state.wakeLock || state.wakeLockRequestPending) return;
-    state.wakeLockWanted = true;
-    requestWakeLock({ fromUserGesture: true });
-  };
-  document.addEventListener("pointerdown", retryWakeLockFromInteraction, { capture: true, passive: true });
-  document.addEventListener("keydown", retryWakeLockFromInteraction, { capture: true });
   window.addEventListener("focus", maintainWakeLock);
   window.addEventListener("pageshow", maintainWakeLock);
 
@@ -3162,7 +3200,7 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js?v=11.1")
+      navigator.serviceWorker.register("/service-worker.js?v=12.2")
         .then(registration => {
           registration.update();
           if (registration.waiting) {
