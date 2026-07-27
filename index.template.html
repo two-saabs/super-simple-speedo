@@ -1327,7 +1327,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 11.2
+          Version 12.0
         </div>
 
         <div style="margin-top:18px;line-height:1.55;opacity:.82;">
@@ -1528,6 +1528,7 @@
     wakeLock: null,
     wakeLockRequestPending: false,
     wakeLockWanted: false,
+    wakeLockPromptShown: false,
     roadServiceStatus: "unchecked",
     roadServiceMessage: "",
     stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0,"apiBytes":0,"apiRequests":0,"apiResponses":0,"apiResponseBytes":0}'),
@@ -2671,20 +2672,97 @@
     setAutomaticStatus("locating", error.code === 3 ? "GPS taking longer..." : "Waiting for GPS signal...");
   }
 
-  async function requestWakeLock() {
-    if (!state.wakeLockWanted || document.visibilityState !== "visible") return;
-    if (!("wakeLock" in navigator) || state.wakeLock || state.wakeLockRequestPending) return;
+  function removeWakeLockPrompt() {
+    const prompt = document.getElementById("wakeLockPrompt");
+    if (prompt) prompt.remove();
+    state.wakeLockPromptShown = false;
+  }
+
+  function showWakeLockPrompt() {
+    if (state.wakeLock || state.wakeLockPromptShown || !("wakeLock" in navigator)) return;
+    state.wakeLockPromptShown = true;
+
+    const prompt = document.createElement("button");
+    prompt.id = "wakeLockPrompt";
+    prompt.type = "button";
+    prompt.setAttribute("aria-label", "Keep screen awake");
+    prompt.textContent = "Tap to keep screen awake";
+    Object.assign(prompt.style, {
+      position: "fixed",
+      left: "50%",
+      bottom: "calc(24px + env(safe-area-inset-bottom))",
+      transform: "translateX(-50%)",
+      zIndex: "10000",
+      border: "0",
+      borderRadius: "999px",
+      padding: "14px 20px",
+      font: "inherit",
+      fontWeight: "780",
+      color: "#111",
+      background: "#fff",
+      boxShadow: "0 8px 30px rgba(0,0,0,.28)",
+      whiteSpace: "nowrap"
+    });
+
+    prompt.addEventListener("click", async event => {
+      event.preventDefault();
+      state.wakeLockWanted = true;
+      await requestWakeLock({ fromUserGesture: true });
+    });
+
+    document.body.appendChild(prompt);
+  }
+
+  async function requestWakeLock({ fromUserGesture = false } = {}) {
+    if (!state.wakeLockWanted || document.visibilityState !== "visible") return false;
+
+    if (!("wakeLock" in navigator)) {
+      addDiagnostic({
+        event: "WAKE_LOCK",
+        outcome: "UNSUPPORTED",
+        secureContext: window.isSecureContext,
+        displayMode: window.matchMedia("(display-mode: standalone)").matches ? "standalone" : "browser"
+      });
+      return false;
+    }
+
+    if (state.wakeLock) {
+      removeWakeLockPrompt();
+      return true;
+    }
+    if (state.wakeLockRequestPending) return false;
 
     state.wakeLockRequestPending = true;
     try {
       const lock = await navigator.wakeLock.request("screen");
       state.wakeLock = lock;
+      removeWakeLockPrompt();
+      addDiagnostic({
+        event: "WAKE_LOCK",
+        outcome: "ACQUIRED",
+        fromUserGesture,
+        secureContext: window.isSecureContext,
+        displayMode: window.matchMedia("(display-mode: standalone)").matches ? "standalone" : "browser"
+      });
       lock.addEventListener("release", () => {
         if (state.wakeLock === lock) state.wakeLock = null;
+        addDiagnostic({ event: "WAKE_LOCK", outcome: "RELEASED_BY_BROWSER" });
+        if (state.wakeLockWanted && document.visibilityState === "visible") showWakeLockPrompt();
       }, { once: true });
-    } catch (_) {
-      // Some mobile browsers require a user gesture. The global interaction
-      // listeners below silently retry on the next tap without interrupting GPS.
+      return true;
+    } catch (error) {
+      addDiagnostic({
+        event: "WAKE_LOCK",
+        outcome: "REJECTED",
+        fromUserGesture,
+        errorName: error?.name || "UnknownError",
+        errorMessage: error?.message || String(error),
+        secureContext: window.isSecureContext,
+        visibilityState: document.visibilityState,
+        displayMode: window.matchMedia("(display-mode: standalone)").matches ? "standalone" : "browser"
+      });
+      showWakeLockPrompt();
+      return false;
     } finally {
       state.wakeLockRequestPending = false;
     }
@@ -2692,6 +2770,7 @@
 
   async function releaseWakeLock() {
     state.wakeLockWanted = false;
+    removeWakeLockPrompt();
     if (!state.wakeLock) return;
     const lock = state.wakeLock;
     state.wakeLock = null;
@@ -3100,7 +3179,12 @@
   // iOS and some other mobile browsers may only grant a wake lock during a
   // user interaction. These retries are silent and do not add another button.
   ["pointerdown", "touchend", "click"].forEach(eventName => {
-    document.addEventListener(eventName, maintainWakeLock, { capture: true, passive: true });
+    document.addEventListener(eventName, () => {
+      if (state.watchId !== null) {
+        state.wakeLockWanted = true;
+        requestWakeLock({ fromUserGesture: true });
+      }
+    }, { capture: true, passive: true });
   });
   window.addEventListener("focus", maintainWakeLock);
   window.addEventListener("pageshow", maintainWakeLock);
