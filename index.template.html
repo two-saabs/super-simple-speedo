@@ -1327,7 +1327,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version 12.0
+          Version 12.1
         </div>
 
         <div style="margin-top:18px;line-height:1.55;opacity:.82;">
@@ -1528,7 +1528,7 @@
     wakeLock: null,
     wakeLockRequestPending: false,
     wakeLockWanted: false,
-    wakeLockPromptShown: false,
+    wakeLockNeedsGesture: false,
     roadServiceStatus: "unchecked",
     roadServiceMessage: "",
     stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0,"apiBytes":0,"apiRequests":0,"apiResponses":0,"apiResponseBytes":0}'),
@@ -2672,47 +2672,6 @@
     setAutomaticStatus("locating", error.code === 3 ? "GPS taking longer..." : "Waiting for GPS signal...");
   }
 
-  function removeWakeLockPrompt() {
-    const prompt = document.getElementById("wakeLockPrompt");
-    if (prompt) prompt.remove();
-    state.wakeLockPromptShown = false;
-  }
-
-  function showWakeLockPrompt() {
-    if (state.wakeLock || state.wakeLockPromptShown || !("wakeLock" in navigator)) return;
-    state.wakeLockPromptShown = true;
-
-    const prompt = document.createElement("button");
-    prompt.id = "wakeLockPrompt";
-    prompt.type = "button";
-    prompt.setAttribute("aria-label", "Keep screen awake");
-    prompt.textContent = "Tap to keep screen awake";
-    Object.assign(prompt.style, {
-      position: "fixed",
-      left: "50%",
-      bottom: "calc(24px + env(safe-area-inset-bottom))",
-      transform: "translateX(-50%)",
-      zIndex: "10000",
-      border: "0",
-      borderRadius: "999px",
-      padding: "14px 20px",
-      font: "inherit",
-      fontWeight: "780",
-      color: "#111",
-      background: "#fff",
-      boxShadow: "0 8px 30px rgba(0,0,0,.28)",
-      whiteSpace: "nowrap"
-    });
-
-    prompt.addEventListener("click", async event => {
-      event.preventDefault();
-      state.wakeLockWanted = true;
-      await requestWakeLock({ fromUserGesture: true });
-    });
-
-    document.body.appendChild(prompt);
-  }
-
   async function requestWakeLock({ fromUserGesture = false } = {}) {
     if (!state.wakeLockWanted || document.visibilityState !== "visible") return false;
 
@@ -2727,7 +2686,7 @@
     }
 
     if (state.wakeLock) {
-      removeWakeLockPrompt();
+      state.wakeLockNeedsGesture = false;
       return true;
     }
     if (state.wakeLockRequestPending) return false;
@@ -2736,7 +2695,7 @@
     try {
       const lock = await navigator.wakeLock.request("screen");
       state.wakeLock = lock;
-      removeWakeLockPrompt();
+      state.wakeLockNeedsGesture = false;
       addDiagnostic({
         event: "WAKE_LOCK",
         outcome: "ACQUIRED",
@@ -2747,7 +2706,9 @@
       lock.addEventListener("release", () => {
         if (state.wakeLock === lock) state.wakeLock = null;
         addDiagnostic({ event: "WAKE_LOCK", outcome: "RELEASED_BY_BROWSER" });
-        if (state.wakeLockWanted && document.visibilityState === "visible") showWakeLockPrompt();
+        if (state.wakeLockWanted && document.visibilityState === "visible") {
+          state.wakeLockNeedsGesture = true;
+        }
       }, { once: true });
       return true;
     } catch (error) {
@@ -2761,7 +2722,7 @@
         visibilityState: document.visibilityState,
         displayMode: window.matchMedia("(display-mode: standalone)").matches ? "standalone" : "browser"
       });
-      showWakeLockPrompt();
+      state.wakeLockNeedsGesture = true;
       return false;
     } finally {
       state.wakeLockRequestPending = false;
@@ -2770,7 +2731,7 @@
 
   async function releaseWakeLock() {
     state.wakeLockWanted = false;
-    removeWakeLockPrompt();
+    state.wakeLockNeedsGesture = false;
     if (!state.wakeLock) return;
     const lock = state.wakeLock;
     state.wakeLock = null;
@@ -3176,16 +3137,16 @@
     if (state.watchId === null && state.autoConnect) startGPS();
   });
 
-  // iOS and some other mobile browsers may only grant a wake lock during a
-  // user interaction. These retries are silent and do not add another button.
-  ["pointerdown", "touchend", "click"].forEach(eventName => {
-    document.addEventListener(eventName, () => {
-      if (state.watchId !== null) {
-        state.wakeLockWanted = true;
-        requestWakeLock({ fromUserGesture: true });
-      }
-    }, { capture: true, passive: true });
-  });
+  // iOS may deny an automatic wake-lock request until the first interaction
+  // inside the installed app. Retry invisibly on the user's first normal touch;
+  // there is no dedicated wake-lock button or interruption to the driving UI.
+  const retryWakeLockFromInteraction = () => {
+    if (state.watchId === null || state.wakeLock || state.wakeLockRequestPending) return;
+    state.wakeLockWanted = true;
+    requestWakeLock({ fromUserGesture: true });
+  };
+  document.addEventListener("pointerdown", retryWakeLockFromInteraction, { capture: true, passive: true });
+  document.addEventListener("keydown", retryWakeLockFromInteraction, { capture: true });
   window.addEventListener("focus", maintainWakeLock);
   window.addEventListener("pageshow", maintainWakeLock);
 
