@@ -1526,6 +1526,8 @@
     warningArmed: true,
     audioContext: null,
     wakeLock: null,
+    wakeLockRequestPending: false,
+    wakeLockWanted: false,
     roadServiceStatus: "unchecked",
     roadServiceMessage: "",
     stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0,"apiBytes":0,"apiRequests":0,"apiResponses":0,"apiResponseBytes":0}'),
@@ -2670,12 +2672,43 @@
   }
 
   async function requestWakeLock() {
+    if (!state.wakeLockWanted || document.visibilityState !== "visible") return;
+    if (!("wakeLock" in navigator) || state.wakeLock || state.wakeLockRequestPending) return;
+
+    state.wakeLockRequestPending = true;
     try {
-      if ("wakeLock" in navigator) state.wakeLock = await navigator.wakeLock.request("screen");
-    } catch (_) {}
+      const lock = await navigator.wakeLock.request("screen");
+      state.wakeLock = lock;
+      lock.addEventListener("release", () => {
+        if (state.wakeLock === lock) state.wakeLock = null;
+      }, { once: true });
+    } catch (_) {
+      // Some mobile browsers require a user gesture. The global interaction
+      // listeners below silently retry on the next tap without interrupting GPS.
+    } finally {
+      state.wakeLockRequestPending = false;
+    }
+  }
+
+  async function releaseWakeLock() {
+    state.wakeLockWanted = false;
+    if (!state.wakeLock) return;
+    const lock = state.wakeLock;
+    state.wakeLock = null;
+    try { await lock.release(); } catch (_) {}
+  }
+
+  function maintainWakeLock() {
+    if (state.watchId !== null) {
+      state.wakeLockWanted = true;
+      requestWakeLock();
+    }
   }
 
   async function startGPS({ startup = false } = {}) {
+    state.wakeLockWanted = true;
+    requestWakeLock();
+
     const statusTarget = startup ? $("launchStatus") : $("gpsConnectStatus");
     const progressTarget = startup ? $("launchProgress") : $("gpsConnectProgress");
 
@@ -2760,7 +2793,7 @@
       roadEl.textContent = "Tap the sign to change";
       setMatchStage("matched", "");
     }
-    await requestWakeLock();
+    maintainWakeLock();
   }
 
   function applyAutoConnectSetting() {
@@ -3015,10 +3048,7 @@
       state.watchId = null;
     }
 
-    if (state.wakeLock) {
-      try { await state.wakeLock.release(); } catch (_) {}
-      state.wakeLock = null;
-    }
+    await releaseWakeLock();
 
     state.points = [];
     state.lastAcceptedSpeed = 0;
@@ -3053,19 +3083,27 @@
         navigator.geolocation.clearWatch(state.watchId);
         state.watchId = null;
       }
+      // Browsers normally release screen wake locks when a page is hidden.
+      // Keep the intent so it can be reacquired immediately on return.
       if (state.wakeLock) {
-        try { await state.wakeLock.release(); } catch (_) {}
+        const lock = state.wakeLock;
         state.wakeLock = null;
+        try { await lock.release(); } catch (_) {}
       }
       return;
     }
 
-    if (state.watchId === null) {
-      startGPS();
-    } else {
-      requestWakeLock();
-    }
+    if (state.wakeLockWanted || state.autoConnect) requestWakeLock();
+    if (state.watchId === null && state.autoConnect) startGPS();
   });
+
+  // iOS and some other mobile browsers may only grant a wake lock during a
+  // user interaction. These retries are silent and do not add another button.
+  ["pointerdown", "touchend", "click"].forEach(eventName => {
+    document.addEventListener(eventName, maintainWakeLock, { capture: true, passive: true });
+  });
+  window.addEventListener("focus", maintainWakeLock);
+  window.addEventListener("pageshow", maintainWakeLock);
 
   // Restore the previous manual choice, while automatic mode waits for a road match.
   if (state.mode === "manual") {
