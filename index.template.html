@@ -1357,7 +1357,7 @@
         </div>
 
         <div style="margin-top:14px;line-height:1.55;opacity:.82;">
-          No ads. No subscriptions. No account. Just a simple speedometer with automatic speed limit detection where available.
+          Free forever. No ads. No subscriptions. No account. Just a simple speedometer with automatic speed limit detection where available.
         </div>
 
         <div style="margin-top:14px;line-height:1.55;opacity:.82;">
@@ -1705,29 +1705,68 @@
     return Number.isFinite(value) ? Number(value.toFixed(decimals)) : null;
   }
 
-  function diagnosticTimestamp() {
-    const now = new Date();
+  const DIAGNOSTIC_SCHEMA_VERSION = 1;
+  const DIAGNOSTIC_REQUIRED_FIELDS = ["schemaVersion", "timeUtc", "timeLocal", "timeZone"];
+
+  function currentTimeZone() {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+    } catch (_) {
+      return "UTC";
+    }
+  }
+
+  function diagnosticTimestamp(date = new Date()) {
+    const timeZone = currentTimeZone();
     return {
-      timeUtc: now.toISOString(),
+      timeUtc: date.toISOString(),
       timeLocal: new Intl.DateTimeFormat("sv-SE", {
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        timeZone,
         year: "numeric", month: "2-digit", day: "2-digit",
         hour: "2-digit", minute: "2-digit", second: "2-digit",
         hour12: false
-      }).format(now),
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      }).format(date),
+      timeZone
     };
+  }
+
+  function validateDiagnosticEntry(entry) {
+    return DIAGNOSTIC_REQUIRED_FIELDS.every(field => entry[field] !== undefined && entry[field] !== null)
+      && entry.schemaVersion === DIAGNOSTIC_SCHEMA_VERSION
+      && /^\d{4}-\d{2}-\d{2}T/.test(entry.timeUtc)
+      && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(entry.timeLocal)
+      && typeof entry.timeZone === "string"
+      && entry.timeZone.length > 0;
+  }
+
+  function makeDiagnosticEntry(entry = {}, date = new Date()) {
+    const diagnosticEntry = {
+      schemaVersion: DIAGNOSTIC_SCHEMA_VERSION,
+      ...entry,
+      // Timestamp fields are written last so callers cannot accidentally overwrite them.
+      ...diagnosticTimestamp(date)
+    };
+    if (!validateDiagnosticEntry(diagnosticEntry)) {
+      console.error("Diagnostic contract failed", diagnosticEntry);
+    }
+    return diagnosticEntry;
+  }
+
+  function runDiagnosticContractSelfTest() {
+    const sample = makeDiagnosticEntry({ event: "SELF_TEST" }, new Date("2026-01-02T03:04:05.000Z"));
+    const passed = validateDiagnosticEntry(sample);
+    if (!passed) console.error("Super Simple Speedo diagnostic self-test failed", sample);
+    return passed;
   }
 
   function addDiagnostic(entry) {
     if (!state.diagnosticsEnabled) return;
-    state.diagnosticLog.push({
-      ...diagnosticTimestamp(),
-      ...entry
-    });
+    state.diagnosticLog.push(makeDiagnosticEntry(entry));
     state.diagnosticLog = state.diagnosticLog.slice(-250);
     updateDiagnosticsDisplay();
   }
+
+  runDiagnosticContractSelfTest();
 
   function logDriverUiChange(active, reason) {
     if (state.lastDriverUiLogState === active) return;
@@ -3104,6 +3143,12 @@
   });
 
   $("copyDiagnostics").addEventListener("click", async () => {
+    const invalidEntries = state.diagnosticLog.filter(entry => !validateDiagnosticEntry(entry));
+    if (invalidEntries.length) {
+      console.error("Diagnostic log contains invalid entries", invalidEntries);
+      showToast(`Log contract failed: ${invalidEntries.length} invalid entr${invalidEntries.length === 1 ? "y" : "ies"}`);
+      return;
+    }
     const text = JSON.stringify(state.diagnosticLog, null, 2);
     try {
       await navigator.clipboard.writeText(text);
