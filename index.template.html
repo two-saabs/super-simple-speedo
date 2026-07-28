@@ -1528,6 +1528,7 @@
     lastLookupAt: 0,
     lastLookupPosition: null,
     autoCandidates: [],
+    autoMatchCandidates: [],
     acceptedAutoLimit: null,
     acceptedAutoRoad: "",
     roadMatchStage: "waiting",
@@ -1795,7 +1796,7 @@
     output.textContent = state.diagnosticLog.slice(-12).map(item => {
       const reasons = item.reasons?.length ? item.reasons.join(", ") : "none";
       return [
-        (item.timeUtc || item.time || "").slice(11, 19),
+        (item.timeLocal || item.timeUtc || item.time || "").slice(11, 19),
         item.event ? `${item.event}: ${item.reason || item.roadDecision?.reason || ""}` : `raw ${item.rawKmh ?? "—"} · derived ${item.derivedKmh ?? "—"} · shown ${item.displayedKmh ?? "—"} km/h`,
         item.event ? `driver UI ${item.driverUiActive === true ? "ON" : item.driverUiActive === false ? "OFF" : "—"}` : `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m · movement score ${item.movementScore ?? "—"}×`,
         item.event ? "" : `${item.speedDecision || item.decision}: ${reasons} · source ${item.speedSource || "—"} · driver UI ${item.driverUiActive ? "ON" : "OFF"}`
@@ -2198,6 +2199,7 @@
     state.mode = "auto";
     localStorage.setItem("limitMode", "auto");
     state.autoCandidates = [];
+    state.autoMatchCandidates = [];
     sourceEl.classList.remove("manual-source");
     if (state.acceptedAutoLimit) {
       setLimit(state.acceptedAutoLimit, "Last confirmed limit", state.acceptedAutoRoad || "Checking road...");
@@ -2303,16 +2305,39 @@
     return moved >= 22 || now - state.lastLookupAt >= interval;
   }
 
-  function stableCandidate(value) {
-    state.autoCandidates.push(value);
+  function candidateConfirmation({ limit, road, accuracyMetres, roadClass, matchType, speedKmh }) {
+    const validRoadName = Boolean(road);
+    const invalidRoadClass = roadClass === "service_other";
+    const implausibleRoadLimit = roadClass === "residential" && limit > 70;
+    const qualityGood = Number.isFinite(accuracyMetres)
+      && accuracyMetres <= 30
+      && validRoadName
+      && !invalidRoadClass
+      && matchType !== "unmatched"
+      && !implausibleRoadLimit;
+
+    const key = `${limit}|${road || ""}`;
+    state.autoCandidates.push(limit);
     state.autoCandidates = state.autoCandidates.slice(-3);
+    state.autoMatchCandidates.push(key);
+    state.autoMatchCandidates = state.autoMatchCandidates.slice(-3);
 
-    if (state.acceptedAutoLimit === null) return true;
-    if (value === state.acceptedAutoLimit) return true;
+    const stationary = speedKmh < 3;
+    const requiredMatches = stationary ? 3 : 2;
+    const recent = state.autoMatchCandidates.slice(-requiredMatches);
+    const repeatedMatch = recent.length === requiredMatches && recent.every(item => item === key);
+    const matchesAccepted = state.acceptedAutoLimit === limit && state.acceptedAutoRoad === road;
 
-    // Require two consecutive identical results before changing an existing limit.
-    const lastTwo = state.autoCandidates.slice(-2);
-    return lastTwo.length === 2 && lastTwo.every(item => item === value);
+    return {
+      confirmed: qualityGood && (matchesAccepted || repeatedMatch),
+      qualityGood,
+      repeatedMatch,
+      requiredMatches,
+      validRoadName,
+      invalidRoadClass,
+      implausibleRoadLimit,
+      stationary
+    };
   }
 
   async function lookupSpeedLimit(currentCoords) {
@@ -2371,20 +2396,36 @@
       const previousConfirmedRoad = state.acceptedAutoRoad || null;
       let roadOutcome = "NO_LIMIT";
 
+      let confirmation = null;
       if (Number.isFinite(value) && value > 0) {
-        if (stableCandidate(Math.round(value))) {
+        const roundedLimit = Math.round(value);
+        confirmation = candidateConfirmation({
+          limit: roundedLimit,
+          road: roadName,
+          accuracyMetres: Number(currentCoords.accuracy),
+          roadClass: step?.road_class || null,
+          matchType: latest?.match_type || (step ? "matched" : "unmatched"),
+          speedKmh: state.targetSpeed
+        });
+
+        if (confirmation.confirmed) {
           roadOutcome = "CONFIRMED";
           const previous = state.acceptedAutoLimit;
-          state.acceptedAutoLimit = Math.round(value);
-          state.acceptedAutoRoad = roadName || state.acceptedAutoRoad;
-          setLimit(value, "Automatic limit from:", state.acceptedAutoRoad || "Confirmed road", {
-            chime: previous !== null && previous !== Math.round(value),
+          state.acceptedAutoLimit = roundedLimit;
+          state.acceptedAutoRoad = roadName;
+          setLimit(roundedLimit, "Automatic limit from:", state.acceptedAutoRoad, {
+            chime: previous !== null && previous !== roundedLimit,
             previous
           });
           setAutomaticStatus("matched", state.acceptedAutoRoad);
+        } else if (!confirmation.validRoadName && state.acceptedAutoLimit !== null) {
+          roadOutcome = "RETAINED_UNCONFIRMED";
+          setLimit(state.acceptedAutoLimit, "Automatic limit from:", state.acceptedAutoRoad || "Last matched road");
+          setAutomaticStatus("confirming", state.acceptedAutoRoad || "Last matched road");
         } else {
           roadOutcome = "BEST_ESTIMATE";
-          setAutomaticStatus("confirming", roadName || "");
+          setLimit(roundedLimit, "Automatic limit from:", roadName || "Road match pending");
+          setAutomaticStatus("confirming", roadName || "Road match pending");
         }
       } else {
         setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
@@ -2416,7 +2457,20 @@
           displayedRoad: state.acceptedAutoRoad || null,
           candidate: Number.isFinite(value) ? { limit: Math.round(value), road: roadName || null } : null,
           candidateHistory: [...state.autoCandidates],
-          validRoadName: Boolean(roadName)
+          validRoadName: Boolean(roadName),
+          confidenceChecks: confirmation ? {
+            qualityGood: confirmation.qualityGood,
+            repeatedMatch: confirmation.repeatedMatch,
+            requiredMatches: confirmation.requiredMatches,
+            stationary: confirmation.stationary,
+            invalidRoadClass: confirmation.invalidRoadClass,
+            implausibleRoadLimit: confirmation.implausibleRoadLimit
+          } : null,
+          reason: roadOutcome === "RETAINED_UNCONFIRMED"
+            ? "INVALID_CURRENT_ROAD_MATCH"
+            : roadOutcome === "BEST_ESTIMATE"
+              ? "AWAITING_STABLE_HIGH_QUALITY_MATCH"
+              : null
         },
         durationMs: Math.round(performance.now() - lookupStartedAt)
       });
@@ -2610,9 +2664,23 @@
       updateDriverMode(state.lastAcceptedSpeed);
     }
 
+    const displayDecision = state.targetSpeed === 0 && derivedKmh !== null && derivedKmh >= DRIVER_MODE_ENTER_SPEED
+      ? "HELD_AT_ZERO"
+      : state.targetSpeed === previousAcceptedKmh && decision === "HELD"
+        ? "HELD_PREVIOUS_SPEED"
+        : "UPDATED";
+    const displayReasons = [];
+    if (displayDecision === "HELD_AT_ZERO" && rawKmh !== null && rawKmh < DRIVER_MODE_ENTER_SPEED) {
+      displayReasons.push("NATIVE_SPEED_INDICATES_STATIONARY");
+    }
+    if (displayDecision === "HELD_AT_ZERO" && derivedKmh !== null) {
+      displayReasons.push("DERIVED_SPEED_NOT_USED_FOR_DISPLAY");
+    }
+
     addDiagnostic({
       rawKmh: roundDiagnostic(rawKmh),
       derivedKmh: roundDiagnostic(derivedKmh),
+      ignoredDerivedKmh: displayDecision === "HELD_AT_ZERO" ? roundDiagnostic(derivedKmh) : null,
       displayedKmh: roundDiagnostic(state.targetSpeed),
       accuracyMetres: roundDiagnostic(c.accuracy, 0),
       elapsedSeconds: roundDiagnostic(elapsedSeconds, 2),
@@ -2621,11 +2689,9 @@
         ? roundDiagnostic(movedMetres / Math.max(1, c.accuracy, previousGps.accuracy || 0), 2)
         : null,
       speedSource: rawKmh !== null ? "NATIVE_GPS" : derivedKmh !== null ? "POSITION_DERIVED" : "NONE",
-      displayDecision: state.targetSpeed === 0 && derivedKmh !== null && derivedKmh >= DRIVER_MODE_ENTER_SPEED
-        ? "HELD_AT_ZERO"
-        : state.targetSpeed === previousAcceptedKmh && decision === "HELD"
-          ? "HELD_PREVIOUS_SPEED"
-          : "UPDATED",
+      displayDecision: displayDecision,
+      displayReasons: displayReasons,
+      selectedSpeedKmh: roundDiagnostic(state.targetSpeed),
       previousAcceptedKmh: roundDiagnostic(previousAcceptedKmh),
       speedDecision: decision,
       decision,
@@ -3195,6 +3261,8 @@
     state.displayedSpeed = 0;
     state.acceptedAutoLimit = null;
     state.acceptedAutoRoad = "";
+    state.autoCandidates = [];
+    state.autoMatchCandidates = [];
     setLimit(null, "Automatic limit", "Finding your location…");
     setAutomaticStatus("waiting", "Finding your location…");
 
