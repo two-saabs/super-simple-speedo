@@ -1,4 +1,4 @@
-const CACHE_VERSION = "super-simple-speedo-v1.10.13";
+const CACHE_VERSION = "super-simple-speedo-v__APP_VERSION__";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
