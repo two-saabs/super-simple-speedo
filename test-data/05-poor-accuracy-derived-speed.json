@@ -1,0 +1,30 @@
+{
+  "name": "poor-accuracy derived movement remains unconfirmed",
+  "description": "A noisy position-only sample with 120 metre accuracy must not activate Driver Mode.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 40.64000,
+      "longitude": 17.95000,
+      "accuracy": 120,
+      "speedMps": null
+    },
+    {
+      "timestamp": 2000,
+      "latitude": 40.64020,
+      "longitude": 17.95000,
+      "accuracy": 120,
+      "speedMps": null,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "HELD",
+        "reasonsIncludes": [
+          "POOR_POSITION_ACCURACY",
+          "GPS_DISPLACEMENT_UNCERTAIN",
+          "START_FROM_STATIONARY_UNCONFIRMED"
+        ],
+        "driverUiActive": false
+      }
+    }
+  ]
+}

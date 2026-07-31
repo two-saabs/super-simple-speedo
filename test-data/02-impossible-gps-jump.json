@@ -1,0 +1,28 @@
+{
+  "name": "impossible coordinate jump is rejected",
+  "description": "A large one-second coordinate jump creates an impossible derived speed and must remain at zero.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 40.64000,
+      "longitude": 17.95000,
+      "accuracy": 12,
+      "speedMps": null
+    },
+    {
+      "timestamp": 2000,
+      "latitude": 40.64300,
+      "longitude": 17.95300,
+      "accuracy": 12,
+      "speedMps": null,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "REJECTED",
+        "displayDecision": "HELD_AT_ZERO",
+        "reasonsIncludes": ["ABSOLUTE_SPEED_LIMIT"],
+        "displayReasonsIncludes": ["DERIVED_SPEED_NOT_USED_FOR_DISPLAY"],
+        "driverUiActive": false
+      }
+    }
+  ]
+}
