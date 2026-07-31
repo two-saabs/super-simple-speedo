@@ -1,0 +1,29 @@
+name: Super Simple Speedo quality gate
+
+on:
+  push:
+    paths:
+      - "index.template.html"
+      - "check-regressions.js"
+      - ".github/workflows/quality-gate.yml"
+
+  pull_request:
+    paths:
+      - "index.template.html"
+      - "check-regressions.js"
+      - ".github/workflows/quality-gate.yml"
+
+  workflow_dispatch:
+
+jobs:
+  regression-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - run: node check-regressions.js index.template.html
