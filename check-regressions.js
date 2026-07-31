@@ -126,6 +126,41 @@ if (baselinePath) {
       ? fail(`${label} removed since baseline: ${removedItems.join(', ')}`)
       : pass(`no baseline ${label.toLowerCase()} were removed`);
   }
+      const versionConfig = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "version.json"), "utf8")
+    );
+    
+    const appVersion = versionConfig.version;
+    
+    assert(
+      /^\d+\.\d+\.\d+$/.test(appVersion),
+      "version.json must contain a valid semantic version"
+    );
+    
+    assert(
+      html.includes("__APP_VERSION__"),
+      "index.template.html must use the application version placeholder"
+    );
+    
+    const serviceWorker = fs.readFileSync(
+      path.join(__dirname, "service-worker.js"),
+      "utf8"
+    );
+    
+    assert(
+      serviceWorker.includes("__APP_VERSION__"),
+      "service-worker.js must use the application version placeholder"
+    );
+    
+    assert(
+      !/\bVersion \d+\.\d+/.test(html),
+      "index.template.html must not contain a hardcoded display version"
+    );
+    
+    assert(
+      !/service-worker\.js\?v=\d/.test(html),
+      "service-worker registration must not contain a hardcoded version"
+    );
 }
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} failure(s), ${warnings.length} warning(s)`);
