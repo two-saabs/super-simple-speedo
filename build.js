@@ -33,7 +33,7 @@ if (fs.existsSync(audioSource)) {
 }
 
 
-const staticFiles = ["manifest.webmanifest", "service-worker.js"];
+const staticFiles = ["manifest.webmanifest", "service-worker.js", "_headers"];
 
 for (const file of staticFiles) {
   const sourceFile = path.join(__dirname, file);
