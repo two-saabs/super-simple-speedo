@@ -1,0 +1,26 @@
+{
+  "name": "normal native GPS speed is accepted",
+  "description": "A browser-provided 50 km/h speed should be displayed and activate Driver Mode.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 40.64000,
+      "longitude": 17.95000,
+      "accuracy": 6,
+      "speedMps": 0
+    },
+    {
+      "timestamp": 2000,
+      "latitude": 40.64012,
+      "longitude": 17.95000,
+      "accuracy": 6,
+      "speedMps": 13.8888889,
+      "expect": {
+        "displayedKmhApprox": {"value": 50, "tolerance": 0.01},
+        "speedDecision": "ACCEPTED",
+        "speedSource": "NATIVE_GPS",
+        "driverUiActive": true
+      }
+    }
+  ]
+}
