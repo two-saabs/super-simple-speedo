@@ -1240,7 +1240,6 @@
   <main>
     <section class="cluster">
       <div class="speed-side" id="speedSection">
-        <div class="eyebrow">YOUR SPEED</div>
         <div class="speed-dial" id="speedDial">
           <svg class="speed-dial-svg" viewBox="0 0 320 320" aria-hidden="true" focusable="false">
             <path id="dialTrack" class="dial-track" pathLength="100"></path>
@@ -1997,15 +1996,17 @@
     lastDialScale = maximum;
     dialTicksEl.replaceChildren();
 
-    // Fine marks every 10 km/h, stronger marks and labels every 20 km/h.
-    // This keeps the fixed automotive scale glanceable rather than busy.
+    // Marks every 10 km/h. Label every 10 from 0–80 because 30, 50, 60,
+    // 70 and 80 are especially useful glance references in Swiss driving.
+    // Above 80, keep labels every 20 km/h to avoid crowding the far side.
     const values = [];
     for (let value = 0; value <= maximum + 0.001; value += 10) values.push(value);
     if (Math.abs(values[values.length - 1] - maximum) > 0.001) values.push(maximum);
 
     for (const value of values) {
       const isLimit = Math.abs(value - maximum) < 0.001;
-      const major = value === 0 || Math.abs(value % 20) < 0.001 || isLimit;
+      const labelled = value <= 80 || Math.abs(value % 20) < 0.001 || isLimit;
+      const major = labelled;
       const angle = DIAL_START_DEG + DIAL_SWEEP_DEG * (value / maximum);
 
       // Ticks sit just outside the illuminated arc.
@@ -2017,7 +2018,7 @@
       line.setAttribute("class", major ? "dial-tick major" : "dial-tick");
       dialTicksEl.appendChild(line);
 
-      if (major) {
+      if (labelled) {
         // Labels are outside the arc rather than sitting on top of it.
         const labelPoint = polarPoint(160, 160, 161, angle);
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
