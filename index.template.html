@@ -632,11 +632,11 @@
     /* Zurich tram-inspired experimental speed dial. The digital readout remains primary. */
     .speed-dial {
       position: relative;
-      width: min(78vw, 430px);
+      width: min(68vw, 370px);
       aspect-ratio: 1;
       display: grid;
       place-items: center;
-      margin-top: clamp(2px, .5vh, 8px);
+      margin-top: clamp(2px, .4vh, 6px);
     }
     .speed-dial-svg {
       position: absolute;
@@ -645,7 +645,7 @@
       height: 100%;
       overflow: visible;
       opacity: 0;
-      transform: scale(.96);
+      transform: scale(.97);
       transition: opacity .28s ease, transform .28s ease;
       pointer-events: none;
     }
@@ -661,39 +661,35 @@
     .dial-track, .dial-current {
       fill: none;
       stroke-linecap: round;
-      stroke-width: 16;
+      stroke-width: 9;
     }
-    .dial-track { stroke: rgba(142,154,163,.34); }
-    body.light .dial-track { stroke: rgba(70,78,84,.28); }
+    .dial-track { stroke: rgba(142,154,163,.19); }
+    body.light .dial-track { stroke: rgba(70,78,84,.18); }
     .dial-current {
       stroke: #41b8ef;
-      transition: stroke-dasharray .18s linear, stroke .28s ease;
+      transition: stroke-dasharray .18s linear, stroke .28s ease, opacity .18s ease;
     }
     body.over .dial-current { stroke: var(--danger); }
     .dial-tick {
-      stroke: rgba(255,255,255,.36);
-      stroke-width: 2;
+      stroke: rgba(255,255,255,.30);
+      stroke-width: 1.6;
       stroke-linecap: round;
     }
-    body.light .dial-tick { stroke: rgba(0,0,0,.34); }
-    .dial-tick.major { stroke-width: 3; opacity: .9; }
+    body.light .dial-tick { stroke: rgba(0,0,0,.28); }
+    .dial-tick.major { stroke-width: 2.5; opacity: .88; }
     .dial-label {
       fill: var(--fg);
-      font-size: 13px;
-      font-weight: 720;
+      font-size: 12px;
+      font-weight: 700;
       text-anchor: middle;
       dominant-baseline: middle;
-      opacity: .52;
+      opacity: .48;
       font-variant-numeric: tabular-nums;
     }
-    .dial-limit-marker {
-      fill: var(--fg);
-      opacity: .82;
-    }
     body.dial-display .speed-dial-svg { opacity: 1; transform: scale(1); }
-    body.dial-display .speed-dial { width: min(82vw, 450px); }
+    body.dial-display .speed-dial { width: min(68vw, 370px); }
     body.dial-display #speed {
-      font-size: clamp(104px, 31vw, 195px);
+      font-size: clamp(112px, 33vw, 205px);
       line-height: .86;
     }
     body.dial-display .unit { margin-top: 7px; font-size: 18px; }
@@ -1514,7 +1510,7 @@
 
     <div class="setting experimental-dial-setting" id="experimentalDialSetting" aria-hidden="true">
       <div class="setting-title">Speed display</div>
-      <div class="setting-note">Add a Zurich tram-inspired dial around the digital speed. Blue is your current speed; grey is the speed still available up to the limit.</div>
+      <div class="setting-note">Add a Zurich tram-inspired dial around the digital speed. Blue grows from 0 to your current speed; grey shows the legal speed still available up to the limit.</div>
       <div class="segmented">
         <button class="segment-button" id="speedDisplayDigitalButton">Digital</button>
         <button class="segment-button" id="speedDisplayDialButton">Dial</button>
@@ -1967,7 +1963,8 @@
     updateStatsDisplay();
   }
 
-  const DIAL_START_DEG = 135;
+  // Lower-left to lower-right, clockwise, matching a conventional glance direction.
+  const DIAL_START_DEG = 225;
   const DIAL_SWEEP_DEG = 270;
   let lastDialScale = null;
 
@@ -1982,14 +1979,9 @@
     return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${radius} ${radius} 0 1 1 ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
   }
 
-  function chooseDialStep(maximum) {
-    if (maximum <= 30) return 5;
-    if (maximum <= 60) return 10;
-    if (maximum <= 140) return 20;
-    return 30;
-  }
-
   function dialMaximum(shownSpeed) {
+    // When a limit is known, the dial is deliberately a 0-to-limit scale:
+    // blue = speed used, grey = legal speed still available.
     if (Number.isFinite(state.limit) && state.limit > 0) return state.limit;
     const rounded = Math.ceil(Math.max(30, shownSpeed) / 10) * 10;
     return Math.min(180, Math.max(50, rounded));
@@ -2000,21 +1992,29 @@
     lastDialScale = maximum;
     dialTicksEl.replaceChildren();
 
-    const step = chooseDialStep(maximum);
-    const minorStep = step / 2;
-    for (let value = 0; value <= maximum + 0.001; value += minorStep) {
-      const major = Math.abs((value / step) - Math.round(value / step)) < 0.001 || Math.abs(value - maximum) < 0.001;
+    // Fine marks every 5 km/h, stronger marks and labels every 10 km/h.
+    // If a non-round limit ever arrives, the final limit still gets a marker and label.
+    const values = [];
+    for (let value = 0; value <= maximum + 0.001; value += 5) values.push(value);
+    if (Math.abs(values[values.length - 1] - maximum) > 0.001) values.push(maximum);
+
+    for (const value of values) {
+      const isLimit = Math.abs(value - maximum) < 0.001;
+      const major = value === 0 || Math.abs(value % 10) < 0.001 || isLimit;
       const angle = DIAL_START_DEG + DIAL_SWEEP_DEG * (value / maximum);
-      const outer = polarPoint(160, 160, 144, angle);
-      const inner = polarPoint(160, 160, major ? 135 : 139, angle);
+
+      // Ticks sit just outside the illuminated arc.
+      const inner = polarPoint(160, 160, 136, angle);
+      const outer = polarPoint(160, 160, major ? 145 : 141, angle);
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", outer.x); line.setAttribute("y1", outer.y);
-      line.setAttribute("x2", inner.x); line.setAttribute("y2", inner.y);
+      line.setAttribute("x1", inner.x); line.setAttribute("y1", inner.y);
+      line.setAttribute("x2", outer.x); line.setAttribute("y2", outer.y);
       line.setAttribute("class", major ? "dial-tick major" : "dial-tick");
       dialTicksEl.appendChild(line);
 
       if (major) {
-        const labelPoint = polarPoint(160, 160, 113, angle);
+        // Labels are outside the arc rather than sitting on top of it.
+        const labelPoint = polarPoint(160, 160, 153, angle);
         const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
         text.setAttribute("x", labelPoint.x); text.setAttribute("y", labelPoint.y);
         text.setAttribute("class", "dial-label");
@@ -2028,12 +2028,15 @@
     if (!dialTrackEl || !dialCurrentEl) return;
     const maximum = dialMaximum(shownSpeed);
     const proportion = Math.max(0, Math.min(1, shownSpeed / maximum));
-    const path = dialArcPath();
+    const path = dialArcPath(126);
     if (dialTrackEl.getAttribute("d") !== path) {
       dialTrackEl.setAttribute("d", path);
       dialCurrentEl.setAttribute("d", path);
     }
-    dialCurrentEl.style.strokeDasharray = `${(proportion * 100).toFixed(2)} ${(100 - proportion * 100).toFixed(2)}`;
+
+    // Keep only a tiny blue starting segment at zero; no oversized knob.
+    const visibleProportion = shownSpeed <= 0 ? 0.006 : Math.max(0.006, proportion);
+    dialCurrentEl.style.strokeDasharray = `${(visibleProportion * 100).toFixed(2)} ${(100 - visibleProportion * 100).toFixed(2)}`;
     rebuildDialTicks(maximum);
   }
 
