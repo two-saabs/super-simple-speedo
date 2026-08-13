@@ -628,6 +628,79 @@
     }
     #speed.bump { transform: scale(1.004); }
     body.over #speed, body.modern-theme.over #speed { color: var(--danger); }
+
+    /* Zurich tram-inspired experimental speed dial. The digital readout remains primary. */
+    .speed-dial {
+      position: relative;
+      width: min(78vw, 430px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      margin-top: clamp(2px, .5vh, 8px);
+    }
+    .speed-dial-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      opacity: 0;
+      transform: scale(.96);
+      transition: opacity .28s ease, transform .28s ease;
+      pointer-events: none;
+    }
+    .speed-dial-core {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      min-width: 0;
+    }
+    .speed-dial #speed { margin-top: 0; }
+    .dial-track, .dial-current {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 16;
+    }
+    .dial-track { stroke: rgba(142,154,163,.34); }
+    body.light .dial-track { stroke: rgba(70,78,84,.28); }
+    .dial-current {
+      stroke: #41b8ef;
+      transition: stroke-dasharray .18s linear, stroke .28s ease;
+    }
+    body.over .dial-current { stroke: var(--danger); }
+    .dial-tick {
+      stroke: rgba(255,255,255,.36);
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+    body.light .dial-tick { stroke: rgba(0,0,0,.34); }
+    .dial-tick.major { stroke-width: 3; opacity: .9; }
+    .dial-label {
+      fill: var(--fg);
+      font-size: 13px;
+      font-weight: 720;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      opacity: .52;
+      font-variant-numeric: tabular-nums;
+    }
+    .dial-limit-marker {
+      fill: var(--fg);
+      opacity: .82;
+    }
+    body.dial-display .speed-dial-svg { opacity: 1; transform: scale(1); }
+    body.dial-display .speed-dial { width: min(82vw, 450px); }
+    body.dial-display #speed {
+      font-size: clamp(104px, 31vw, 195px);
+      line-height: .86;
+    }
+    body.dial-display .unit { margin-top: 7px; font-size: 18px; }
+
+    .experimental-dial-setting { display: none; }
+    .experimental-dial-setting.show { display: block; }
+
     .unit {
       margin-top: 12px;
       font-size: 20px;
@@ -1170,8 +1243,17 @@
     <section class="cluster">
       <div class="speed-side" id="speedSection">
         <div class="eyebrow">YOUR SPEED</div>
-        <div id="speed">0</div>
-        <div class="unit">km/h</div>
+        <div class="speed-dial" id="speedDial">
+          <svg class="speed-dial-svg" viewBox="0 0 320 320" aria-hidden="true" focusable="false">
+            <path id="dialTrack" class="dial-track" pathLength="100"></path>
+            <path id="dialCurrent" class="dial-current" pathLength="100"></path>
+            <g id="dialTicks"></g>
+          </svg>
+          <div class="speed-dial-core">
+            <div id="speed">0</div>
+            <div class="unit">km/h</div>
+          </div>
+        </div>
       </div>
 
       <div class="lower">
@@ -1349,7 +1431,7 @@
         </div>
 
         <div style="margin-top:8px;opacity:.55;">
-          Version __APP_VERSION__
+          Version 12.3
         </div>
 
         <div style="margin-top:18px;line-height:1.55;opacity:.82;">
@@ -1430,6 +1512,15 @@
       </div>
     </div>
 
+    <div class="setting experimental-dial-setting" id="experimentalDialSetting" aria-hidden="true">
+      <div class="setting-title">Speed display</div>
+      <div class="setting-note">Add a Zurich tram-inspired dial around the digital speed. Blue is your current speed; grey is the speed still available up to the limit.</div>
+      <div class="segmented">
+        <button class="segment-button" id="speedDisplayDigitalButton">Digital</button>
+        <button class="segment-button" id="speedDisplayDialButton">Dial</button>
+      </div>
+    </div>
+
     <div class="setting">
       <div class="setting-row">
         <div>
@@ -1496,6 +1587,9 @@
 (() => {
   const $ = id => document.getElementById(id);
   const speedEl = $("speed");
+  const dialTrackEl = $("dialTrack");
+  const dialCurrentEl = $("dialCurrent");
+  const dialTicksEl = $("dialTicks");
   const limitEl = $("limit");
   const limitButton = $("limitButton");
   const sourceEl = $("source");
@@ -1521,8 +1615,8 @@
     limit: null,
     mode: localStorage.getItem("limitMode") || "auto",
     watchId: null,
-    autoConnect: localStorage.getItem("autoConnectGps") !== "false",
-    autoConnectChoiceMade: localStorage.getItem("autoConnectChoiceMade") === "true",
+    autoConnect: true,
+    autoConnectChoiceMade: true,
     points: [],
     lookupBusy: false,
     lastLookupAt: 0,
@@ -1541,6 +1635,7 @@
     theme: localStorage.getItem("speedoTheme") || "dark",
     experimentalMode: localStorage.getItem("experimentalMode") === "true",
     visualTheme: localStorage.getItem("visualTheme") || "classic",
+    speedDisplayStyle: localStorage.getItem("speedDisplayStyle") || "digital",
     viewMode: localStorage.getItem("speedoViewMode") || "all",
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
@@ -1872,14 +1967,90 @@
     updateStatsDisplay();
   }
 
+  const DIAL_START_DEG = 135;
+  const DIAL_SWEEP_DEG = 270;
+  let lastDialScale = null;
+
+  function polarPoint(cx, cy, radius, degrees) {
+    const radians = (degrees - 90) * Math.PI / 180;
+    return { x: cx + radius * Math.cos(radians), y: cy + radius * Math.sin(radians) };
+  }
+
+  function dialArcPath(radius = 126) {
+    const start = polarPoint(160, 160, radius, DIAL_START_DEG);
+    const end = polarPoint(160, 160, radius, DIAL_START_DEG + DIAL_SWEEP_DEG);
+    return `M ${start.x.toFixed(3)} ${start.y.toFixed(3)} A ${radius} ${radius} 0 1 1 ${end.x.toFixed(3)} ${end.y.toFixed(3)}`;
+  }
+
+  function chooseDialStep(maximum) {
+    if (maximum <= 30) return 5;
+    if (maximum <= 60) return 10;
+    if (maximum <= 140) return 20;
+    return 30;
+  }
+
+  function dialMaximum(shownSpeed) {
+    if (Number.isFinite(state.limit) && state.limit > 0) return state.limit;
+    const rounded = Math.ceil(Math.max(30, shownSpeed) / 10) * 10;
+    return Math.min(180, Math.max(50, rounded));
+  }
+
+  function rebuildDialTicks(maximum) {
+    if (!dialTicksEl || maximum === lastDialScale) return;
+    lastDialScale = maximum;
+    dialTicksEl.replaceChildren();
+
+    const step = chooseDialStep(maximum);
+    const minorStep = step / 2;
+    for (let value = 0; value <= maximum + 0.001; value += minorStep) {
+      const major = Math.abs((value / step) - Math.round(value / step)) < 0.001 || Math.abs(value - maximum) < 0.001;
+      const angle = DIAL_START_DEG + DIAL_SWEEP_DEG * (value / maximum);
+      const outer = polarPoint(160, 160, 144, angle);
+      const inner = polarPoint(160, 160, major ? 135 : 139, angle);
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", outer.x); line.setAttribute("y1", outer.y);
+      line.setAttribute("x2", inner.x); line.setAttribute("y2", inner.y);
+      line.setAttribute("class", major ? "dial-tick major" : "dial-tick");
+      dialTicksEl.appendChild(line);
+
+      if (major) {
+        const labelPoint = polarPoint(160, 160, 113, angle);
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", labelPoint.x); text.setAttribute("y", labelPoint.y);
+        text.setAttribute("class", "dial-label");
+        text.textContent = String(Math.round(value));
+        dialTicksEl.appendChild(text);
+      }
+    }
+  }
+
+  function updateSpeedDial(shownSpeed = Math.max(0, Math.round(state.displayedSpeed))) {
+    if (!dialTrackEl || !dialCurrentEl) return;
+    const maximum = dialMaximum(shownSpeed);
+    const proportion = Math.max(0, Math.min(1, shownSpeed / maximum));
+    const path = dialArcPath();
+    if (dialTrackEl.getAttribute("d") !== path) {
+      dialTrackEl.setAttribute("d", path);
+      dialCurrentEl.setAttribute("d", path);
+    }
+    dialCurrentEl.style.strokeDasharray = `${(proportion * 100).toFixed(2)} ${(100 - proportion * 100).toFixed(2)}`;
+    rebuildDialTicks(maximum);
+  }
+
   function applyExperimentalSettings() {
     const enabled = state.experimentalMode;
     $("experimentalSwitch").classList.toggle("on", enabled);
     $("experimentalThemeSetting").classList.toggle("show", enabled);
     $("experimentalThemeSetting").setAttribute("aria-hidden", String(!enabled));
+    $("experimentalDialSetting").classList.toggle("show", enabled);
+    $("experimentalDialSetting").setAttribute("aria-hidden", String(!enabled));
     $("visualClassicButton").classList.toggle("active", state.visualTheme === "classic");
     $("visualModernButton").classList.toggle("active", state.visualTheme === "modern");
+    $("speedDisplayDigitalButton").classList.toggle("active", state.speedDisplayStyle === "digital");
+    $("speedDisplayDialButton").classList.toggle("active", state.speedDisplayStyle === "dial");
     document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
+    document.body.classList.toggle("dial-display", enabled && state.speedDisplayStyle === "dial");
+    updateSpeedDial();
   }
 
   const DRIVER_MODE_ENTER_SPEED = 10;
@@ -2013,9 +2184,9 @@
 
 
   const recordedAudio = {
-    buongiorno: new Audio("/audio/buongiorno.mp3?v=__APP_VERSION__"),
-    buonasera: new Audio("/audio/buonasera.mp3?v=__APP_VERSION__"),
-    attenzione: new Audio("/audio/attenzione.mp3?v=__APP_VERSION__")
+    buongiorno: new Audio("/audio/buongiorno.mp3?v=9.2"),
+    buonasera: new Audio("/audio/buonasera.mp3?v=9.2"),
+    attenzione: new Audio("/audio/attenzione.mp3?v=9.2")
   };
 
   function stopRecordedAudio() {
@@ -2240,6 +2411,8 @@
       speedEl.classList.add("bump");
       setTimeout(() => speedEl.classList.remove("bump"), 150);
     }
+
+    updateSpeedDial(shown);
 
     const over = state.limit !== null && shown > state.limit;
     document.body.classList.toggle("over", over);
@@ -3097,6 +3270,16 @@
     localStorage.setItem("visualTheme", state.visualTheme);
     applyExperimentalSettings();
   });
+  $("speedDisplayDigitalButton").addEventListener("click", () => {
+    state.speedDisplayStyle = "digital";
+    localStorage.setItem("speedDisplayStyle", state.speedDisplayStyle);
+    applyExperimentalSettings();
+  });
+  $("speedDisplayDialButton").addEventListener("click", () => {
+    state.speedDisplayStyle = "dial";
+    localStorage.setItem("speedDisplayStyle", state.speedDisplayStyle);
+    applyExperimentalSettings();
+  });
 
 
   window.addEventListener("beforeinstallprompt", event => {
@@ -3313,7 +3496,7 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js?v=__APP_VERSION__")
+      navigator.serviceWorker.register("/service-worker.js?v=12.2")
         .then(registration => {
           registration.update();
           if (registration.waiting) {
