@@ -1377,6 +1377,7 @@
       </div>
       <div class="choice-list" id="elementChoices">
         <label class="choice-row"><input type="checkbox" id="showSpeedo">Speedo</label>
+        <label class="choice-row"><input type="checkbox" id="showDial">Dial</label>
         <label class="choice-row"><input type="checkbox" id="showLimit">Speed limit</label>
         <label class="choice-row"><input type="checkbox" id="showGps">GPS status</label>
       </div>
@@ -1517,14 +1518,6 @@
       </div>
     </div>
 
-    <div class="setting experimental-dial-setting" id="experimentalDialSetting" aria-hidden="true">
-      <div class="setting-title">Speed display</div>
-      <div class="setting-note">Add a Zurich tram-inspired dial around the digital speed. Blue grows from 0 to your current speed; grey shows the legal speed still available up to the limit.</div>
-      <div class="segmented">
-        <button class="segment-button" id="speedDisplayDigitalButton">Digital</button>
-        <button class="segment-button" id="speedDisplayDialButton">Dial</button>
-      </div>
-    </div>
 
     <div class="setting">
       <div class="setting-row">
@@ -1643,9 +1636,10 @@
     theme: localStorage.getItem("speedoTheme") || "dark",
     experimentalMode: localStorage.getItem("experimentalMode") === "true",
     visualTheme: localStorage.getItem("visualTheme") || "classic",
-    speedDisplayStyle: localStorage.getItem("speedDisplayStyle") || "digital",
+    speedDisplayStyle: localStorage.getItem("speedDisplayStyle") || "dial",
     viewMode: localStorage.getItem("speedoViewMode") || "all",
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
+    showDial: localStorage.getItem("showDial") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
     showGps: localStorage.getItem("showGps") !== "false",
     statisticsEnabled: localStorage.getItem("statisticsEnabled") !== "false",
@@ -2152,14 +2146,9 @@
     $("experimentalSwitch").classList.toggle("on", enabled);
     $("experimentalThemeSetting").classList.toggle("show", enabled);
     $("experimentalThemeSetting").setAttribute("aria-hidden", String(!enabled));
-    $("experimentalDialSetting").classList.toggle("show", enabled);
-    $("experimentalDialSetting").setAttribute("aria-hidden", String(!enabled));
     $("visualClassicButton").classList.toggle("active", state.visualTheme === "classic");
     $("visualModernButton").classList.toggle("active", state.visualTheme === "modern");
-    $("speedDisplayDigitalButton").classList.toggle("active", state.speedDisplayStyle === "digital");
-    $("speedDisplayDialButton").classList.toggle("active", state.speedDisplayStyle === "dial");
     document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
-    document.body.classList.toggle("dial-display", enabled && state.speedDisplayStyle === "dial");
     updateSpeedDial();
   }
 
@@ -2274,8 +2263,10 @@
     $("elementChoices").style.opacity = all ? ".45" : "1";
     $("elementChoices").style.pointerEvents = all ? "none" : "auto";
     $("showSpeedo").checked = state.showSpeedo;
+    $("showDial").checked = state.showDial;
     $("showLimit").checked = state.showLimit;
     $("showGps").checked = state.showGps;
+    document.body.classList.toggle("dial-display", all || state.showDial);
     $("speedSection").classList.toggle("hidden-element", !all && !state.showSpeedo);
     $("limitButton").classList.toggle("hidden-element", !all && !state.showLimit);
     // While moving, road name/source remain visible as evidence for the shown limit,
@@ -2287,6 +2278,7 @@
   function saveVisibility() {
     localStorage.setItem("speedoViewMode", state.viewMode);
     localStorage.setItem("showSpeedo", String(state.showSpeedo));
+    localStorage.setItem("showDial", String(state.showDial));
     localStorage.setItem("showLimit", String(state.showLimit));
     localStorage.setItem("showGps", String(state.showGps));
     applyVisibility();
@@ -3380,16 +3372,6 @@
     localStorage.setItem("visualTheme", state.visualTheme);
     applyExperimentalSettings();
   });
-  $("speedDisplayDigitalButton").addEventListener("click", () => {
-    state.speedDisplayStyle = "digital";
-    localStorage.setItem("speedDisplayStyle", state.speedDisplayStyle);
-    applyExperimentalSettings();
-  });
-  $("speedDisplayDialButton").addEventListener("click", () => {
-    state.speedDisplayStyle = "dial";
-    localStorage.setItem("speedDisplayStyle", state.speedDisplayStyle);
-    applyExperimentalSettings();
-  });
 
 
   window.addEventListener("beforeinstallprompt", event => {
@@ -3455,6 +3437,10 @@
 
   $("showSpeedo").addEventListener("change", e => {
     state.showSpeedo = e.target.checked;
+    saveVisibility();
+  });
+  $("showDial").addEventListener("change", e => {
+    state.showDial = e.target.checked;
     saveVisibility();
   });
   $("showLimit").addEventListener("change", e => {
