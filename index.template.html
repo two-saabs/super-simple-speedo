@@ -689,7 +689,7 @@
       font-variant-numeric: tabular-nums;
     }
     body.dial-display .speed-dial-svg { opacity: 1; transform: scale(1); }
-    body.dial-display .speed-dial { width: min(65vw, 350px); transform: translateY(-5px); }
+    body.dial-display .speed-dial { width: min(80vw, 410px); transform: translateY(-7px); }
     body.dial-display #speed {
       font-size: clamp(112px, 33vw, 205px);
       line-height: .86;
@@ -1089,6 +1089,13 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-top: 10px;
+    }
+    .diagnostics-actions #clearDiagnostics { grid-column: 1 / -1; }
+    .diagnostics-format-note {
+      margin-top: 9px;
+      font-size: 11px;
+      line-height: 1.45;
+      opacity: .5;
     }
 
     header,
@@ -1530,9 +1537,11 @@
       <div class="diagnostics-panel" id="diagnosticsPanel">
         <div class="diagnostics-summary" id="diagnosticsSummary">No GPS samples recorded yet.</div>
         <div class="diagnostics-actions">
-          <button class="wide-button secondary" id="copyDiagnostics">Copy log</button>
+          <button class="wide-button secondary" id="copyDiagnostics">Copy compact log</button>
+          <button class="wide-button secondary" id="downloadDiagnostics">Download .tsv</button>
           <button class="wide-button secondary" id="clearDiagnostics">Clear log</button>
         </div>
+        <div class="diagnostics-format-note">Compact TSV keeps one event per line, making long logs much smaller, readable, and easier to upload for analysis.</div>
       </div>
     </div>
 
@@ -1876,6 +1885,95 @@
     });
   }
 
+  function readableDiagnosticEntry(item) {
+    const time = (item.timeLocal || item.timeUtc || "").slice(11, 19);
+    if (item.event === "ROAD_LOOKUP") {
+      const road = item.roadDecision?.displayedRoad || item.roadDecision?.candidate?.road || item.response?.roadNameSanitised || item.response?.roadNameRaw || "unknown road";
+      const limit = item.roadDecision?.displayedLimit ?? item.roadDecision?.candidate?.limit ?? item.response?.speedLimit ?? "—";
+      const outcome = item.roadDecision?.outcome || item.roadDecision?.state || "—";
+      const reason = item.roadDecision?.reason ? ` · ${item.roadDecision.reason}` : "";
+      return `${time}  ROAD   ${limit} · ${road}\n       ${outcome}${reason}`;
+    }
+    if (item.event === "WAKE_LOCK") {
+      return `${time}  WAKE   ${item.outcome || "—"}`;
+    }
+    if (item.event === "DRIVER_UI_CHANGE") {
+      return `${time}  UI     ${item.driverUiActive ? "DRIVER ON" : "DRIVER OFF"} · ${item.reason || "—"}`;
+    }
+    if (item.event) {
+      return `${time}  ${item.event}  ${item.reason || item.outcome || ""}`.trimEnd();
+    }
+
+    const shown = item.displayedKmh ?? "—";
+    const raw = item.rawKmh ?? "—";
+    const derived = item.derivedKmh ?? "—";
+    const source = item.speedSource === "NATIVE_GPS" ? "GPS" : item.speedSource === "POSITION_DERIVED" ? "DERIVED" : "NONE";
+    const decision = item.speedDecision || item.decision || "—";
+    const reasons = item.reasons?.length ? ` · ${item.reasons.join(", ")}` : "";
+    return `${time}  SPEED  ${shown} km/h · ${source}\n       raw ${raw} · derived ${derived} · acc ${item.accuracyMetres ?? "—"}m · Δt ${item.elapsedSeconds ?? "—"}s\n       ${decision}${reasons}`;
+  }
+
+  function diagnosticCell(value) {
+    if (value === undefined || value === null) return "";
+    if (Array.isArray(value)) value = value.join("|");
+    if (typeof value === "object") value = JSON.stringify(value);
+    return String(value).replace(/[\t\r\n]+/g, " ").trim();
+  }
+
+  function compactDiagnosticText(log = state.diagnosticLog) {
+    const header = [
+      "# Super Simple Speedo diagnostics TSV v1",
+      `# timezone=${currentTimeZone()} generated=${new Date().toISOString()}`,
+      "# columns=time_local\ttype\tshown_kmh\traw_kmh\tderived_kmh\taccuracy_m\tdt_s\tdistance_m\tsource\tdecision\treasons\tdetails"
+    ];
+
+    const rows = log.map(item => {
+      const type = item.event || "SPEED";
+      let details = "";
+      if (item.event === "ROAD_LOOKUP") {
+        details = [
+          `http=${item.response?.httpStatus ?? ""}`,
+          `road=${item.roadDecision?.displayedRoad || item.response?.roadNameSanitised || item.response?.roadNameRaw || ""}`,
+          `limit=${item.roadDecision?.displayedLimit ?? item.response?.speedLimit ?? ""}`,
+          `outcome=${item.roadDecision?.outcome || item.roadDecision?.state || ""}`,
+          `candidateRoad=${item.roadDecision?.candidate?.road || ""}`,
+          `candidateLimit=${item.roadDecision?.candidate?.limit ?? ""}`,
+          `quality=${item.roadDecision?.confidenceChecks?.qualityGood ?? ""}`,
+          `repeated=${item.roadDecision?.confidenceChecks?.repeatedMatch ?? ""}`
+        ].join(";");
+      } else if (item.event === "WAKE_LOCK") {
+        details = `outcome=${item.outcome || ""};gesture=${item.fromUserGesture ?? ""};display=${item.displayMode || ""}`;
+      } else if (item.event === "DRIVER_UI_CHANGE") {
+        details = `active=${item.driverUiActive ?? ""};reason=${item.reason || ""}`;
+      } else if (item.event) {
+        details = `reason=${item.reason || ""};outcome=${item.outcome || ""}`;
+      } else {
+        details = `driver=${item.driverUiActive ? 1 : 0};movement=${item.movementScore ?? ""};selected=${item.selectedSpeedKmh ?? ""}`;
+      }
+
+      const reasons = item.reasons?.length
+        ? item.reasons.join("|")
+        : (item.roadDecision?.reason || item.reason || "");
+
+      return [
+        item.timeLocal || item.timeUtc || "",
+        type,
+        item.displayedKmh,
+        item.rawKmh,
+        item.derivedKmh,
+        item.accuracyMetres,
+        item.elapsedSeconds,
+        item.distanceMetres,
+        item.speedSource,
+        item.speedDecision || item.decision,
+        reasons,
+        details
+      ].map(diagnosticCell).join("\t");
+    });
+
+    return [...header, ...rows].join("\n");
+  }
+
   function updateDiagnosticsDisplay() {
     const panel = $("diagnosticsPanel");
     const output = $("diagnosticsSummary");
@@ -1887,15 +1985,7 @@
       output.textContent = "No GPS samples recorded yet.";
       return;
     }
-    output.textContent = state.diagnosticLog.slice(-12).map(item => {
-      const reasons = item.reasons?.length ? item.reasons.join(", ") : "none";
-      return [
-        (item.timeLocal || item.timeUtc || item.time || "").slice(11, 19),
-        item.event ? `${item.event}: ${item.reason || item.roadDecision?.reason || ""}` : `raw ${item.rawKmh ?? "—"} · derived ${item.derivedKmh ?? "—"} · shown ${item.displayedKmh ?? "—"} km/h`,
-        item.event ? `driver UI ${item.driverUiActive === true ? "ON" : item.driverUiActive === false ? "OFF" : "—"}` : `accuracy ${item.accuracyMetres ?? "—"} m · Δt ${item.elapsedSeconds ?? "—"} s · distance ${item.distanceMetres ?? "—"} m · movement score ${item.movementScore ?? "—"}×`,
-        item.event ? "" : `${item.speedDecision || item.decision}: ${reasons} · source ${item.speedSource || "—"} · driver UI ${item.driverUiActive ? "ON" : "OFF"}`
-      ].join("\n");
-    }).join("\n\n");
+    output.textContent = state.diagnosticLog.slice(-12).map(readableDiagnosticEntry).join("\n────────────\n");
     output.scrollTop = output.scrollHeight;
   }
 
@@ -3418,12 +3508,38 @@
       showToast(`Log contract failed: ${invalidEntries.length} invalid entr${invalidEntries.length === 1 ? "y" : "ies"}`);
       return;
     }
-    const text = JSON.stringify(state.diagnosticLog, null, 2);
+    const compact = compactDiagnosticText();
     try {
-      await navigator.clipboard.writeText(text);
-      showToast("Diagnostic log copied");
+      await navigator.clipboard.writeText(compact);
+      showToast(`Compact log copied · ${formatBytes(byteLength(compact))}`);
     } catch (_) {
       showToast("Could not copy diagnostic log");
+    }
+  });
+
+  $("downloadDiagnostics").addEventListener("click", () => {
+    const invalidEntries = state.diagnosticLog.filter(entry => !validateDiagnosticEntry(entry));
+    if (invalidEntries.length) {
+      showToast(`Log contract failed: ${invalidEntries.length} invalid entr${invalidEntries.length === 1 ? "y" : "ies"}`);
+      return;
+    }
+    const compact = compactDiagnosticText();
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const filename = `super-simple-speedo-${stamp}.tsv`;
+    try {
+      const blob = new Blob([compact], { type: "text/tab-separated-values;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+      showToast(`Log ready · ${formatBytes(byteLength(compact))}`);
+    } catch (_) {
+      showToast("Could not download diagnostic log");
     }
   });
 
