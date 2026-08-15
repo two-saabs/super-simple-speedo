@@ -689,12 +689,30 @@
       font-variant-numeric: tabular-nums;
     }
     body.dial-display .speed-dial-svg { opacity: 1; transform: scale(1); }
-    body.dial-display .speed-dial { width: min(80vw, 410px); transform: translateY(-7px); }
+    body.dial-display .speed-dial {
+      width: min(80vw, 410px);
+      transform: none;
+      justify-self: center;
+    }
     body.dial-display #speed {
       font-size: clamp(112px, 33vw, 205px);
       line-height: .86;
     }
-    body.dial-display .unit { margin-top: 7px; font-size: 18px; }
+    body.dial-display .speed-dial-core {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      justify-items: center;
+      text-align: center;
+    }
+    body.dial-display .unit {
+      width: 100%;
+      margin-top: 7px;
+      font-size: 18px;
+      letter-spacing: 0;
+      text-align: center;
+    }
 
     .experimental-dial-setting { display: none; }
     .experimental-dial-setting.show { display: block; }
@@ -703,7 +721,8 @@
       margin-top: 12px;
       font-size: 20px;
       font-weight: 650;
-      letter-spacing: .03em;
+      letter-spacing: 0;
+      text-align: center;
       opacity: .5;
     }
 
@@ -841,11 +860,16 @@
     }
 
     #driverResponsibility {
-      margin-top: 7px;
+      width: min(470px, 92vw);
+      margin: 7px auto 0;
       text-align: center;
       font-size: 10px;
-      line-height: 1.3;
+      line-height: 1.45;
       opacity: .28;
+      transition: opacity .5s ease;
+    }
+    body.speed-above-6 #driverResponsibility {
+      opacity: 0;
     }
 
     .modal {
@@ -1122,7 +1146,7 @@
     }
     body.driver-mode .lower { margin-top: clamp(20px, 4vh, 42px); }
     body.driver-mode footer { min-height: 32px; }
-    body.driver-mode #driverResponsibility { opacity: .22; }
+    body.driver-mode:not(.speed-above-6) #driverResponsibility { opacity: .22; }
     body.driver-mode .drive-controls {
       opacity: .07;
     }
@@ -1131,6 +1155,13 @@
     @media (hover: hover) and (pointer: fine) {
       body.driver-mode .drive-controls:hover,
       body.driver-mode .drive-controls:focus-within { opacity: 1; }
+    }
+
+    @media (orientation: portrait) {
+      .cluster { transform: none; }
+      body.dial-display .speed-dial {
+        transform: translateY(clamp(6px, 1.1vh, 14px));
+      }
     }
 
     @media (orientation: landscape) and (max-height: 560px) {
@@ -1282,7 +1313,7 @@
       <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
     <div id="status"></div>
-    <div id="driverResponsibility">Driving safely and respecting speed limits is always the responsibility of the driver.</div>
+    <div id="driverResponsibility">Driving safely and respecting speed limits<br>is always the responsibility of the driver.</div>
   </footer>
 </div>
 
@@ -2080,17 +2111,17 @@
     lastDialScale = maximum;
     dialTicksEl.replaceChildren();
 
-    // Marks every 10 km/h. Label every 10 from 0–80 because 30, 50, 60,
-    // 70 and 80 are especially useful glance references in Swiss driving.
-    // Above 80, keep labels every 20 km/h to avoid crowding the far side.
+    // Stable 0–160 km/h scale with a labelled index every 10 km/h.
+    // Equal spacing on both sides makes the dial symmetrical and lets common
+    // Swiss limits such as 30, 50 and 80 be found instantly.
     const values = [];
     for (let value = 0; value <= maximum + 0.001; value += 10) values.push(value);
     if (Math.abs(values[values.length - 1] - maximum) > 0.001) values.push(maximum);
 
     for (const value of values) {
       const isLimit = Math.abs(value - maximum) < 0.001;
-      const labelled = value <= 80 || Math.abs(value % 20) < 0.001 || isLimit;
-      const major = labelled;
+      const labelled = true;
+      const major = true;
       const angle = DIAL_START_DEG + DIAL_SWEEP_DEG * (value / maximum);
 
       // Ticks sit just outside the illuminated arc.
@@ -2515,6 +2546,7 @@
     }
 
     updateSpeedDial(shown);
+    document.body.classList.toggle("speed-above-6", shown > 6);
 
     const over = state.limit !== null && shown > state.limit;
     document.body.classList.toggle("over", over);
