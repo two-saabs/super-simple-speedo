@@ -1173,7 +1173,7 @@
       header { position: absolute; top: 8px; left: 18px; right: 18px; z-index: 2; }
       main { place-items: center; }
       .cluster {
-        width: min(780px, 78vw);
+        width: min(860px, 84vw);
         height: 100%;
         grid-template-columns: minmax(250px, 1fr) minmax(250px, 1fr);
         grid-template-rows: 1fr;
@@ -1182,7 +1182,32 @@
         justify-self: center;
         column-gap: clamp(26px, 5vw, 72px);
       }
-      .speed-side { display: grid; justify-items: center; }
+      .speed-side {
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        min-height: 0;
+      }
+
+      /* Landscape needs a height-driven dial rather than the portrait width-driven
+         size. This keeps the 70/80/90 labels clear of the top safe area and title. */
+      body.dial-display .speed-dial {
+        width: min(68vh, 350px);
+        max-width: 42vw;
+        transform: translateY(clamp(14px, 3.5vh, 24px));
+      }
+      body.dial-display #speed {
+        font-size: min(40vh, 18vw);
+        margin-top: 0;
+      }
+      body.dial-display .unit {
+        margin-top: 4px;
+        font-size: clamp(15px, 3.4vh, 18px);
+      }
+
+      /* Keep the left dial block comfortably clear of the app title. */
+      .speed-side { padding-top: clamp(10px, 2.5vh, 18px); }
+
       #speed { font-size: min(49vh, 24vw); margin-top: 0; }
       .lower {
         margin: 0;
@@ -1211,6 +1236,11 @@
       #start,
       #disconnect { min-height: 48px; border-radius: 14px; }
       #status { display: none; }
+
+      /* Final landscape dial override after the generic #speed rule above. */
+      body.dial-display #speed {
+        font-size: min(40vh, 18vw);
+      }
     }
   </style>
 </head>
