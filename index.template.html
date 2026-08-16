@@ -618,8 +618,8 @@
       min-width: 3ch;
       text-align: center;
       font-size: clamp(132px, 44vw, 270px);
-      font-weight: 780;
-      letter-spacing: -.075em;
+      font-weight: 700;
+      letter-spacing: -.035em;
       line-height: .83;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum";
@@ -737,6 +737,7 @@
     #limitButton {
       position: relative;
       width: 138px; height: 138px;
+      box-sizing: border-box;
       border-radius: 50%;
       border: 11px solid var(--danger);
       background: #fff; color: #050505;
@@ -746,10 +747,19 @@
     }
     #limitButton.unknown { border-color: #737373; color: #777; }
     #limit {
+      width: 100%;
+      max-width: 100%;
+      text-align: center;
       font-size: 57px;
       line-height: 1;
-      font-weight: 820;
+      font-weight: 800;
+      letter-spacing: -.025em;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    #limit[data-digits="3"] {
+      font-size: 43px;
+      letter-spacing: -.045em;
     }
     #limitButton::after {
       content: "TAP";
@@ -1177,7 +1187,7 @@
         height: 100%;
         grid-template-columns: minmax(250px, 1fr) minmax(250px, 1fr);
         grid-template-rows: 1fr;
-        transform: none;
+        transform: translateY(clamp(24px, 6vh, 38px));
         align-items: center;
         justify-self: center;
         column-gap: clamp(26px, 5vw, 72px);
@@ -1194,7 +1204,7 @@
       body.dial-display .speed-dial {
         width: min(68vh, 350px);
         max-width: 42vw;
-        transform: translateY(clamp(14px, 3.5vh, 24px));
+        transform: translateY(clamp(4px, 1.2vh, 9px));
       }
       body.dial-display #speed {
         font-size: min(40vh, 18vw);
@@ -1217,6 +1227,7 @@
         gap: 16px;
       }
       #limitButton { width: 126px; height: 126px; }
+      #limit[data-digits="3"] { font-size: 39px; }
       .road-info { text-align: center; max-width: 280px; }
       footer {
         position: absolute;
@@ -1765,27 +1776,27 @@
 
     if (stage === "matched") {
       sourceEl.textContent = "From:";
-      roadEl.textContent = message || state.acceptedAutoRoad || "Confirmed road";
+      roadEl.textContent = displayRoadName(message || state.acceptedAutoRoad) || "Confirmed road";
       setRoadConfidence("confirmed", "Confirmed");
       return;
     }
 
     if (stage === "confirming" && message) {
       sourceEl.textContent = "From:";
-      roadEl.textContent = message;
+      roadEl.textContent = displayRoadName(message);
       setRoadConfidence("estimate", "Best estimate");
       return;
     }
 
     if (stage === "error") {
       sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit unavailable";
-      roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : "Lookup unavailable";
+      roadEl.textContent = hasLastConfirmed ? (displayRoadName(state.acceptedAutoRoad) || "Last confirmed road") : "Lookup unavailable";
       setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
       return;
     }
 
     sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit";
-    roadEl.textContent = hasLastConfirmed ? (state.acceptedAutoRoad || "Last confirmed road") : (message || ({
+    roadEl.textContent = hasLastConfirmed ? (displayRoadName(state.acceptedAutoRoad) || "Last confirmed road") : (displayRoadName(message) || ({
       locating: "Finding road...",
       waiting: "Finding your location…",
       collecting: "Checking road...",
@@ -1797,10 +1808,16 @@
 
   function displayRoadName(rawRoadName) {
     const technicalRoadValues = new Set(["service_other", "service other", "service", "other", "unknown", "primary", "secondary", "tertiary", "residential", "track", "path"]);
-    const cleaned = String(rawRoadName || "").replaceAll("_", " ").trim();
+    let cleaned = String(rawRoadName || "").replaceAll("_", " ").trim();
     if (!cleaned || technicalRoadValues.has(cleaned.toLowerCase())) return "";
-    // House numbers make a provisional match look more certain than it is.
-    return cleaned.replace(/,\s*\d+[a-z]?$/i, "");
+
+    // Geoapify can append an address/house number to an otherwise valid road
+    // name (for example "Schimmelstrasse, 3"). Keep route designators such as
+    // "A3W, Sihlhochstrasse", but remove any final comma-separated component
+    // that starts with a digit. Do this at the display boundary as well as when
+    // accepting a road so stale/cached values cannot reintroduce house numbers.
+    cleaned = cleaned.replace(/\s*,\s*\d[^,]*$/u, "").trim();
+    return cleaned;
   }
 
   function setLaunchSteps(startState, locationState, readyState, readyText = "Ready to drive") {
@@ -2506,10 +2523,12 @@
 
     state.limit = nextLimit;
     limitEl.textContent = nextLimit ?? "?";
+    limitEl.dataset.digits = nextLimit === null ? "1" : String(nextLimit).length;
     limitButton.classList.toggle("unknown", nextLimit === null);
     sourceEl.textContent = source;
     sourceEl.classList.toggle("manual-source", state.mode === "manual");
-    roadEl.textContent = road || (nextLimit ? "Speed limit selected" : "No mapped limit");
+    const displayRoad = state.mode === "auto" ? displayRoadName(road) : road;
+    roadEl.textContent = displayRoad || (nextLimit ? "Speed limit selected" : "No mapped limit");
     if (state.mode === "manual") setRoadConfidence("", "");
     document.body.classList.toggle(
       "over",
@@ -2749,7 +2768,7 @@
           roadOutcome = "CONFIRMED";
           const previous = state.acceptedAutoLimit;
           state.acceptedAutoLimit = roundedLimit;
-          state.acceptedAutoRoad = roadName;
+          state.acceptedAutoRoad = displayRoadName(roadName);
           setLimit(roundedLimit, "Automatic limit from:", state.acceptedAutoRoad, {
             chime: previous !== null && previous !== roundedLimit,
             previous
