@@ -742,16 +742,39 @@
       position: relative;
       width: 138px; height: 138px;
       box-sizing: border-box;
+      border: 0;
       border-radius: 50%;
-      border: 11px solid var(--danger);
-      background: #fff; color: #050505;
-      display: grid; place-items: center;
+      background: transparent;
+      color: #050505;
+      display: grid;
+      place-items: center;
       padding: 0;
-      box-shadow: 0 8px 30px rgba(0,0,0,.45);
+      box-shadow: none;
+      appearance: none;
+      -webkit-appearance: none;
+      isolation: isolate;
     }
-    #limitButton.unknown { border-color: #737373; color: #777; }
+    /* Draw the physical road sign on a dedicated circular layer. Keeping the
+       actual button transparent prevents iOS/WebKit from exposing a rectangular
+       native button/background layer around the sign. */
+    #limitButton::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      box-sizing: border-box;
+      border: 11px solid var(--danger);
+      background: #fff;
+      box-shadow: 0 8px 30px rgba(0,0,0,.45);
+      z-index: -1;
+    }
+    #limitButton.unknown { color: #777; }
+    #limitButton.unknown::before { border-color: #737373; }
     #limit {
+      position: relative;
+      z-index: 1;
       width: 100%;
+      background: transparent;
       max-width: 100%;
       text-align: center;
       font-size: 57px;
@@ -768,6 +791,7 @@
     #limitButton::after {
       content: "TAP";
       position: absolute;
+      z-index: 2;
       bottom: -28px;
       font-size: 10px;
       font-weight: 760;
