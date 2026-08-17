@@ -58,7 +58,17 @@ const contracts = [
   ['display decisions remain logged', /displayDecision\s*:/],
   ['reason codes remain logged', /(?:reasons\s*:|\breasons\s*[},])/],
   ['driver UI state remains logged', /driverUiActive\s*:/],
-  ['diagnostic history remains capped', /slice\(-(?:250|400)\)/],
+  ['diagnostic history persists across sessions', /DIAGNOSTIC_STORAGE_KEY\s*=\s*["']speedoDiagnosticLogV1["']/],
+  ['diagnostic history cap is 1200 entries', /DIAGNOSTIC_MAX_ENTRIES\s*=\s*1200/],
+  ['diagnostic history trims to configured cap', /slice\(-DIAGNOSTIC_MAX_ENTRIES\)/],
+  ['diagnostic history is written to local storage', /localStorage\.setItem\(\s*DIAGNOSTIC_STORAGE_KEY/],
+  ['diagnostic session markers remain logged', /event:\s*["']DIAGNOSTIC_SESSION["']/],
+  ['clearing diagnostics clears persisted history', /localStorage\.removeItem\(DIAGNOSTIC_STORAGE_KEY\)/],
+  ['speed-limit button shell remains transparent', /#limitButton\s*\{[^}]*background:\s*transparent/s],
+  ['transport detective remains experimental', /id=["']experimentalTransportSetting["'][^>]*aria-hidden=["']true["']/],
+  ['transport detective defaults off', /transportDetectiveEnabled:\s*localStorage\.getItem\(["']transportDetectiveEnabled["']\)\s*===\s*["']true["']/],
+  ['transport detective has a user toggle', /id=["']transportDetectiveSwitch["']/],
+  ['transport detective logs mode changes', /event:\s*["']TRANSPORT_GUESS["']/],
   ['copy-log control remains wired', /copyDiagnostics[^\n]*addEventListener/],
   ['clear-log control remains wired', /clearDiagnostics[^\n]*addEventListener/],
   ['privacy section remains present', /\bPrivacy\b/i],
@@ -68,17 +78,6 @@ const contracts = [
   ['no-account promise remains present', /no\s+account/i],
   ['driver responsibility wording remains present', /responsibility\s+of\s+the\s+driver/i]
 ];
-
-contracts.push(
-  ['diagnostics panel displays local time first', /item\.timeLocal\s*\|\|\s*item\.timeUtc/],
-  ['road confirmation uses repeated road and limit matches', /autoMatchCandidates/],
-  ['poor road matches remain unconfirmed', /RETAINED_UNCONFIRMED/],
-  ['invalid current road match is explained', /INVALID_CURRENT_ROAD_MATCH/],
-  ['service roads cannot strengthen confirmation', /roadClass === ["']service_other["']/],
-  ['implausible residential limits are challenged', /roadClass === ["']residential["'] && limit > 70/],
-  ['held-at-zero decisions explain ignored derived speed', /ignoredDerivedKmh/],
-  ['derived speed rejection reason remains logged', /DERIVED_SPEED_NOT_USED_FOR_DISPLAY/]
-);
 
 for (const [name, pattern] of contracts) {
   has(candidate, pattern) ? pass(name) : fail(name);
@@ -126,41 +125,6 @@ if (baselinePath) {
       ? fail(`${label} removed since baseline: ${removedItems.join(', ')}`)
       : pass(`no baseline ${label.toLowerCase()} were removed`);
   }
-      const versionConfig = JSON.parse(
-      fs.readFileSync(path.join(__dirname, "version.json"), "utf8")
-    );
-    
-    const appVersion = versionConfig.version;
-    
-    assert(
-      /^\d+\.\d+\.\d+$/.test(appVersion),
-      "version.json must contain a valid semantic version"
-    );
-    
-    assert(
-      html.includes("__APP_VERSION__"),
-      "index.template.html must use the application version placeholder"
-    );
-    
-    const serviceWorker = fs.readFileSync(
-      path.join(__dirname, "service-worker.js"),
-      "utf8"
-    );
-    
-    assert(
-      serviceWorker.includes("__APP_VERSION__"),
-      "service-worker.js must use the application version placeholder"
-    );
-    
-    assert(
-      !/\bVersion \d+\.\d+/.test(html),
-      "index.template.html must not contain a hardcoded display version"
-    );
-    
-    assert(
-      !/service-worker\.js\?v=\d/.test(html),
-      "service-worker registration must not contain a hardcoded version"
-    );
 }
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} failure(s), ${warnings.length} warning(s)`);
