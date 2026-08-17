@@ -387,7 +387,11 @@
     .signal-wave:nth-child(4) { animation-delay: .7s; }
     .satellite-track.locked .satellite {
       animation: gpsLockFlash .45s ease-out both;
-      filter: drop-shadow(0 0 24px rgba(87,255,135,.9));
+      /* Avoid animating a coloured CSS filter on the emoji. On iOS/WebKit the
+         emoji is rasterised into its own layer and the filter can briefly show
+         as a rectangular green compositing box. The green lock cue remains on
+         the signal waves instead. */
+      filter: none;
     }
     .satellite-track.locked .signal-wave {
       border-color: rgba(87,255,135,.95);
@@ -1460,8 +1464,8 @@
     <div class="setting">
       <div class="setting-row">
         <div>
-          <div class="setting-title">Private statistics</div>
-          <div class="setting-note">Your statistics stay on this device.</div>
+          <div class="setting-title">All-time private statistics</div>
+          <div class="setting-note">Stored locally on this device and kept across app sessions until you reset them.</div>
         </div>
         <button class="switch" id="statisticsSwitch" aria-label="Toggle private statistics"></button>
       </div>
@@ -1479,11 +1483,11 @@
           <div class="data-usage-session">
             <div class="data-usage-item">
               <div class="data-usage-value" id="statSessionData">0 KB</div>
-              <div class="data-usage-label">Used this session</div>
+              <div class="data-usage-label">Used all time</div>
             </div>
             <div class="data-usage-item">
               <div class="data-usage-value" id="statApiRequests">0</div>
-              <div class="data-usage-label">Road lookups</div>
+              <div class="data-usage-label">Road lookups · all time</div>
             </div>
           </div>
 
@@ -1682,6 +1686,29 @@
   let startupMinimumCompleteAt = 0;
   let startupCompletionScheduled = false;
 
+  const DIAGNOSTIC_STORAGE_KEY = "speedoDiagnosticLogV1";
+  const DIAGNOSTIC_MAX_ENTRIES = 1200;
+  const DIAGNOSTIC_PERSIST_DELAY_MS = 2000;
+  let diagnosticPersistTimer = null;
+
+  function loadJsonObject(key, fallback) {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || "");
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function loadDiagnosticLog() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(DIAGNOSTIC_STORAGE_KEY) || "[]");
+      return Array.isArray(parsed) ? parsed.slice(-DIAGNOSTIC_MAX_ENTRIES) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
   const state = {
     displayedSpeed: 0,
     targetSpeed: 0,
@@ -1723,9 +1750,10 @@
     wakeLockNeedsGesture: false,
     roadServiceStatus: "unchecked",
     roadServiceMessage: "",
-    stats: JSON.parse(localStorage.getItem("speedoStats") || '{"trips":0,"milliseconds":0,"metres":0,"apiBytes":0,"apiRequests":0,"apiResponses":0,"apiResponseBytes":0}'),
+    stats: loadJsonObject("speedoStats", { trips: 0, milliseconds: 0, metres: 0, apiBytes: 0, apiRequests: 0, apiResponses: 0, apiResponseBytes: 0 }),
     sessionNetwork: { bytes: 0, requests: 0, responses: 0, responseBytes: 0 },
     driveStartedAt: null,
+    driveSessionActive: false,
     lastStatsPosition: null,
     lastAcceptedSpeed: 0,
     lastSpeedTimestamp: null,
@@ -1735,7 +1763,7 @@
     driverModeActive: false,
     driverExitTimer: null,
     diagnosticsEnabled: localStorage.getItem("diagnosticsEnabled") === "true",
-    diagnosticLog: [],
+    diagnosticLog: loadDiagnosticLog(),
     lastDriverUiLogState: false,
     stationarySince: null
   };
@@ -1935,14 +1963,42 @@
     return passed;
   }
 
+  function persistDiagnosticsNow() {
+    if (diagnosticPersistTimer) {
+      clearTimeout(diagnosticPersistTimer);
+      diagnosticPersistTimer = null;
+    }
+    try {
+      localStorage.setItem(
+        DIAGNOSTIC_STORAGE_KEY,
+        JSON.stringify(state.diagnosticLog.slice(-DIAGNOSTIC_MAX_ENTRIES))
+      );
+    } catch (error) {
+      // Storage can be constrained in private browsing. Keep live diagnostics
+      // working even if persistence is unavailable.
+      console.warn("Could not persist diagnostic log", error);
+    }
+  }
+
+  function scheduleDiagnosticPersist() {
+    if (diagnosticPersistTimer) return;
+    diagnosticPersistTimer = setTimeout(persistDiagnosticsNow, DIAGNOSTIC_PERSIST_DELAY_MS);
+  }
+
   function addDiagnostic(entry) {
     if (!state.diagnosticsEnabled) return;
     state.diagnosticLog.push(makeDiagnosticEntry(entry));
-    state.diagnosticLog = state.diagnosticLog.slice(-250);
+    state.diagnosticLog = state.diagnosticLog.slice(-DIAGNOSTIC_MAX_ENTRIES);
+    scheduleDiagnosticPersist();
     updateDiagnosticsDisplay();
   }
 
   runDiagnosticContractSelfTest();
+
+  if (state.diagnosticsEnabled) {
+    addDiagnostic({ event: "DIAGNOSTIC_SESSION", outcome: "RESUMED" });
+    persistDiagnosticsNow();
+  }
 
   function logDriverUiChange(active, reason) {
     if (state.lastDriverUiLogState === active) return;
@@ -2113,12 +2169,20 @@
     $("statTrips").textContent = formatStat(state.stats.trips || 0);
     $("statDistance").textContent = formatStat(state.stats.metres / 1000, 1);
     $("statHours").textContent = formatStat((state.stats.milliseconds + liveMs) / 3600000, 1);
-    $("statSessionData").textContent = formatBytes(state.sessionNetwork.bytes);
-    $("statApiRequests").textContent = formatStat(state.sessionNetwork.requests || 0);
-    const averageResponse = state.sessionNetwork.responses
-      ? state.sessionNetwork.responseBytes / state.sessionNetwork.responses
+    $("statSessionData").textContent = formatBytes(state.stats.apiBytes || 0);
+    $("statApiRequests").textContent = formatStat(state.stats.apiRequests || 0);
+    const averageResponse = state.stats.apiResponses
+      ? (state.stats.apiResponseBytes || 0) / state.stats.apiResponses
       : 0;
     $("statAverageResponse").textContent = formatBytes(averageResponse);
+  }
+
+  function checkpointUsageTime({ continueSession = false } = {}) {
+    if (state.statisticsEnabled && state.driveStartedAt) {
+      state.stats.milliseconds += Math.max(0, Date.now() - state.driveStartedAt);
+      state.driveStartedAt = continueSession ? Date.now() : null;
+      saveStats();
+    }
   }
 
   function applyStatisticsSettings() {
@@ -3303,7 +3367,10 @@
     state.displayedSpeed = 0;
     if (state.statisticsEnabled) {
       state.driveStartedAt = Date.now();
-      state.stats.trips += 1;
+      if (!state.driveSessionActive) {
+        state.driveSessionActive = true;
+        state.stats.trips += 1;
+      }
       saveStats();
     } else {
       state.driveStartedAt = null;
@@ -3536,16 +3603,15 @@
 
   $("statisticsSwitch").addEventListener("click", () => {
     if (state.statisticsEnabled) {
-      if (state.driveStartedAt) {
-        state.stats.milliseconds += Date.now() - state.driveStartedAt;
-        state.driveStartedAt = null;
-        saveStats();
-      }
+      checkpointUsageTime();
       state.lastStatsPosition = null;
       state.statisticsEnabled = false;
     } else {
       state.statisticsEnabled = true;
-      if (state.watchId !== null) state.driveStartedAt = Date.now();
+      if (state.watchId !== null) {
+        state.driveStartedAt = Date.now();
+        state.driveSessionActive = true;
+      }
     }
     localStorage.setItem("statisticsEnabled", String(state.statisticsEnabled));
     applyStatisticsSettings();
@@ -3556,6 +3622,7 @@
     state.stats = { trips: 0, milliseconds: 0, metres: 0, apiBytes: 0, apiRequests: 0, apiResponses: 0, apiResponseBytes: 0 };
     state.sessionNetwork = { bytes: 0, requests: 0, responses: 0, responseBytes: 0 };
     state.driveStartedAt = state.statisticsEnabled && state.watchId !== null ? Date.now() : null;
+    state.driveSessionActive = state.watchId !== null;
     state.lastStatsPosition = null;
     saveStats();
     showToast("Statistics reset");
@@ -3564,6 +3631,12 @@
   $("diagnosticsSwitch").addEventListener("click", () => {
     state.diagnosticsEnabled = !state.diagnosticsEnabled;
     localStorage.setItem("diagnosticsEnabled", String(state.diagnosticsEnabled));
+    if (state.diagnosticsEnabled) {
+      addDiagnostic({ event: "DIAGNOSTIC_SESSION", outcome: "STARTED" });
+      persistDiagnosticsNow();
+    } else {
+      persistDiagnosticsNow();
+    }
     updateDiagnosticsDisplay();
     showToast(state.diagnosticsEnabled ? "GPS diagnostics on" : "GPS diagnostics off");
   });
@@ -3612,16 +3685,18 @@
 
   $("clearDiagnostics").addEventListener("click", () => {
     state.diagnosticLog = [];
+    if (diagnosticPersistTimer) {
+      clearTimeout(diagnosticPersistTimer);
+      diagnosticPersistTimer = null;
+    }
+    localStorage.removeItem(DIAGNOSTIC_STORAGE_KEY);
     updateDiagnosticsDisplay();
     showToast("Diagnostic log cleared");
   });
 
   async function disconnectDrive() {
-    if (state.driveStartedAt) {
-      state.stats.milliseconds += Date.now() - state.driveStartedAt;
-      state.driveStartedAt = null;
-      saveStats();
-    }
+    checkpointUsageTime();
+    state.driveSessionActive = false;
     state.lastStatsPosition = null;
     if (state.driverExitTimer) clearTimeout(state.driverExitTimer);
     state.driverExitTimer = null;
@@ -3666,6 +3741,8 @@
   $("disconnect")?.addEventListener("click", disconnectDrive);
   document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "hidden") {
+      checkpointUsageTime();
+      persistDiagnosticsNow();
       if (state.watchId !== null) {
         navigator.geolocation.clearWatch(state.watchId);
         state.watchId = null;
@@ -3686,6 +3763,10 @@
 
   window.addEventListener("focus", maintainWakeLock);
   window.addEventListener("pageshow", maintainWakeLock);
+  window.addEventListener("pagehide", () => {
+    checkpointUsageTime();
+    persistDiagnosticsNow();
+  });
 
   // Restore the previous manual choice, while automatic mode waits for a road match.
   if (state.mode === "manual") {
