@@ -451,6 +451,47 @@
       text-transform: none;
       opacity: .95;
     }
+
+    .settings-section {
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .settings-section:first-of-type {
+      border-top: 0;
+    }
+    .settings-section-header {
+      width: 100%;
+      min-height: 54px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      text-align: left;
+      font: inherit;
+    }
+    .settings-section-header .settings-section-title {
+      margin: 0;
+      padding: 0;
+    }
+    .settings-section-chevron {
+      opacity: .42;
+      font-size: 18px;
+      transform: rotate(0deg);
+      transition: transform .18s ease, opacity .18s ease;
+    }
+    .settings-section.open .settings-section-chevron {
+      transform: rotate(90deg);
+      opacity: .7;
+    }
+    .settings-section-body {
+      display: none;
+    }
+    .settings-section.open .settings-section-body {
+      display: block;
+    }
     .segmented {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -1051,7 +1092,8 @@
     #transportBadge {
       position: fixed;
       left: 50%;
-      top: calc(env(safe-area-inset-top, 0px) + 78px);
+      top: auto;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
       transform: translateX(-50%);
       z-index: 7;
       display: none;
@@ -1060,8 +1102,8 @@
       padding: 7px 11px;
       border: 1px solid rgba(255,255,255,.12);
       border-radius: 999px;
-      background: rgba(18,18,18,.72);
-      color: rgba(255,255,255,.72);
+      background: rgba(18,18,18,.58);
+      color: rgba(255,255,255,.62);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       font-size: 12px;
@@ -1071,11 +1113,10 @@
       pointer-events: none;
     }
     #transportBadge.show { display: flex; }
-    body.driver-mode #transportBadge { opacity: .52; }
+    body.driver-mode #transportBadge { opacity: .38; }
     @media (orientation: landscape) {
       #transportBadge {
-        top: auto;
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
       }
     }
     .stats-grid {
@@ -1460,9 +1501,13 @@
 <div class="modal" id="settingsModal" aria-hidden="true">
   <div class="sheet">
     <div class="grabber"></div>
-    <h2>Settings</h2>
+    <h2>Settings</h2>    <div class="settings-section" data-settings-section="audio">
+      <button class="settings-section-header" type="button" aria-expanded="false">
+        <div class="settings-section-title">Audio</div>
+        <span class="settings-section-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="settings-section-body">
 
-    <div class="settings-section-title">Audio</div>
 
     <div class="setting">
       <div class="setting-row">
@@ -1507,8 +1552,15 @@
         <button class="play-button" id="testWarning">▶</button>
       </div>
     </div>
+      </div>
+    </div>
+    <div class="settings-section" data-settings-section="display">
+      <button class="settings-section-header" type="button" aria-expanded="false">
+        <div class="settings-section-title">Display</div>
+        <span class="settings-section-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="settings-section-body">
 
-    <div class="settings-section-title">Display</div>
 
     <div class="setting">
       <div class="setting-title">Appearance</div>
@@ -1531,8 +1583,15 @@
         <label class="choice-row"><input type="checkbox" id="showGps">GPS status</label>
       </div>
     </div>
+      </div>
+    </div>
+    <div class="settings-section" data-settings-section="statistics">
+      <button class="settings-section-header" type="button" aria-expanded="false">
+        <div class="settings-section-title">Statistics</div>
+        <span class="settings-section-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="settings-section-body">
 
-    <div class="settings-section-title">Statistics</div>
 
     <div class="setting">
       <div class="setting-row">
@@ -1576,8 +1635,15 @@
         <button class="wide-button secondary" id="resetStats">Reset statistics</button>
       </div>
     </div>
+      </div>
+    </div>
+    <div class="settings-section" data-settings-section="about">
+      <button class="settings-section-header" type="button" aria-expanded="false">
+        <div class="settings-section-title">About</div>
+        <span class="settings-section-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="settings-section-body">
 
-    <div class="settings-section-title">About</div>
 
     <div class="setting">
       <div style="padding:4px 0 8px;">
@@ -1610,8 +1676,15 @@
         </div>
       </div>
     </div>
+      </div>
+    </div>
+    <div class="settings-section" data-settings-section="privacy">
+      <button class="settings-section-header" type="button" aria-expanded="false">
+        <div class="settings-section-title">Privacy</div>
+        <span class="settings-section-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="settings-section-body">
 
-    <div class="settings-section-title">Privacy</div>
 
     <div class="setting">
       <div style="padding:4px 0 8px;line-height:1.55;opacity:.82;">
@@ -1645,8 +1718,15 @@
         </div>
       </div>
     </div>
+      </div>
+    </div>
+    <div class="settings-section" data-settings-section="advanced-and-experimental-features">
+      <button class="settings-section-header" type="button" aria-expanded="false">
+        <div class="settings-section-title">Advanced and Experimental Features</div>
+        <span class="settings-section-chevron" aria-hidden="true">›</span>
+      </button>
+      <div class="settings-section-body">
 
-    <div class="settings-section-title">Advanced and Experimental Features</div>
 
     <div class="setting">
       <div class="setting-row">
@@ -1701,7 +1781,10 @@
     <div class="setting">
       <button class="wide-button secondary" id="fullscreenButton">Enter full screen</button>
       <button class="wide-button secondary" id="closeSettings">Close</button>
+    
+      </div>
     </div>
+</div>
   </div>
 </div>
 
@@ -2602,6 +2685,8 @@
     $("themeDarkButton")?.classList.toggle("active", state.theme === "dark");
     $("themeLightButton")?.classList.toggle("active", state.theme === "light");
     applyExperimentalSettings();
+  wireSettingsSections();
+  collapseAllSettingsSections();
   }
 
   function applyVisibility() {
@@ -3766,6 +3851,34 @@
     closeModal(iosInstallModal);
     localStorage.setItem("installPromptDismissed", "true");
   });
+
+
+  function collapseAllSettingsSections() {
+    document.querySelectorAll(".settings-section").forEach(section => {
+      section.classList.remove("open");
+      const button = section.querySelector(".settings-section-header");
+      if (button) button.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function wireSettingsSections() {
+    document.querySelectorAll(".settings-section-header").forEach(button => {
+      if (button.dataset.wired === "true") return;
+      button.dataset.wired = "true";
+      button.addEventListener("click", () => {
+        const section = button.closest(".settings-section");
+        if (!section) return;
+        const willOpen = !section.classList.contains("open");
+
+        // Accordion behaviour: keep the screen calm by opening one section at a time.
+        collapseAllSettingsSections();
+        if (willOpen) {
+          section.classList.add("open");
+          button.setAttribute("aria-expanded", "true");
+        }
+      });
+    });
+  }
 
   $("settingsButton").addEventListener("click", () => openModal(settingsModal));
   $("closeSettings").addEventListener("click", () => closeModal(settingsModal));
