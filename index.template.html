@@ -1093,7 +1093,7 @@
       position: fixed;
       left: 50%;
       top: auto;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 2px);
       transform: translateX(-50%);
       z-index: 7;
       display: none;
@@ -1114,9 +1114,52 @@
     }
     #transportBadge.show { display: flex; }
     body.driver-mode #transportBadge { opacity: .38; }
+
+    #transportMetrics {
+      position: fixed;
+      left: 50%;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 42px);
+      transform: translateX(-50%);
+      z-index: 7;
+      display: none;
+      width: min(88vw, 430px);
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 14px;
+      background: rgba(10,10,10,.58);
+      color: rgba(255,255,255,.50);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 10px;
+      line-height: 1.35;
+      text-align: center;
+      pointer-events: none;
+    }
+    #transportMetrics.show { display: block; }
+    body:not(.speed-above-6) #transportMetrics { display: none; }
+    .transport-metric-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .transport-metric {
+      padding: 3px 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.055);
+      white-space: nowrap;
+    }
+    .transport-formula {
+      margin-top: 5px;
+      opacity: .72;
+      letter-spacing: .01em;
+    }
     @media (orientation: landscape) {
       #transportBadge {
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 1px);
+      }
+      #transportMetrics {
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 38px);
       }
     }
     .stats-grid {
@@ -1496,6 +1539,7 @@
   </div>
 </div>
 
+<div id="transportMetrics" aria-live="polite" aria-hidden="true"></div>
 <div id="transportBadge" aria-live="polite" aria-hidden="true">🧭 Learning journey…</div>
 
 <div class="modal" id="settingsModal" aria-hidden="true">
@@ -2221,6 +2265,8 @@
     return String(value).replace(/[\t\r\n]+/g, " ").trim();
   }
 
+  const COMPACT_LOG_MAX_LINES = 300;
+
   function compactDiagnosticText(log = state.diagnosticLog) {
     const header = [
       "# Super Simple Speedo diagnostics TSV v1",
@@ -2228,7 +2274,8 @@
       "# columns=time_local\ttype\tshown_kmh\traw_kmh\tderived_kmh\taccuracy_m\tdt_s\tdistance_m\tsource\tdecision\treasons\tdetails"
     ];
 
-    const rows = log.map(item => {
+    const dataLineLimit = Math.max(0, COMPACT_LOG_MAX_LINES - header.length);
+    const rows = log.slice(-dataLineLimit).map(item => {
       const type = item.event || "SPEED";
       let details = "";
       if (item.event === "ROAD_LOOKUP") {
@@ -2481,10 +2528,26 @@
     const enabled = available && state.transportDetectiveEnabled;
     badge?.classList.toggle("show", enabled);
     badge?.setAttribute("aria-hidden", String(!enabled));
+    const metricsEl = $("transportMetrics");
     const guess = state.transportGuess || { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
     if (badge) badge.textContent = guess.mode === "unknown"
       ? transportLabel("unknown")
       : `${transportLabel(guess.mode)} · ${Math.round(guess.confidence * 100)}%`;
+
+    const metrics = guess.metrics;
+    const showMetrics = enabled && guess.mode !== "unknown" && metrics;
+    metricsEl?.classList.toggle("show", Boolean(showMetrics));
+    metricsEl?.setAttribute("aria-hidden", String(!showMetrics));
+    if (metricsEl && showMetrics) {
+      metricsEl.innerHTML = `
+        <div class="transport-metric-row">
+          <span class="transport-metric">Max ${metrics.maxKmh} km/h</span>
+          <span class="transport-metric">Moving avg ${metrics.averageMovingKmh} km/h</span>
+          <span class="transport-metric">Stops ${metrics.recentStops}</span>
+          <span class="transport-metric">Road confirmed ${metrics.confirmedRoadPct}%</span>
+        </div>
+        <div class="transport-formula">${metrics.confidenceExplanation}</div>`;
+    }
     if (status) status.textContent = guess.reason || "Not enough movement yet.";
   }
 
@@ -2506,29 +2569,49 @@
     const confirmedRoadRatio = samples.filter(s => s.roadConfirmed).length / samples.length;
 
     let mode = "car", confidence = 0.52, reason = "Mostly follows a road-like movement pattern.";
+    let confidenceExplanation = "Learning confidence inputs…";
 
     if (max >= 95 || (max >= 80 && avg >= 55 && confirmedRoadRatio < 0.55)) {
       mode = "train";
-      confidence = Math.min(.96, .72 + Math.max(0, max - 80) / 160 + (1 - confirmedRoadRatio) * .12);
+      const speedContribution = Math.max(0, max - 80) / 160;
+      const offRoadContribution = (1 - confirmedRoadRatio) * .12;
+      confidence = Math.min(.96, .72 + speedContribution + offRoadContribution);
       reason = `High sustained speed (${Math.round(max)} km/h max) is strongly train-like.`;
+      confidenceExplanation = `Confidence ≈ 72 base + ${Math.round(speedContribution * 100)} speed + ${Math.round(offRoadContribution * 100)} low-road-match`;
     } else {
       const stopScore = Math.min(1, stops.length / 5);
       const tramSpeedScore = max <= 65 ? 1 : Math.max(0, 1 - (max - 65) / 25);
       const tramScore = stopScore * .58 + tramSpeedScore * .27 + (avg <= 32 ? .15 : 0);
       if (stops.length >= 3 && tramScore >= .58) {
         mode = "tram";
-        confidence = Math.min(.92, .48 + tramScore * .42);
+        const profileContribution = tramScore * .42;
+        confidence = Math.min(.92, .48 + profileContribution);
         reason = `${stops.length} complete stops in the recent window plus an urban speed profile look tram-like.`;
+        confidenceExplanation = `Confidence ≈ 48 base + ${Math.round(profileContribution * 100)} tram-profile`;
       } else {
-        confidence = Math.min(.82, .50 + confirmedRoadRatio * .22 + (stops.length <= 2 ? .08 : 0));
+        const roadContribution = confirmedRoadRatio * .22;
+        const lowStopContribution = stops.length <= 2 ? .08 : 0;
+        confidence = Math.min(.82, .50 + roadContribution + lowStopContribution);
         reason = confirmedRoadRatio > .65
           ? "Frequent confirmed road matches favour a road vehicle."
           : "Movement does not yet strongly match tram or train patterns.";
+        confidenceExplanation = `Confidence ≈ 50 base + ${Math.round(roadContribution * 100)} road-match + ${Math.round(lowStopContribution * 100)} low-stop`;
       }
     }
 
     const previousMode = state.transportGuess?.mode;
-    state.transportGuess = { mode, confidence, reason };
+    state.transportGuess = {
+      mode,
+      confidence,
+      reason,
+      metrics: {
+        maxKmh: Math.round(max),
+        averageMovingKmh: Math.round(avg),
+        recentStops: stops.length,
+        confirmedRoadPct: Math.round(confirmedRoadRatio * 100),
+        confidenceExplanation
+      }
+    };
     if (state.diagnosticsEnabled && previousMode !== mode) {
       addDiagnostic({
         event: "TRANSPORT_GUESS",
@@ -3986,7 +4069,7 @@
     const compact = compactDiagnosticText();
     try {
       await navigator.clipboard.writeText(compact);
-      showToast(`Compact log copied · ${formatBytes(byteLength(compact))}`);
+      showToast(`Compact log copied · last ${Math.min(COMPACT_LOG_MAX_LINES, compact.split("\n").length)} lines · ${formatBytes(byteLength(compact))}`);
     } catch (_) {
       showToast("Could not copy diagnostic log");
     }
