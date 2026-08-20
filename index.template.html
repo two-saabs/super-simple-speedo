@@ -2484,7 +2484,14 @@
   pruneDiagnosticArchive().then(updateDiagnosticArchiveStatus);
 
   if (state.diagnosticsEnabled) {
-    addDiagnostic({ event: "DIAGNOSTIC_SESSION", outcome: "RESUMED" });
+    const resumeKey = "speedoLastDiagnosticResumeAt";
+    const now = Date.now();
+    let lastResumeAt = 0;
+    try { lastResumeAt = Number(localStorage.getItem(resumeKey)) || 0; } catch (_) {}
+    if (now - lastResumeAt > 5000) {
+      addDiagnostic({ event: "DIAGNOSTIC_SESSION", outcome: "RESUMED" });
+      try { localStorage.setItem(resumeKey, String(now)); } catch (_) {}
+    }
     persistDiagnosticsNow();
   }
 
@@ -2859,6 +2866,7 @@
   const TRANSPORT_WINDOW_MS = 4 * 60 * 1000;
   const WALKING_WINDOW_MS = 90 * 1000;
   const WALKING_MIN_DURATION_MS = 45 * 1000;
+  const TRANSPORT_WAITING_BADGE_DELAY_MS = 25 * 1000;
 
   function transportLabel(mode) {
     return ({
@@ -2887,9 +2895,15 @@
     badge?.setAttribute("aria-hidden", String(!enabled));
     const metricsEl = $("transportMetrics");
     const guess = state.transportGuess || { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
-    if (badge) badge.textContent = guess.mode === "unknown"
-      ? transportLabel("unknown")
-      : `${transportLabel(guess.mode)} · ${Math.round(guess.confidence * 100)}%`;
+    const stationaryForMs = !state.transportMoving && state.transportStopStartedAt
+      ? Math.max(0, Date.now() - state.transportStopStartedAt)
+      : 0;
+    const waitingForMovement = stationaryForMs >= TRANSPORT_WAITING_BADGE_DELAY_MS;
+    if (badge) badge.textContent = waitingForMovement
+      ? "🧭 Waiting for movement…"
+      : (guess.mode === "unknown"
+          ? transportLabel("unknown")
+          : `${transportLabel(guess.mode)} · ${Math.round(guess.confidence * 100)}%`);
 
     const metrics = guess.metrics;
     const showMetrics = enabled && guess.mode !== "unknown" && metrics;
