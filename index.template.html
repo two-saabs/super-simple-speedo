@@ -241,10 +241,6 @@
       letter-spacing: -.01em;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      position: relative;
-      z-index: 2;
-      pointer-events: auto;
       transition: transform .14s ease, opacity .2s ease;
     }
     .launch-action:active { transform: scale(.98); }
@@ -955,6 +951,7 @@
     }
 
     #driverResponsibility {
+      display: none !important;
       width: min(470px, 92vw);
       margin: 7px auto 0;
       text-align: center;
@@ -1597,6 +1594,7 @@
       <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
     <div id="status"></div>
+    <div id="driverResponsibility">Driving safely and respecting speed limits<br>is always the responsibility of the driver.</div>
   </footer>
 </div>
 
@@ -1990,20 +1988,6 @@
   const settingsModal = $("settingsModal");
   const iosInstallModal = $("iosInstallModal");
   const autoConnectModal = $("autoConnectModal");
-
-  // Wire the launch action immediately. On iOS standalone PWAs, a later runtime
-  // error must never leave the only startup control inert. Function declarations
-  // are hoisted, so this is safe before beginDriveFromLaunch is defined below.
-  const launchActionEl = $("letsDriveButton");
-  if (launchActionEl) {
-    launchActionEl.addEventListener("click", beginDriveFromLaunch, { passive: true });
-    launchActionEl.addEventListener("touchend", (event) => {
-      if (launchActionEl.disabled) return;
-      event.preventDefault();
-      beginDriveFromLaunch();
-    }, { passive: false });
-  }
-
   let deferredInstallPrompt = null;
   let startupGpsPending = false;
   let startupGpsFinished = false;
@@ -2224,7 +2208,7 @@
     }
   }
 
-  function beginDriveFromLaunch() {
+  async function beginDriveFromLaunch() {
     const button = $("letsDriveButton");
     if (button?.disabled) return;
     if (button) {
@@ -2238,10 +2222,9 @@
     setLaunchSteps("complete", "active", "");
     state.wakeLockWanted = true;
 
-    // Never make GPS startup depend on the Screen Wake Lock promise. Safari/iOS
-    // can delay or reject that promise even though geolocation itself is ready.
-    // Request the lock from the user gesture, but start GPS immediately.
-    requestWakeLock({ fromUserGesture: true });
+    // Keep this request directly inside the click handler: iOS accepts it as
+    // a genuine user-initiated action.
+    await requestWakeLock({ fromUserGesture: true });
     if (button) button.classList.add("hidden");
     if (state.watchId === null) startGPS({ startup: true });
   }
@@ -4335,9 +4318,12 @@
     } else {
       state.driveStartedAt = null;
     }
-    // Mark startup as pending BEFORE registering watchPosition. iOS can deliver
-    // a first fix synchronously/very quickly; that fix must be allowed to finish
-    // the launch sequence instead of arriving before startupGpsPending is true.
+    state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    });
+
     if (startup) {
       startupGpsPending = true;
       startupGpsFinished = false;
@@ -4345,21 +4331,12 @@
         ? "Acquiring satellites…"
         : "Offline · searching for GPS…";
       progressTarget.style.width = "58%";
-      if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);
       startupGpsFallbackTimer = setTimeout(() => {
         finishStartupWithoutGps(navigator.onLine
           ? "GPS unavailable · trying again…"
           : "Offline · GPS unavailable");
       }, 11000);
-    }
-
-    state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
-    });
-
-    if (!startup) {
+    } else {
       statusTarget.textContent = navigator.onLine
         ? "Acquiring satellites…"
         : "Offline · searching for GPS…";
@@ -4785,6 +4762,7 @@
     showToast("Drive ended");
   }
 
+  $("letsDriveButton")?.addEventListener("click", beginDriveFromLaunch);
   startEl?.addEventListener("click", requestGpsConnection);
   $("disconnect")?.addEventListener("click", disconnectDrive);
   document.addEventListener("visibilitychange", async () => {
