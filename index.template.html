@@ -216,7 +216,7 @@
     }
 
     .launch-disclaimer {
-      width: min(330px, 100%);
+      width: min(340px, 92%);
       margin: 20px auto 0;
       font-size: 11px;
       line-height: 1.5;
@@ -1971,6 +1971,28 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+
+  // Last-resort field diagnostics: iOS standalone PWAs otherwise make early
+  // JavaScript failures look like a frozen launch screen. Preserve a compact
+  // error marker locally and surface it on the launch screen when possible.
+  window.addEventListener("error", event => {
+    try {
+      const message = String(event?.error?.message || event?.message || "Unknown startup error");
+      localStorage.setItem("speedoLastRuntimeError", `${new Date().toISOString()} | ${message}`);
+      const launchStatus = document.getElementById("launchStatus");
+      if (launchStatus && !document.getElementById("launchScreen")?.classList.contains("hide")) {
+        launchStatus.removeAttribute("aria-hidden");
+        launchStatus.textContent = `Startup error · ${message.slice(0, 90)}`;
+      }
+    } catch (_) {}
+  });
+  window.addEventListener("unhandledrejection", event => {
+    try {
+      const message = String(event?.reason?.message || event?.reason || "Unhandled promise rejection");
+      localStorage.setItem("speedoLastRuntimeError", `${new Date().toISOString()} | ${message}`);
+    } catch (_) {}
+  });
+
   const speedEl = $("speed");
   const dialTrackEl = $("dialTrack");
   const dialAvailableEl = $("dialAvailable");
@@ -2208,7 +2230,7 @@
     }
   }
 
-  async function beginDriveFromLaunch() {
+  function beginDriveFromLaunch() {
     const button = $("letsDriveButton");
     if (button?.disabled) return;
     if (button) {
@@ -2216,17 +2238,27 @@
       button.textContent = "Starting…";
     }
 
-    startupMinimumCompleteAt = Date.now() + 2200;
+    startupMinimumCompleteAt = Date.now() + 1600;
     const checklist = $("launchChecklist");
     if (checklist) checklist.classList.remove("hidden");
     setLaunchSteps("complete", "active", "");
     state.wakeLockWanted = true;
 
-    // Keep this request directly inside the click handler: iOS accepts it as
-    // a genuine user-initiated action.
-    await requestWakeLock({ fromUserGesture: true });
-    if (button) button.classList.add("hidden");
+    // GPS is the critical path. Never wait for an iOS wake-lock promise before
+    // starting it: wake lock is a best-effort enhancement only.
     if (state.watchId === null) startGPS({ startup: true });
+    Promise.resolve(requestWakeLock({ fromUserGesture: true })).catch(() => false);
+    if (button) button.classList.add("hidden");
+
+    // A startup watchdog prevents a silent dead screen. If the geolocation
+    // callbacks never arrive, release the launch screen and let the normal app
+    // surface show its GPS state so the user can retry.
+    setTimeout(() => {
+      if (!startupGpsFinished && startupGpsPending) {
+        addDiagnostic({ event: "STARTUP_WATCHDOG", outcome: "RELEASED", reason: "no_gps_callback" });
+        finishStartupWithoutGps("GPS still connecting · retry from the app");
+      }
+    }, 12000);
   }
 
 
@@ -4318,6 +4350,11 @@
     } else {
       state.driveStartedAt = null;
     }
+    if (startup) {
+      startupGpsPending = true;
+      startupGpsFinished = false;
+    }
+
     state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {
       enableHighAccuracy: true,
       maximumAge: 0,
@@ -4325,8 +4362,6 @@
     });
 
     if (startup) {
-      startupGpsPending = true;
-      startupGpsFinished = false;
       statusTarget.textContent = navigator.onLine
         ? "Acquiring satellites…"
         : "Offline · searching for GPS…";
@@ -4806,7 +4841,7 @@
 
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/service-worker.js?v=12.2")
+      navigator.serviceWorker.register("/service-worker.js?v=__APP_VERSION__", { updateViaCache: "none" })
         .then(registration => {
           registration.update();
           if (registration.waiting) {
@@ -4823,6 +4858,13 @@
           });
         })
         .catch(() => {});
+
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        const key = "speedo-sw-refresh-__APP_VERSION__";
+        if (sessionStorage.getItem(key)) return;
+        sessionStorage.setItem(key, "1");
+        window.location.reload();
+      });
     });
   }
 
