@@ -1786,7 +1786,7 @@
       <div class="setting-row">
         <div>
           <div class="setting-title">Transport detective</div>
-          <div class="setting-note">Experimental, on-device guess of tram, train or road vehicle from movement patterns. Off by default.</div>
+          <div class="setting-note">Experimental transport detection combining movement patterns with nearby Swiss public-transport stops and timetables. When enabled, current coordinates may be sent to transport.opendata.ch for timetable matching.</div>
           <div class="setting-note" id="transportDetectiveStatus">Not enough movement yet.</div>
         </div>
         <button class="switch" id="transportDetectiveSwitch" aria-label="Toggle transport detective"></button>
@@ -1814,11 +1814,20 @@
       <div class="diagnostics-panel" id="diagnosticsPanel">
         <div class="diagnostics-summary" id="diagnosticsSummary">No GPS samples recorded yet.</div>
         <div class="diagnostics-actions">
-          <button class="wide-button secondary" id="copyDiagnostics">Copy compact log</button>
-          <button class="wide-button secondary" id="downloadDiagnostics">Download .tsv</button>
+          <button class="wide-button secondary" id="copyDiagnostics">Copy recent log</button>
+          <button class="wide-button secondary" id="downloadDiagnostics">Download all .tsv</button>
           <button class="wide-button secondary" id="clearDiagnostics">Clear log</button>
         </div>
-        <div class="diagnostics-format-note">Compact TSV keeps one event per line, making long logs much smaller, readable, and easier to upload for analysis.</div>
+        <div class="setting-note" style="margin-top:14px">Actual mode (optional ground truth)</div>
+        <div class="segmented" id="groundTruthButtons" style="grid-template-columns:repeat(5,1fr);margin-top:8px">
+          <button class="segment-button" data-ground-truth="walking">Walk</button>
+          <button class="segment-button" data-ground-truth="bus">Bus</button>
+          <button class="segment-button" data-ground-truth="car">Car</button>
+          <button class="segment-button" data-ground-truth="tram">Tram</button>
+          <button class="segment-button" data-ground-truth="train">Train</button>
+        </div>
+        <div class="diagnostics-format-note" id="diagnosticsArchiveStatus">Persistent archive starting…</div>
+        <div class="diagnostics-format-note">Recent events stay visible here; the full diagnostics archive is stored on this device for up to 30 days and survives app restarts. Export remains TSV for easy analysis.</div>
       </div>
     </div>
 
@@ -1900,7 +1909,15 @@
   const DIAGNOSTIC_STORAGE_KEY = "speedoDiagnosticLogV1";
   const DIAGNOSTIC_MAX_ENTRIES = 1200;
   const DIAGNOSTIC_PERSIST_DELAY_MS = 2000;
+  const DIAGNOSTIC_ARCHIVE_DB = "superSimpleSpeedoDiagnostics";
+  const DIAGNOSTIC_ARCHIVE_STORE = "events";
+  const DIAGNOSTIC_ARCHIVE_DAYS = 30;
+  const DIAGNOSTIC_SESSION_ID = `${new Date().toISOString().replace(/[:.]/g, "-")}-${Math.random().toString(36).slice(2, 8)}`;
+  const TRANSIT_LOOKUP_INTERVAL_MS = 45000;
+  const TRANSIT_CANDIDATE_MAX_AGE_MS = 120000;
+  const TRANSIT_NEARBY_RADIUS_M = 900;
   let diagnosticPersistTimer = null;
+  let diagnosticArchiveDbPromise = null;
 
   function loadJsonObject(key, fallback) {
     try {
@@ -1951,6 +1968,10 @@
     transportMoving: false,
     transportStopStartedAt: null,
     transportGuess: { mode: "unknown", confidence: 0, reason: "Not enough movement yet." },
+    transitLookupBusy: false,
+    lastTransitLookupAt: 0,
+    transitCandidate: null,
+    transitEvidence: [],
     visualTheme: localStorage.getItem("visualTheme") || "classic",
     speedDisplayStyle: localStorage.getItem("speedDisplayStyle") || "dial",
     viewMode: localStorage.getItem("speedoViewMode") || "all",
@@ -2163,6 +2184,7 @@
   function makeDiagnosticEntry(entry = {}, date = new Date()) {
     const diagnosticEntry = {
       schemaVersion: DIAGNOSTIC_SCHEMA_VERSION,
+      sessionId: DIAGNOSTIC_SESSION_ID,
       ...entry,
       // Timestamp fields are written last so callers cannot accidentally overwrite them.
       ...diagnosticTimestamp(date)
@@ -2178,6 +2200,117 @@
     const passed = validateDiagnosticEntry(sample);
     if (!passed) console.error("Super Simple Speedo diagnostic self-test failed", sample);
     return passed;
+  }
+
+  function openDiagnosticArchive() {
+    if (!window.indexedDB) return Promise.resolve(null);
+    if (diagnosticArchiveDbPromise) return diagnosticArchiveDbPromise;
+    diagnosticArchiveDbPromise = new Promise(resolve => {
+      try {
+        const request = indexedDB.open(DIAGNOSTIC_ARCHIVE_DB, 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(DIAGNOSTIC_ARCHIVE_STORE)) {
+            const store = db.createObjectStore(DIAGNOSTIC_ARCHIVE_STORE, { keyPath: "archiveId", autoIncrement: true });
+            store.createIndex("timeUtc", "timeUtc", { unique: false });
+            store.createIndex("sessionId", "sessionId", { unique: false });
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => {
+          console.warn("Could not open diagnostics archive", request.error);
+          resolve(null);
+        };
+      } catch (error) {
+        console.warn("Could not open diagnostics archive", error);
+        resolve(null);
+      }
+    });
+    return diagnosticArchiveDbPromise;
+  }
+
+  async function archiveDiagnosticEntry(entry) {
+    const db = await openDiagnosticArchive();
+    if (!db) return;
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(DIAGNOSTIC_ARCHIVE_STORE, "readwrite");
+        tx.objectStore(DIAGNOSTIC_ARCHIVE_STORE).add(entry);
+        tx.oncomplete = resolve;
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (error) {
+      console.warn("Could not archive diagnostic entry", error);
+    }
+  }
+
+  async function getArchivedDiagnostics() {
+    const db = await openDiagnosticArchive();
+    if (!db) return state.diagnosticLog.slice();
+    return new Promise(resolve => {
+      try {
+        const tx = db.transaction(DIAGNOSTIC_ARCHIVE_STORE, "readonly");
+        const request = tx.objectStore(DIAGNOSTIC_ARCHIVE_STORE).getAll();
+        request.onsuccess = () => resolve((request.result || []).sort((a,b) => String(a.timeUtc).localeCompare(String(b.timeUtc))));
+        request.onerror = () => resolve(state.diagnosticLog.slice());
+      } catch (_) {
+        resolve(state.diagnosticLog.slice());
+      }
+    });
+  }
+
+  async function countArchivedDiagnostics() {
+    const db = await openDiagnosticArchive();
+    if (!db) return state.diagnosticLog.length;
+    return new Promise(resolve => {
+      try {
+        const tx = db.transaction(DIAGNOSTIC_ARCHIVE_STORE, "readonly");
+        const request = tx.objectStore(DIAGNOSTIC_ARCHIVE_STORE).count();
+        request.onsuccess = () => resolve(request.result || 0);
+        request.onerror = () => resolve(0);
+      } catch (_) { resolve(0); }
+    });
+  }
+
+  async function pruneDiagnosticArchive() {
+    const db = await openDiagnosticArchive();
+    if (!db) return;
+    const cutoff = new Date(Date.now() - DIAGNOSTIC_ARCHIVE_DAYS * 86400000).toISOString();
+    try {
+      await new Promise(resolve => {
+        const tx = db.transaction(DIAGNOSTIC_ARCHIVE_STORE, "readwrite");
+        const index = tx.objectStore(DIAGNOSTIC_ARCHIVE_STORE).index("timeUtc");
+        const request = index.openCursor(IDBKeyRange.upperBound(cutoff, true));
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) return;
+          cursor.delete();
+          cursor.continue();
+        };
+        tx.oncomplete = resolve;
+        tx.onerror = resolve;
+      });
+    } catch (_) {}
+  }
+
+  async function clearDiagnosticArchive() {
+    const db = await openDiagnosticArchive();
+    if (!db) return;
+    await new Promise(resolve => {
+      try {
+        const tx = db.transaction(DIAGNOSTIC_ARCHIVE_STORE, "readwrite");
+        tx.objectStore(DIAGNOSTIC_ARCHIVE_STORE).clear();
+        tx.oncomplete = resolve;
+        tx.onerror = resolve;
+      } catch (_) { resolve(); }
+    });
+  }
+
+  async function updateDiagnosticArchiveStatus() {
+    const element = $("diagnosticsArchiveStatus");
+    if (!element) return;
+    const count = await countArchivedDiagnostics();
+    element.textContent = `${count.toLocaleString()} archived events · ${DIAGNOSTIC_ARCHIVE_DAYS}-day on-device retention · session ${DIAGNOSTIC_SESSION_ID.slice(0, 19)}`;
   }
 
   function persistDiagnosticsNow() {
@@ -2204,13 +2337,16 @@
 
   function addDiagnostic(entry) {
     if (!state.diagnosticsEnabled) return;
-    state.diagnosticLog.push(makeDiagnosticEntry(entry));
+    const diagnosticEntry = makeDiagnosticEntry(entry);
+    state.diagnosticLog.push(diagnosticEntry);
     state.diagnosticLog = state.diagnosticLog.slice(-DIAGNOSTIC_MAX_ENTRIES);
     scheduleDiagnosticPersist();
+    archiveDiagnosticEntry(diagnosticEntry).then(updateDiagnosticArchiveStatus);
     updateDiagnosticsDisplay();
   }
 
   runDiagnosticContractSelfTest();
+  pruneDiagnosticArchive().then(updateDiagnosticArchiveStatus);
 
   if (state.diagnosticsEnabled) {
     addDiagnostic({ event: "DIAGNOSTIC_SESSION", outcome: "RESUMED" });
@@ -2267,14 +2403,14 @@
 
   const COMPACT_LOG_MAX_LINES = 300;
 
-  function compactDiagnosticText(log = state.diagnosticLog) {
+  function compactDiagnosticText(log = state.diagnosticLog, maxLines = COMPACT_LOG_MAX_LINES) {
     const header = [
       "# Super Simple Speedo diagnostics TSV v1",
       `# timezone=${currentTimeZone()} generated=${new Date().toISOString()}`,
       "# columns=time_local\ttype\tshown_kmh\traw_kmh\tderived_kmh\taccuracy_m\tdt_s\tdistance_m\tsource\tdecision\treasons\tdetails"
     ];
 
-    const dataLineLimit = Math.max(0, COMPACT_LOG_MAX_LINES - header.length);
+    const dataLineLimit = Number.isFinite(maxLines) ? Math.max(0, maxLines - header.length) : log.length;
     const rows = log.slice(-dataLineLimit).map(item => {
       const type = item.event || "SPEED";
       let details = "";
@@ -2293,6 +2429,10 @@
         details = `outcome=${item.outcome || ""};gesture=${item.fromUserGesture ?? ""};display=${item.displayMode || ""}`;
       } else if (item.event === "DRIVER_UI_CHANGE") {
         details = `active=${item.driverUiActive ?? ""};reason=${item.reason || ""}`;
+      } else if (item.event === "TRANSIT_MATCH") {
+        details = `mode=${item.mode || ""};line=${item.line || ""};to=${item.to || ""};station=${item.station || ""};distance=${item.stationDistanceMetres ?? ""};scheduled=${item.scheduledAt || ""};confidence=${item.confidence ?? ""}`;
+      } else if (item.event === "GROUND_TRUTH") {
+        details = `actual=${item.actualMode || ""};predicted=${item.predictedMode || ""};predictedConfidence=${item.predictedConfidence ?? ""}`;
       } else if (item.event) {
         details = `reason=${item.reason || ""};outcome=${item.outcome || ""}`;
       } else {
@@ -2557,9 +2697,99 @@
           <span class="transport-metric">🚋 ${metrics.scores.tram}%</span>
           <span class="transport-metric">🚆 ${metrics.scores.train}%</span>
         </div>
+        ${metrics.transitCandidate ? `<div class="transport-metric-row"><span class="transport-metric">🗺 ${metrics.transitCandidate.line || metrics.transitCandidate.name || metrics.transitCandidate.mode}${metrics.transitCandidate.to ? ` → ${metrics.transitCandidate.to}` : ""} · ${Math.round(metrics.transitCandidate.confidence * 100)}%</span><span class="transport-metric">${metrics.transitCandidate.stationDistanceMetres}m from ${metrics.transitCandidate.station}</span></div>` : ""}
         <div class="transport-formula">${metrics.confidenceExplanation}</div>`;
     }
     if (status) status.textContent = guess.reason || "Not enough movement yet.";
+  }
+
+  function normaliseTransitMode(category = "", name = "") {
+    const cat = String(category || "").trim().toUpperCase();
+    const label = String(name || "").trim().toUpperCase();
+    if (cat.includes("TRAM") || label.startsWith("TRAM ")) return "tram";
+    if (cat.includes("BUS") || label.startsWith("BUS ") || cat === "B") return "bus";
+    if (["S", "SN", "R", "RE", "IR", "IC", "ICE", "EC", "TGV", "RJ", "RJX", "NJ", "EN"].includes(cat) || /^S\d+/i.test(label)) return "train";
+    return null;
+  }
+
+  function localStationboardDateTime(date = new Date(Date.now() - 10 * 60000)) {
+    const pad = value => String(value).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  async function maybeMatchPublicTransport(coords) {
+    if (!state.experimentalMode || !state.transportDetectiveEnabled || state.transitLookupBusy) return;
+    if (!coords || !Number.isFinite(coords.latitude) || !Number.isFinite(coords.longitude)) return;
+    if (state.targetSpeed < 5) return;
+    const now = Date.now();
+    if (now - state.lastTransitLookupAt < TRANSIT_LOOKUP_INTERVAL_MS) return;
+    state.lastTransitLookupAt = now;
+    state.transitLookupBusy = true;
+    try {
+      const locationUrl = `https://transport.opendata.ch/v1/locations?x=${encodeURIComponent(coords.latitude)}&y=${encodeURIComponent(coords.longitude)}`;
+      const locationResponse = await fetch(locationUrl);
+      if (!locationResponse.ok) throw new Error(`locations ${locationResponse.status}`);
+      const locationData = await locationResponse.json();
+      const stations = (locationData.stations || [])
+        .filter(station => station?.id && Number.isFinite(Number(station.distance)) && Number(station.distance) <= TRANSIT_NEARBY_RADIUS_M)
+        .sort((a,b) => Number(a.distance) - Number(b.distance))
+        .slice(0, 2);
+      if (!stations.length) return;
+
+      const candidates = [];
+      const queryTime = encodeURIComponent(localStationboardDateTime());
+      for (const station of stations) {
+        const boardUrl = `https://transport.opendata.ch/v1/stationboard?id=${encodeURIComponent(station.id)}&limit=24&datetime=${queryTime}`;
+        const boardResponse = await fetch(boardUrl);
+        if (!boardResponse.ok) continue;
+        const boardData = await boardResponse.json();
+        for (const journey of (boardData.stationboard || [])) {
+          const mode = normaliseTransitMode(journey.category, journey.name);
+          if (!mode) continue;
+          const timestamp = Number(journey.stop?.departureTimestamp || journey.stop?.arrivalTimestamp || 0) * 1000;
+          if (!timestamp) continue;
+          const timeDifferenceMinutes = Math.abs(timestamp - now) / 60000;
+          if (timeDifferenceMinutes > 15) continue;
+          const stationDistance = Number(station.distance);
+          const distanceScore = Math.max(0, 1 - stationDistance / TRANSIT_NEARBY_RADIUS_M);
+          const timetableScore = Math.max(0, 1 - timeDifferenceMinutes / 15);
+          const classifierScore = (state.transportGuess?.metrics?.scores?.[mode] || 0) / 100;
+          const key = `${mode}|${journey.number || journey.name || journey.category}|${journey.to || ""}`;
+          const evidence = state.transitEvidence.filter(item => now - item.t <= 10 * 60000 && item.key === key);
+          const distinctStations = new Set(evidence.map(item => item.station)).size;
+          const continuityScore = Math.min(1, distinctStations / 2);
+          const confidence = Math.max(0, Math.min(1, distanceScore * .28 + timetableScore * .34 + classifierScore * .18 + continuityScore * .20));
+          candidates.push({
+            key, mode, confidence,
+            line: journey.number || journey.name || journey.category || "",
+            name: journey.name || "",
+            to: journey.to || "",
+            station: station.name || boardData.station?.name || "",
+            stationDistanceMetres: Math.round(stationDistance),
+            scheduledAt: new Date(timestamp).toISOString(),
+            matchedAt: now
+          });
+        }
+      }
+      candidates.sort((a,b) => b.confidence - a.confidence);
+      const best = candidates[0];
+      if (!best || best.confidence < .35) return;
+      state.transitEvidence.push({ t: now, key: best.key, station: best.station });
+      state.transitEvidence = state.transitEvidence.filter(item => now - item.t <= 10 * 60000).slice(-40);
+      const previousKey = state.transitCandidate?.key;
+      state.transitCandidate = best;
+      if (previousKey !== best.key) {
+        addDiagnostic({
+          event: "TRANSIT_MATCH", outcome: "CANDIDATE", mode: best.mode, line: best.line, to: best.to, station: best.station,
+          stationDistanceMetres: best.stationDistanceMetres, scheduledAt: best.scheduledAt, confidence: Math.round(best.confidence * 100)
+        });
+      }
+      classifyTransport(now);
+    } catch (error) {
+      addDiagnostic({ event: "TRANSIT_MATCH", outcome: "LOOKUP_ERROR", reason: String(error?.message || error) });
+    } finally {
+      state.transitLookupBusy = false;
+    }
   }
 
   function classifyTransport(now = Date.now()) {
@@ -2625,6 +2855,16 @@
       train: clamp01(trainSpeedScore * .62 + lowRoadScore * .28 + (avg >= 50 ? .10 : 0))
     };
 
+    // v13 adds a second evidence layer: a nearby scheduled service can boost the
+    // movement classifier, but cannot fully replace it. This keeps a timetable
+    // coincidence from becoming a confident vehicle identification on its own.
+    const transitCandidate = state.transitCandidate && now - state.transitCandidate.matchedAt <= TRANSIT_CANDIDATE_MAX_AGE_MS
+      ? state.transitCandidate
+      : null;
+    if (transitCandidate && scores[transitCandidate.mode] !== undefined) {
+      scores[transitCandidate.mode] = clamp01(scores[transitCandidate.mode] + transitCandidate.confidence * .55);
+    }
+
     // A few slow samples while a vehicle queues must not suddenly become walking.
     // Require a sustained recent pedestrian segment before allowing Walking to win.
     if (walkingSpanMs < WALKING_MIN_DURATION_MS || walkingMoving.length < 8 || walkingConsistency < .75) {
@@ -2657,7 +2897,10 @@
 
     const confidence = clamp01(.42 + winningScore * .48 + Math.max(0, margin) * .20);
     let reason;
-    if (mode === "walking") {
+    if (transitCandidate && transitCandidate.mode === mode && transitCandidate.confidence >= .45) {
+      const lineLabel = transitCandidate.line ? ` ${transitCandidate.line}` : "";
+      reason = `Movement plus timetable evidence near ${transitCandidate.station} favour ${mode}${lineLabel}${transitCandidate.to ? ` toward ${transitCandidate.to}` : ""}.`;
+    } else if (mode === "walking") {
       reason = `Sustained pedestrian pace around ${Math.round(walkingAvg)} km/h over ${Math.round(walkingSpanMs / 1000)} seconds favours walking.`;
     } else if (mode === "bus") {
       reason = `${stops.length} complete stops plus ${Math.round(confirmedRoadRatio * 100)}% confirmed-road evidence favour a bus.`;
@@ -2682,7 +2925,7 @@
         reason: "Signals are too close to call yet.",
         metrics: {
           maxKmh: Math.round(max), averageMovingKmh: Math.round(avg), recentStops: stops.length,
-          confirmedRoadPct: Math.round(confirmedRoadRatio * 100), scores: scorePct, confidenceExplanation
+          confirmedRoadPct: Math.round(confirmedRoadRatio * 100), scores: scorePct, confidenceExplanation, transitCandidate
         }
       };
       updateTransportUi();
@@ -2699,7 +2942,8 @@
         recentStops: stops.length,
         confirmedRoadPct: Math.round(confirmedRoadRatio * 100),
         scores: scorePct,
-        confidenceExplanation
+        confidenceExplanation,
+        transitCandidate
       }
     };
 
@@ -3616,6 +3860,7 @@
     }
 
     recordTransportSample(state.targetSpeed);
+    maybeMatchPublicTransport(c);
 
     if (state.roadServiceStatus === "unchecked") validateRoadService(c);
 
@@ -3988,6 +4233,8 @@
       state.transportMoving = false;
       state.transportStopStartedAt = null;
       state.transportGuess = { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
+      state.transitCandidate = null;
+      state.transitEvidence = [];
     }
     updateTransportUi();
     showToast(state.transportDetectiveEnabled ? "Transport detective on" : "Transport detective off");
@@ -4174,15 +4421,16 @@
     }
   });
 
-  $("downloadDiagnostics").addEventListener("click", () => {
-    const invalidEntries = state.diagnosticLog.filter(entry => !validateDiagnosticEntry(entry));
+  $("downloadDiagnostics").addEventListener("click", async () => {
+    const archived = await getArchivedDiagnostics();
+    const invalidEntries = archived.filter(entry => !validateDiagnosticEntry(entry));
     if (invalidEntries.length) {
       showToast(`Log contract failed: ${invalidEntries.length} invalid entr${invalidEntries.length === 1 ? "y" : "ies"}`);
       return;
     }
-    const compact = compactDiagnosticText();
+    const compact = compactDiagnosticText(archived, Number.POSITIVE_INFINITY);
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `super-simple-speedo-${stamp}.tsv`;
+    const filename = `super-simple-speedo-archive-${stamp}.tsv`;
     try {
       const blob = new Blob([compact], { type: "text/tab-separated-values;charset=utf-8" });
       const url = URL.createObjectURL(blob);
@@ -4194,21 +4442,36 @@
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1500);
-      showToast(`Log ready · ${formatBytes(byteLength(compact))}`);
+      showToast(`${archived.length.toLocaleString()} archived events ready · ${formatBytes(byteLength(compact))}`);
     } catch (_) {
-      showToast("Could not download diagnostic log");
+      showToast("Could not download diagnostic archive");
     }
   });
 
-  $("clearDiagnostics").addEventListener("click", () => {
+  $("clearDiagnostics").addEventListener("click", async () => {
     state.diagnosticLog = [];
     if (diagnosticPersistTimer) {
       clearTimeout(diagnosticPersistTimer);
       diagnosticPersistTimer = null;
     }
     localStorage.removeItem(DIAGNOSTIC_STORAGE_KEY);
+    await clearDiagnosticArchive();
     updateDiagnosticsDisplay();
-    showToast("Diagnostic log cleared");
+    updateDiagnosticArchiveStatus();
+    showToast("Diagnostic archive cleared");
+  });
+
+  document.querySelectorAll("[data-ground-truth]").forEach(button => {
+    button.addEventListener("click", () => {
+      const actualMode = button.dataset.groundTruth;
+      const predictedMode = state.transportGuess?.mode || "unknown";
+      const predictedConfidence = Math.round((state.transportGuess?.confidence || 0) * 100);
+      addDiagnostic({
+        event: "GROUND_TRUTH", outcome: "LABELLED", actualMode, predictedMode, predictedConfidence,
+        transitLine: state.transitCandidate?.line || "", transitDestination: state.transitCandidate?.to || ""
+      });
+      showToast(`Saved actual mode: ${actualMode}`);
+    });
   });
 
   async function disconnectDrive() {
