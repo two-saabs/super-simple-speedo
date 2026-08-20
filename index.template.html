@@ -2224,7 +2224,7 @@
     }
   }
 
-  async function beginDriveFromLaunch() {
+  function beginDriveFromLaunch() {
     const button = $("letsDriveButton");
     if (button?.disabled) return;
     if (button) {
@@ -2238,9 +2238,10 @@
     setLaunchSteps("complete", "active", "");
     state.wakeLockWanted = true;
 
-    // Keep this request directly inside the click handler: iOS accepts it as
-    // a genuine user-initiated action.
-    await requestWakeLock({ fromUserGesture: true });
+    // Never make GPS startup depend on the Screen Wake Lock promise. Safari/iOS
+    // can delay or reject that promise even though geolocation itself is ready.
+    // Request the lock from the user gesture, but start GPS immediately.
+    requestWakeLock({ fromUserGesture: true });
     if (button) button.classList.add("hidden");
     if (state.watchId === null) startGPS({ startup: true });
   }
@@ -4334,12 +4335,9 @@
     } else {
       state.driveStartedAt = null;
     }
-    state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
-    });
-
+    // Mark startup as pending BEFORE registering watchPosition. iOS can deliver
+    // a first fix synchronously/very quickly; that fix must be allowed to finish
+    // the launch sequence instead of arriving before startupGpsPending is true.
     if (startup) {
       startupGpsPending = true;
       startupGpsFinished = false;
@@ -4347,12 +4345,21 @@
         ? "Acquiring satellites…"
         : "Offline · searching for GPS…";
       progressTarget.style.width = "58%";
+      if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);
       startupGpsFallbackTimer = setTimeout(() => {
         finishStartupWithoutGps(navigator.onLine
           ? "GPS unavailable · trying again…"
           : "Offline · GPS unavailable");
       }, 11000);
-    } else {
+    }
+
+    state.watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    });
+
+    if (!startup) {
       statusTarget.textContent = navigator.onLine
         ? "Acquiring satellites…"
         : "Offline · searching for GPS…";
