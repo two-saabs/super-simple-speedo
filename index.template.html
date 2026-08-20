@@ -1972,6 +1972,16 @@
 (() => {
   const $ = id => document.getElementById(id);
 
+  // Diagnostics rendering must never be able to execute markup or break startup.
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
   // Last-resort field diagnostics: iOS standalone PWAs otherwise make early
   // JavaScript failures look like a frozen launch screen. Preserve a compact
   // error marker locally and surface it on the launch screen when possible.
@@ -2261,11 +2271,8 @@
     }, 12000);
   }
 
-
-
-
-
-
+  // Bind the critical launch control before optional diagnostics initialise.
+  $("letsDriveButton")?.addEventListener("click", beginDriveFromLaunch);
 
   function roundDiagnostic(value, decimals = 1) {
     return Number.isFinite(value) ? Number(value.toFixed(decimals)) : null;
@@ -2465,8 +2472,12 @@
     state.diagnosticLog.push(diagnosticEntry);
     state.diagnosticLog = state.diagnosticLog.slice(-DIAGNOSTIC_MAX_ENTRIES);
     scheduleDiagnosticPersist();
-    archiveDiagnosticEntry(diagnosticEntry).then(updateDiagnosticArchiveStatus);
-    updateDiagnosticsDisplay();
+    archiveDiagnosticEntry(diagnosticEntry).then(updateDiagnosticArchiveStatus).catch(() => {});
+    // Diagnostic presentation is non-critical. A rendering bug must never stop
+    // GPS, startup, or the main speedometer from working.
+    try { updateDiagnosticsDisplay(); } catch (error) {
+      try { localStorage.setItem("speedoLastDiagnosticsUiError", `${new Date().toISOString()} | ${String(error?.message || error)}`); } catch (_) {}
+    }
   }
 
   runDiagnosticContractSelfTest();
@@ -4797,7 +4808,6 @@
     showToast("Drive ended");
   }
 
-  $("letsDriveButton")?.addEventListener("click", beginDriveFromLaunch);
   startEl?.addEventListener("click", requestGpsConnection);
   $("disconnect")?.addEventListener("click", disconnectDrive);
   document.addEventListener("visibilitychange", async () => {
@@ -4873,7 +4883,7 @@
   applyTheme();
   applyExperimentalSettings();
   applyStatisticsSettings();
-  updateDiagnosticsDisplay();
+  try { updateDiagnosticsDisplay(); } catch (_) {}
   applyVisibility();
   applyAudioSettings();
   updateStatsDisplay();
