@@ -215,6 +215,15 @@
       font-weight: 900;
     }
 
+    .launch-disclaimer {
+      width: min(330px, 100%);
+      margin: 20px auto 0;
+      font-size: 11px;
+      line-height: 1.5;
+      font-weight: 600;
+      opacity: .38;
+    }
+
     .launch-action {
       width: min(310px, 100%);
       margin: 32px auto 0;
@@ -1291,6 +1300,72 @@
       opacity: .5;
     }
 
+    /* v13.1 Live Intelligence: truthful terminal-style instrumentation. */
+    .live-intelligence {
+      margin-top: 14px;
+      border: 1px solid rgba(127,127,127,.22);
+      border-radius: 14px;
+      overflow: hidden;
+      background: rgba(0,0,0,.24);
+    }
+    .live-intelligence-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(127,127,127,.15);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      opacity: .72;
+    }
+    .live-intelligence-status {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      letter-spacing: 0;
+      text-transform: none;
+      font-weight: 700;
+      opacity: .8;
+    }
+    .live-intelligence-feed {
+      height: 230px;
+      overflow: auto;
+      padding: 10px 12px 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 10.5px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-variant-numeric: tabular-nums;
+    }
+    .live-intelligence-line { opacity: .42; }
+    .live-intelligence-line:nth-last-child(-n+5) { opacity: .7; }
+    .live-intelligence-line:last-child { opacity: 1; font-weight: 700; }
+    .live-intelligence-line.match { opacity: 1; font-weight: 850; }
+    .hypothesis-race {
+      padding: 10px 12px 12px;
+      border-top: 1px solid rgba(127,127,127,.15);
+      display: grid;
+      gap: 6px;
+    }
+    .hypothesis-row {
+      display: grid;
+      grid-template-columns: 62px 1fr 34px;
+      gap: 8px;
+      align-items: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 10px;
+    }
+    .hypothesis-track {
+      height: 5px;
+      border-radius: 99px;
+      background: rgba(127,127,127,.16);
+      overflow: hidden;
+    }
+    .hypothesis-fill { height: 100%; background: currentColor; opacity: .72; }
+    .hypothesis-value { text-align: right; opacity: .62; }
+
     header,
     .drive-controls,
     .app-title {
@@ -1460,6 +1535,7 @@
       <div class="launch-step hidden" id="launchStepTransit">Connecting to public transport data…</div>
       <div class="launch-step" id="launchStepReady">Ready to go</div>
     </div>
+    <div class="launch-disclaimer">Driving safely and respecting speed limits is always the responsibility of the driver.</div>
     <button class="launch-action" id="letsDriveButton" type="button">Let’s go!</button>
     <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
     <div class="launch-progress" aria-hidden="true"><span id="launchProgress"></span></div>
@@ -1514,7 +1590,6 @@
       <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
     <div id="status"></div>
-    <div id="driverResponsibility">Driving safely and respecting speed limits<br>is always the responsibility of the driver.</div>
   </footer>
 </div>
 
@@ -1814,6 +1889,14 @@
       </div>
       <div class="diagnostics-panel" id="diagnosticsPanel">
         <div class="diagnostics-summary" id="diagnosticsSummary">No GPS samples recorded yet.</div>
+        <div class="live-intelligence" id="liveIntelligence">
+          <div class="live-intelligence-header">
+            <span>Live Intelligence</span>
+            <span class="live-intelligence-status" id="liveIntelligenceStatus">standby</span>
+          </div>
+          <div class="live-intelligence-feed" id="liveIntelligenceFeed" aria-live="polite">Waiting for diagnostic events…</div>
+          <div class="hypothesis-race" id="hypothesisRace"></div>
+        </div>
         <div class="diagnostics-actions">
           <button class="wide-button secondary" id="copyDiagnostics">Copy recent log</button>
           <button class="wide-button secondary" id="downloadDiagnostics">Export all .tsv</button>
@@ -2433,8 +2516,12 @@
         details = `outcome=${item.outcome || ""};gesture=${item.fromUserGesture ?? ""};display=${item.displayMode || ""}`;
       } else if (item.event === "DRIVER_UI_CHANGE") {
         details = `active=${item.driverUiActive ?? ""};reason=${item.reason || ""}`;
-      } else if (item.event === "TRANSIT_MATCH") {
+      } else if (item.event === "TRANSIT_MATCH" || item.event === "MATCH_ACQUIRED") {
         details = `mode=${item.mode || ""};line=${item.line || ""};to=${item.to || ""};station=${item.station || ""};distance=${item.stationDistanceMetres ?? ""};scheduled=${item.scheduledAt || ""};confidence=${item.confidence ?? ""}`;
+      } else if (item.event === "TRANSIT_SERVICE") {
+        details = `outcome=${item.outcome || ""};latencyMs=${item.latencyMs ?? ""};online=${item.online ?? ""}`;
+      } else if (item.event === "TRANSIT_QUERY") {
+        details = `outcome=${item.outcome || ""};count=${item.count ?? ""};nearest=${item.nearestMetres ?? ""};station=${item.station || ""};services=${item.services ?? ""};latencyMs=${item.latencyMs ?? ""};candidates=${item.candidateCount ?? ""};summary=${item.summary || ""}`;
       } else if (item.event === "GROUND_TRUTH") {
         details = `actual=${item.actualMode || ""};predicted=${item.predictedMode || ""};predictedConfidence=${item.predictedConfidence ?? ""}`;
       } else if (item.event) {
@@ -2466,6 +2553,79 @@
     return [...header, ...rows].join("\n");
   }
 
+  function liveIntelligenceLine(item) {
+    const time = (item.timeLocal || item.timeUtc || "").slice(11, 19);
+    const ms = item.timeUtc ? String(new Date(item.timeUtc).getMilliseconds()).padStart(3, "0") : "000";
+    const stamp = `${time}.${ms}`;
+    if (!item.event) {
+      const acc = item.accuracyMetres ?? "—";
+      const speed = item.displayedKmh ?? "—";
+      return `${stamp}  GPS     ${speed} km/h · ±${acc}m · ${item.speedDecision || item.decision || "sample"}`;
+    }
+    if (item.event === "TRANSIT_SERVICE") {
+      if (item.outcome === "CONNECTED") return `${stamp}  SWISS   database online · ${item.latencyMs ?? "—"} ms  >>> WE'RE IN`;
+      return `${stamp}  SWISS   connection failed · ${item.reason || "unknown error"}`;
+    }
+    if (item.event === "TRANSIT_QUERY") {
+      if (item.outcome === "BEGIN") return `${stamp}  TRANSIT querying nearby stops…`;
+      if (item.outcome === "STOPS") return `${stamp}  TRANSIT ${item.count ?? 0} stops in range · nearest ${item.nearestMetres ?? "—"}m`;
+      if (item.outcome === "BOARD") return `${stamp}  GTFS    ${item.station || "station"} · ${item.services ?? 0} scheduled services · ${item.latencyMs ?? "—"}ms`;
+      if (item.outcome === "RACE") return `${stamp}  CAND    ${item.summary || "no plausible candidates"}`;
+    }
+    if (item.event === "TRANSIT_MATCH") {
+      if (item.outcome === "CANDIDATE") return `${stamp}  MATCH   ${item.mode || "?"} ${item.line || ""}${item.to ? ` → ${item.to}` : ""} · ${item.confidence ?? "—"}%`;
+      return `${stamp}  MATCH   ${item.outcome || "—"} · ${item.reason || ""}`;
+    }
+    if (item.event === "MATCH_ACQUIRED") {
+      return `${stamp}  >>> MATCH ACQUIRED · ${item.line || item.mode || "service"} · ${item.confidence ?? "—"}%`;
+    }
+    if (item.event === "TRANSPORT_GUESS") {
+      return `${stamp}  CLASS   ${(item.outcome || "thinking").toLowerCase()} · ${item.confidence ?? "—"}%`;
+    }
+    if (item.event === "GROUND_TRUTH") {
+      return `${stamp}  TRUTH   actual ${item.actualMode || "—"} · predicted ${item.predictedMode || "—"}`;
+    }
+    if (item.event === "ROAD_LOOKUP") {
+      return `${stamp}  ROAD    ${item.roadDecision?.displayedRoad || item.response?.roadNameSanitised || "lookup"}`;
+    }
+    if (item.event === "DIAGNOSTIC_SESSION") return `${stamp}  ──── JOURNEY / DIAGNOSTIC SESSION ${item.outcome || ""} ────`;
+    return `${stamp}  ${item.event.padEnd(7).slice(0,7)} ${item.outcome || item.reason || ""}`;
+  }
+
+  function updateLiveIntelligence() {
+    const feed = $("liveIntelligenceFeed");
+    const race = $("hypothesisRace");
+    const status = $("liveIntelligenceStatus");
+    if (!feed || !race || !status) return;
+    const active = state.experimentalMode && state.transportDetectiveEnabled;
+    status.textContent = !active ? "transport detective off" :
+      state.transitServiceStatus === "connected" ? "Swiss PT online" :
+      state.transitServiceStatus === "checking" ? "connecting…" :
+      state.transitServiceStatus === "error" ? "Swiss PT unavailable" : "awaiting GPS";
+
+    const entries = state.diagnosticLog.slice(-28);
+    if (!entries.length) {
+      feed.textContent = "Waiting for diagnostic events…";
+    } else {
+      feed.innerHTML = entries.map(item => {
+        const text = liveIntelligenceLine(item);
+        const match = item.event === "MATCH_ACQUIRED" || (item.event === "TRANSIT_SERVICE" && item.outcome === "CONNECTED");
+        return `<div class="live-intelligence-line${match ? " match" : ""}">${escapeHtml(text)}</div>`;
+      }).join("");
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    const scores = state.transportGuess?.metrics?.scores || {};
+    const rows = [
+      ["🚶 Walk", scores.walking], ["🚌 Bus", scores.bus], ["🚗 Car", scores.car],
+      ["🚋 Tram", scores.tram], ["🚆 Train", scores.train]
+    ];
+    race.innerHTML = rows.map(([label, value]) => {
+      const v = Number.isFinite(Number(value)) ? Math.max(0, Math.min(100, Number(value))) : 0;
+      return `<div class="hypothesis-row"><span>${label}</span><span class="hypothesis-track"><span class="hypothesis-fill" style="display:block;width:${v}%"></span></span><span class="hypothesis-value">${Math.round(v)}%</span></div>`;
+    }).join("");
+  }
+
   function updateDiagnosticsDisplay() {
     const panel = $("diagnosticsPanel");
     const output = $("diagnosticsSummary");
@@ -2473,6 +2633,7 @@
     $("diagnosticsSwitch").classList.toggle("on", state.diagnosticsEnabled);
     $("diagnosticsSwitch").setAttribute("aria-pressed", String(state.diagnosticsEnabled));
     panel.classList.toggle("show", state.diagnosticsEnabled);
+    updateLiveIntelligence();
     if (!state.diagnosticLog.length) {
       output.textContent = "No GPS samples recorded yet.";
       return;
@@ -2731,6 +2892,8 @@
       step.textContent = "Connecting to public transport data…";
     }
     state.transitServiceStatus = "checking";
+    updateLiveIntelligence();
+    const transitServiceStartedAt = performance.now();
     try {
       const url = `https://transport.opendata.ch/v1/locations?x=${encodeURIComponent(coords.latitude)}&y=${encodeURIComponent(coords.longitude)}`;
       const response = await fetch(url);
@@ -2742,7 +2905,7 @@
         step.classList.add("complete");
         step.textContent = "Public transport data connected";
       }
-      addDiagnostic({ event: "TRANSIT_SERVICE", outcome: "CONNECTED" });
+      addDiagnostic({ event: "TRANSIT_SERVICE", outcome: "CONNECTED", latencyMs: Math.round(performance.now() - transitServiceStartedAt) });
       return true;
     } catch (error) {
       state.transitServiceStatus = "error";
@@ -2764,6 +2927,7 @@
     if (now - state.lastTransitLookupAt < TRANSIT_LOOKUP_INTERVAL_MS) return;
     state.lastTransitLookupAt = now;
     state.transitLookupBusy = true;
+    addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BEGIN" });
     try {
       const locationUrl = `https://transport.opendata.ch/v1/locations?x=${encodeURIComponent(coords.latitude)}&y=${encodeURIComponent(coords.longitude)}`;
       const locationResponse = await fetch(locationUrl);
@@ -2773,15 +2937,18 @@
         .filter(station => station?.id && Number.isFinite(Number(station.distance)) && Number(station.distance) <= TRANSIT_NEARBY_RADIUS_M)
         .sort((a,b) => Number(a.distance) - Number(b.distance))
         .slice(0, 2);
+      addDiagnostic({ event: "TRANSIT_QUERY", outcome: "STOPS", count: stations.length, nearestMetres: stations[0] ? Math.round(Number(stations[0].distance)) : null });
       if (!stations.length) return;
 
       const candidates = [];
       const queryTime = encodeURIComponent(localStationboardDateTime());
       for (const station of stations) {
         const boardUrl = `https://transport.opendata.ch/v1/stationboard?id=${encodeURIComponent(station.id)}&limit=24&datetime=${queryTime}`;
+        const boardStartedAt = performance.now();
         const boardResponse = await fetch(boardUrl);
         if (!boardResponse.ok) continue;
         const boardData = await boardResponse.json();
+        addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BOARD", station: station.name || boardData.station?.name || "", services: (boardData.stationboard || []).length, latencyMs: Math.round(performance.now() - boardStartedAt) });
         for (const journey of (boardData.stationboard || [])) {
           const mode = normaliseTransitMode(journey.category, journey.name);
           if (!mode) continue;
@@ -2811,6 +2978,8 @@
         }
       }
       candidates.sort((a,b) => b.confidence - a.confidence);
+      const raceSummary = candidates.slice(0, 3).map(candidate => `${candidate.mode} ${candidate.line || candidate.name || "?"} ${Math.round(candidate.confidence * 100)}%`).join(" · ");
+      addDiagnostic({ event: "TRANSIT_QUERY", outcome: "RACE", summary: raceSummary || "no plausible candidates", candidateCount: candidates.length });
       const best = candidates[0];
       if (!best || best.confidence < .35) return;
       state.transitEvidence.push({ t: now, key: best.key, station: best.station });
@@ -2822,6 +2991,9 @@
           event: "TRANSIT_MATCH", outcome: "CANDIDATE", mode: best.mode, line: best.line, to: best.to, station: best.station,
           stationDistanceMetres: best.stationDistanceMetres, scheduledAt: best.scheduledAt, confidence: Math.round(best.confidence * 100)
         });
+        if (best.confidence >= .60) {
+          addDiagnostic({ event: "MATCH_ACQUIRED", outcome: "ACQUIRED", mode: best.mode, line: best.line, to: best.to, station: best.station, confidence: Math.round(best.confidence * 100) });
+        }
       }
       classifyTransport(now);
     } catch (error) {
