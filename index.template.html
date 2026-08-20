@@ -1457,9 +1457,10 @@
     <div class="launch-checklist hidden" id="launchChecklist" aria-live="polite">
       <div class="launch-step active" id="launchStepStart">Starting application…</div>
       <div class="launch-step" id="launchStepLocation">Finding your location…</div>
-      <div class="launch-step" id="launchStepReady">Ready to drive</div>
+      <div class="launch-step hidden" id="launchStepTransit">Connecting to public transport data…</div>
+      <div class="launch-step" id="launchStepReady">Ready to go</div>
     </div>
-    <button class="launch-action" id="letsDriveButton" type="button">Let’s drive</button>
+    <button class="launch-action" id="letsDriveButton" type="button">Let’s go!</button>
     <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
     <div class="launch-progress" aria-hidden="true"><span id="launchProgress"></span></div>
   </div>
@@ -1815,7 +1816,7 @@
         <div class="diagnostics-summary" id="diagnosticsSummary">No GPS samples recorded yet.</div>
         <div class="diagnostics-actions">
           <button class="wide-button secondary" id="copyDiagnostics">Copy recent log</button>
-          <button class="wide-button secondary" id="downloadDiagnostics">Download all .tsv</button>
+          <button class="wide-button secondary" id="downloadDiagnostics">Export all .tsv</button>
           <button class="wide-button secondary" id="clearDiagnostics">Clear log</button>
         </div>
         <div class="setting-note" style="margin-top:14px">Actual mode (optional ground truth)</div>
@@ -1969,6 +1970,7 @@
     transportStopStartedAt: null,
     transportGuess: { mode: "unknown", confidence: 0, reason: "Not enough movement yet." },
     transitLookupBusy: false,
+    transitServiceStatus: "unchecked",
     lastTransitLookupAt: 0,
     transitCandidate: null,
     transitEvidence: [],
@@ -2086,7 +2088,7 @@
     return cleaned;
   }
 
-  function setLaunchSteps(startState, locationState, readyState, readyText = "Ready to drive") {
+  function setLaunchSteps(startState, locationState, readyState, readyText = "Ready to go") {
     const states = [
       [$("launchStepStart"), startState],
       [$("launchStepLocation"), locationState],
@@ -2107,12 +2109,14 @@
     startupCompletionScheduled = false;
     const checklist = $("launchChecklist");
     if (checklist) checklist.classList.add("hidden");
+    const transitStep = $("launchStepTransit");
+    if (transitStep) transitStep.classList.toggle("hidden", !(state.experimentalMode && state.transportDetectiveEnabled));
     setLaunchSteps("active", "", "");
     const button = $("letsDriveButton");
     if (button) {
       button.disabled = false;
       button.classList.remove("hidden");
-      button.textContent = "Let’s drive";
+      button.textContent = "Let’s go!";
     }
   }
 
@@ -2715,6 +2719,41 @@
   function localStationboardDateTime(date = new Date(Date.now() - 10 * 60000)) {
     const pad = value => String(value).padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
+  async function checkPublicTransportService(coords) {
+    if (!state.experimentalMode || !state.transportDetectiveEnabled) return false;
+    if (!coords || !Number.isFinite(coords.latitude) || !Number.isFinite(coords.longitude)) return false;
+    const step = $("launchStepTransit");
+    if (step) {
+      step.classList.remove("hidden", "complete", "error");
+      step.classList.add("active");
+      step.textContent = "Connecting to public transport data…";
+    }
+    state.transitServiceStatus = "checking";
+    try {
+      const url = `https://transport.opendata.ch/v1/locations?x=${encodeURIComponent(coords.latitude)}&y=${encodeURIComponent(coords.longitude)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`locations ${response.status}`);
+      await response.json();
+      state.transitServiceStatus = "connected";
+      if (step) {
+        step.classList.remove("active", "error");
+        step.classList.add("complete");
+        step.textContent = "Public transport data connected";
+      }
+      addDiagnostic({ event: "TRANSIT_SERVICE", outcome: "CONNECTED" });
+      return true;
+    } catch (error) {
+      state.transitServiceStatus = "error";
+      if (step) {
+        step.classList.remove("active", "complete");
+        step.classList.add("error");
+        step.textContent = "Public transport data unavailable";
+      }
+      addDiagnostic({ event: "TRANSIT_SERVICE", outcome: "LOOKUP_ERROR", reason: String(error?.message || error), online: navigator.onLine });
+      return false;
+    }
   }
 
   async function maybeMatchPublicTransport(coords) {
@@ -3641,9 +3680,13 @@
   }
 
   function onPosition(position) {
-    if (startupGpsPending) completeGpsConnection({ startup: true });
-    else if ($("gpsConnectOverlay").classList.contains("open")) completeGpsConnection({ startup: false });
     const c = position.coords;
+    if (startupGpsPending) {
+      if (state.experimentalMode && state.transportDetectiveEnabled && state.transitServiceStatus === "unchecked") {
+        checkPublicTransportService(c);
+      }
+      completeGpsConnection({ startup: true });
+    } else if ($("gpsConnectOverlay").classList.contains("open")) completeGpsConnection({ startup: false });
     const sampleTime = position.timestamp;
     const previousGps = state.lastGpsSample;
     let rawKmh = (typeof c.speed === "number" && c.speed >= 0) ? c.speed * 3.6 : null;
@@ -3913,7 +3956,7 @@
           "complete",
           "complete",
           "complete",
-          state.roadServiceStatus === "error" ? "GPS ready · road lookup unavailable" : "Ready to drive"
+          state.roadServiceStatus === "error" ? "GPS ready · road lookup unavailable" : "Ready to go"
         );
       }, 300);
       setTimeout(() => $("launchScreen").classList.add("hide"), 850);
@@ -4048,6 +4091,9 @@
     if (!startup) $("gpsConnectOverlay").classList.remove("open");
     if (startup) {
       $("launchStepLocation").textContent = "Finding your location…";
+      state.transitServiceStatus = "unchecked";
+      const transitStep = $("launchStepTransit");
+      if (transitStep) transitStep.classList.toggle("hidden", !(state.experimentalMode && state.transportDetectiveEnabled));
       setLaunchSteps("complete", "active", "");
     } else {
       statusTarget.textContent = "Acquiring satellites…";
@@ -4422,29 +4468,52 @@
   });
 
   $("downloadDiagnostics").addEventListener("click", async () => {
-    const archived = await getArchivedDiagnostics();
-    const invalidEntries = archived.filter(entry => !validateDiagnosticEntry(entry));
-    if (invalidEntries.length) {
-      showToast(`Log contract failed: ${invalidEntries.length} invalid entr${invalidEntries.length === 1 ? "y" : "ies"}`);
-      return;
-    }
-    const compact = compactDiagnosticText(archived, Number.POSITIVE_INFINITY);
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `super-simple-speedo-archive-${stamp}.tsv`;
+    const button = $("downloadDiagnostics");
+    if (button) button.disabled = true;
     try {
+      await persistDiagnosticsNow();
+      const archived = await getArchivedDiagnostics();
+      const invalidEntries = archived.filter(entry => !validateDiagnosticEntry(entry));
+      if (invalidEntries.length) {
+        showToast(`Log contract failed: ${invalidEntries.length} invalid entr${invalidEntries.length === 1 ? "y" : "ies"}`);
+        return;
+      }
+      const compact = compactDiagnosticText(archived, Number.POSITIVE_INFINITY);
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `super-simple-speedo-archive-${stamp}.tsv`;
+      const file = new File([compact], filename, { type: "text/tab-separated-values;charset=utf-8" });
+
+      // iOS standalone PWAs can become unstable when an <a download> navigation is
+      // triggered. Prefer the native share/save sheet there; it can save the TSV
+      // directly to Files without navigating the PWA away from Speedo.
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+        try {
+          await navigator.share({ files: [file], title: "Super Simple Speedo diagnostics" });
+          showToast(`${archived.length.toLocaleString()} archived events exported · ${formatBytes(byteLength(compact))}`);
+          return;
+        } catch (shareError) {
+          if (shareError?.name === "AbortError") return;
+          addDiagnostic({ event: "DIAGNOSTIC_EXPORT", outcome: "SHARE_FAILED", reason: String(shareError?.message || shareError) });
+        }
+      }
+
       const blob = new Blob([compact], { type: "text/tab-separated-values;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
       link.download = filename;
+      link.rel = "noopener";
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1500);
-      showToast(`${archived.length.toLocaleString()} archived events ready · ${formatBytes(byteLength(compact))}`);
-    } catch (_) {
-      showToast("Could not download diagnostic archive");
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      showToast(`${archived.length.toLocaleString()} archived events exported · ${formatBytes(byteLength(compact))}`);
+    } catch (error) {
+      addDiagnostic({ event: "DIAGNOSTIC_EXPORT", outcome: "FAILED", reason: String(error?.message || error) });
+      showToast("Could not export diagnostic archive");
+    } finally {
+      if (button) button.disabled = false;
     }
   });
 
