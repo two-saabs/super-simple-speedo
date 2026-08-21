@@ -2037,6 +2037,10 @@
   const TRANSIT_LOOKUP_INTERVAL_MS = 45000;
   const TRANSIT_CANDIDATE_MAX_AGE_MS = 120000;
   const TRANSIT_NEARBY_RADIUS_M = 900;
+  const TRANSIT_STATIONBOARD_LIMIT = 60;
+  const TRANSIT_SPEED_RECOVERY_WINDOW_MS = 30000;
+  const TRANSIT_SPEED_RECOVERY_MIN_BASELINE_MS = 8000;
+  const TRANSIT_SPEED_RECOVERY_MAX_ACCURACY_M = 250;
   let diagnosticPersistTimer = null;
   let diagnosticArchiveDbPromise = null;
 
@@ -2094,6 +2098,7 @@
     lastTransitLookupAt: 0,
     transitCandidate: null,
     transitEvidence: [],
+    transitSpeedRecoverySamples: [],
     visualTheme: localStorage.getItem("visualTheme") || "classic",
     speedDisplayStyle: localStorage.getItem("speedDisplayStyle") || "dial",
     viewMode: localStorage.getItem("speedoViewMode") || "all",
@@ -2625,6 +2630,7 @@
       if (item.outcome === "BEGIN") return `${stamp}  TRANSIT querying nearby stops…`;
       if (item.outcome === "STOPS") return `${stamp}  TRANSIT ${item.count ?? 0} stops in range · nearest ${item.nearestMetres ?? "—"}m`;
       if (item.outcome === "BOARD") return `${stamp}  GTFS    ${item.station || "station"} · ${item.services ?? 0} scheduled services · ${item.latencyMs ?? "—"}ms`;
+      if (item.outcome === "BOARD_SERVICES") return `${stamp}  LINES   ${item.station || "station"} · ${item.summary || "none"}`;
       if (item.outcome === "RACE") return `${stamp}  CAND    ${item.summary || "no plausible candidates"}`;
     }
     if (item.event === "TRANSIT_MATCH") {
@@ -2933,13 +2939,25 @@
   function normaliseTransitMode(category = "", name = "") {
     const cat = String(category || "").trim().toUpperCase();
     const label = String(name || "").trim().toUpperCase();
-    if (cat.includes("TRAM") || label.startsWith("TRAM ")) return "tram";
-    if (cat.includes("BUS") || label.startsWith("BUS ") || cat === "B") return "bus";
-    if (["S", "SN", "R", "RE", "IR", "IC", "ICE", "EC", "TGV", "RJ", "RJX", "NJ", "EN"].includes(cat) || /^S\d+/i.test(label)) return "train";
+    // transport.opendata.ch commonly uses short Swiss timetable categories.
+    // B = bus, T = tram, S = S-Bahn. Keep the long-form checks as well.
+    if (cat === "T" || cat === "TRAM" || cat.includes("TRAM") || label.startsWith("TRAM ")) return "tram";
+    if (cat === "B" || cat === "BUS" || cat.includes("BUS") || label.startsWith("BUS ")) return "bus";
+    if (["S", "SN", "R", "RE", "IR", "IC", "ICE", "EC", "TGV", "RJ", "RJX", "NJ", "EN"].includes(cat) || /^S\s?\d+/i.test(label)) return "train";
     return null;
   }
 
-  function localStationboardDateTime(date = new Date(Date.now() - 10 * 60000)) {
+  function transitLineLabel(journey, mode) {
+    const category = String(journey?.category || "").trim().toUpperCase();
+    const number = String(journey?.number || "").trim();
+    const name = String(journey?.name || "").trim();
+    if (mode === "train" && number && ["S", "SN"].includes(category)) {
+      return number.toUpperCase().startsWith(category) ? number : `${category}${number}`;
+    }
+    return number || name || category || "";
+  }
+
+  function localStationboardDateTime(date = new Date(Date.now() - 5 * 60000)) {
     const pad = value => String(value).padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
@@ -3005,31 +3023,40 @@
       const candidates = [];
       const queryTime = encodeURIComponent(localStationboardDateTime());
       for (const station of stations) {
-        const boardUrl = `https://transport.opendata.ch/v1/stationboard?id=${encodeURIComponent(station.id)}&limit=24&datetime=${queryTime}`;
+        const boardUrl = `https://transport.opendata.ch/v1/stationboard?id=${encodeURIComponent(station.id)}&limit=${TRANSIT_STATIONBOARD_LIMIT}&datetime=${queryTime}`;
         const boardStartedAt = performance.now();
         const boardResponse = await fetch(boardUrl);
         if (!boardResponse.ok) continue;
         const boardData = await boardResponse.json();
-        addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BOARD", station: station.name || boardData.station?.name || "", services: (boardData.stationboard || []).length, latencyMs: Math.round(performance.now() - boardStartedAt) });
-        for (const journey of (boardData.stationboard || [])) {
+        const boardJourneys = boardData.stationboard || [];
+        addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BOARD", station: station.name || boardData.station?.name || "", services: boardJourneys.length, latencyMs: Math.round(performance.now() - boardStartedAt) });
+        const boardServiceSummary = [...new Set(boardJourneys.map(journey => {
+          const rawCategory = String(journey?.category || "?").trim() || "?";
+          const mode = normaliseTransitMode(journey?.category, journey?.name);
+          const line = transitLineLabel(journey, mode);
+          return `${rawCategory}:${line || journey?.name || "?"}`;
+        }))].slice(0, 16).join(" · ");
+        addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BOARD_SERVICES", station: station.name || boardData.station?.name || "", summary: boardServiceSummary });
+        for (const journey of boardJourneys) {
           const mode = normaliseTransitMode(journey.category, journey.name);
           if (!mode) continue;
           const timestamp = Number(journey.stop?.departureTimestamp || journey.stop?.arrivalTimestamp || 0) * 1000;
           if (!timestamp) continue;
           const timeDifferenceMinutes = Math.abs(timestamp - now) / 60000;
-          if (timeDifferenceMinutes > 15) continue;
+          if (timeDifferenceMinutes > 10) continue;
           const stationDistance = Number(station.distance);
           const distanceScore = Math.max(0, 1 - stationDistance / TRANSIT_NEARBY_RADIUS_M);
-          const timetableScore = Math.max(0, 1 - timeDifferenceMinutes / 15);
+          const timetableScore = Math.max(0, 1 - timeDifferenceMinutes / 10);
           const classifierScore = (state.transportGuess?.metrics?.scores?.[mode] || 0) / 100;
-          const key = `${mode}|${journey.number || journey.name || journey.category}|${journey.to || ""}`;
+          const lineLabel = transitLineLabel(journey, mode);
+          const key = `${mode}|${lineLabel}|${journey.to || ""}`;
           const evidence = state.transitEvidence.filter(item => now - item.t <= 10 * 60000 && item.key === key);
           const distinctStations = new Set(evidence.map(item => item.station)).size;
           const continuityScore = Math.min(1, distinctStations / 2);
           const confidence = Math.max(0, Math.min(1, distanceScore * .28 + timetableScore * .34 + classifierScore * .18 + continuityScore * .20));
           candidates.push({
             key, mode, confidence,
-            line: journey.number || journey.name || journey.category || "",
+            line: lineLabel,
             name: journey.name || "",
             to: journey.to || "",
             station: station.name || boardData.station?.name || "",
@@ -3913,6 +3940,64 @@
     }
   }
 
+  function hasStrongRailTransitContext(now = Date.now()) {
+    const candidate = state.transitCandidate;
+    const candidateFresh = candidate && now - candidate.matchedAt <= TRANSIT_CANDIDATE_MAX_AGE_MS;
+    if (candidateFresh && (candidate.mode === "train" || candidate.mode === "tram") && candidate.confidence >= .55) {
+      return candidate.mode;
+    }
+    const guess = state.transportGuess;
+    if (guess && (guess.mode === "train" || guess.mode === "tram") && guess.confidence >= .75) return guess.mode;
+    return null;
+  }
+
+  function median(values) {
+    const sorted = values.filter(Number.isFinite).slice().sort((a,b) => a-b);
+    if (!sorted.length) return null;
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  }
+
+  function deriveTransitLongBaselineSpeed(coords, sampleTime) {
+    const now = Date.now();
+    const railMode = hasStrongRailTransitContext(now);
+    const accuracy = Number(coords?.accuracy);
+    const usable = Number.isFinite(coords?.latitude) && Number.isFinite(coords?.longitude) &&
+      Number.isFinite(accuracy) && accuracy <= TRANSIT_SPEED_RECOVERY_MAX_ACCURACY_M;
+
+    state.transitSpeedRecoverySamples = state.transitSpeedRecoverySamples
+      .filter(sample => sampleTime - sample.timestamp <= TRANSIT_SPEED_RECOVERY_WINDOW_MS);
+
+    if (usable) {
+      state.transitSpeedRecoverySamples.push({
+        latitude: coords.latitude, longitude: coords.longitude, accuracy, timestamp: sampleTime
+      });
+      state.transitSpeedRecoverySamples = state.transitSpeedRecoverySamples.slice(-40);
+    }
+
+    if (!railMode || !usable || state.transitSpeedRecoverySamples.length < 3) return null;
+
+    const current = state.transitSpeedRecoverySamples.at(-1);
+    const estimates = [];
+    for (const older of state.transitSpeedRecoverySamples.slice(0, -1)) {
+      const dtMs = current.timestamp - older.timestamp;
+      if (dtMs < TRANSIT_SPEED_RECOVERY_MIN_BASELINE_MS || dtMs > TRANSIT_SPEED_RECOVERY_WINDOW_MS) continue;
+      const metres = distanceMetres(older, current);
+      const uncertainty = Math.max(older.accuracy, current.accuracy);
+      if (metres < Math.max(60, uncertainty * .55)) continue;
+      const kmh = metres / (dtMs / 1000) * 3.6;
+      if (kmh >= 5 && kmh <= 180) estimates.push(kmh);
+    }
+    if (estimates.length < 2) return null;
+
+    const recovered = median(estimates);
+    const deviations = estimates.map(value => Math.abs(value - recovered));
+    const medianDeviation = median(deviations) ?? 0;
+    if (!Number.isFinite(recovered) || medianDeviation > Math.max(18, recovered * .45)) return null;
+
+    return { kmh: recovered, mode: railMode, estimates: estimates.length, medianDeviation };
+  }
+
   function onPosition(position) {
     const c = position.coords;
     if (startupGpsPending) {
@@ -3942,8 +4027,16 @@
     // Browser velocity is preferred. Coordinate-derived velocity is only a fallback.
     // Indoor GPS can jump tens of metres while the phone is stationary, so derived
     // speed must pass stricter confidence and continuity checks.
+    const transitRecovery = rawKmh === null ? deriveTransitLongBaselineSpeed(c, sampleTime) : null;
     let candidateKmh = rawKmh;
-    if (candidateKmh === null && derivedKmh !== null) candidateKmh = derivedKmh;
+    let candidateSource = rawKmh !== null ? "NATIVE_GPS" : "NONE";
+    if (candidateKmh === null && transitRecovery?.kmh !== undefined) {
+      candidateKmh = transitRecovery.kmh;
+      candidateSource = "TRANSIT_LONG_BASELINE";
+    } else if (candidateKmh === null && derivedKmh !== null) {
+      candidateKmh = derivedKmh;
+      candidateSource = "POSITION_DERIVED";
+    }
     if (candidateKmh !== null && candidateKmh < 1.8) candidateKmh = 0;
 
     let decision = baselineReset ? "RESET_BASELINE" : "NO_SPEED";
@@ -3965,7 +4058,7 @@
         : Math.max(.1, (sampleTime - state.lastSpeedTimestamp) / 1000);
       const poorAccuracy = Number.isFinite(c.accuracy) && c.accuracy > 80;
       const implausibleAbsoluteSpeed = candidateKmh > 260;
-      const derivedOnly = rawKmh === null && derivedKmh !== null;
+      const derivedOnly = candidateSource === "POSITION_DERIVED";
       const previousAccuracy = Number.isFinite(previousGps?.accuracy) ? previousGps.accuracy : c.accuracy;
       const combinedAccuracy = Math.max(
         Number.isFinite(c.accuracy) ? c.accuracy : 0,
@@ -3975,7 +4068,7 @@
         ? movedMetres / combinedAccuracy
         : null;
 
-      const strongMovementContradiction = !poorAccuracy && Number.isFinite(c.accuracy) && c.accuracy <= 50 &&
+      const strongMovementContradiction = candidateSource !== "TRANSIT_LONG_BASELINE" && !poorAccuracy && Number.isFinite(c.accuracy) && c.accuracy <= 50 &&
         derivedKmh !== null && candidateKmh > 35 && derivedKmh < Math.max(8, candidateKmh * .25);
       const implausibleJump = acceptedElapsed !== null &&
         Math.abs(candidateKmh - previousSpeed) > Math.max(45, acceptedElapsed * 55);
@@ -3996,6 +4089,7 @@
       if (uncertainDerivedMovement) reasons.push("GPS_DISPLACEMENT_UNCERTAIN");
       if (unconfirmedStartFromStationary) reasons.push("START_FROM_STATIONARY_UNCONFIRMED");
       if (suddenDerivedStop) reasons.push("STOP_UNCONFIRMED");
+      if (candidateSource === "TRANSIT_LONG_BASELINE") reasons.push("TRANSIT_LONG_BASELINE_RECOVERY");
 
       const needsConfirmation = !implausibleAbsoluteSpeed && (
         implausibleJump ||
@@ -4102,7 +4196,7 @@
       movementScore: previousGps && movedMetres !== null
         ? roundDiagnostic(movedMetres / Math.max(1, c.accuracy, previousGps.accuracy || 0), 2)
         : null,
-      speedSource: rawKmh !== null ? "NATIVE_GPS" : derivedKmh !== null ? "POSITION_DERIVED" : "NONE",
+      speedSource: candidateSource,
       displayDecision: displayDecision,
       displayReasons: displayReasons,
       selectedSpeedKmh: roundDiagnostic(state.targetSpeed),
@@ -4110,7 +4204,9 @@
       speedDecision: decision,
       decision,
       reasons,
-      driverUiActive: state.driverModeActive
+      driverUiActive: state.driverModeActive,
+      transitRecoveryMode: transitRecovery?.mode || "",
+      transitRecoveryEstimates: transitRecovery?.estimates ?? null
     });
 
     // Keep speed validation independent from road-matching sampling.
@@ -4118,6 +4214,7 @@
       latitude: c.latitude,
       longitude: c.longitude,
       timestamp: sampleTime,
+      accuracy: c.accuracy,
       rawKmh
     };
 
@@ -4518,6 +4615,7 @@
       state.transportGuess = { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
       state.transitCandidate = null;
       state.transitEvidence = [];
+      state.transitSpeedRecoverySamples = [];
     }
     updateTransportUi();
     showToast(state.transportDetectiveEnabled ? "Transport detective on" : "Transport detective off");
@@ -4801,6 +4899,7 @@
     state.pendingHighSpeed = null;
     state.pendingSpeedCandidate = null;
     state.lastGpsSample = null;
+    state.transitSpeedRecoverySamples = [];
     state.lookupBusy = false;
     state.lastLookupAt = 0;
     state.lastLookupPosition = null;
