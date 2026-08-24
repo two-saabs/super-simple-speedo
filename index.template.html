@@ -2664,9 +2664,12 @@
       state.transitServiceStatus === "checking" ? "connecting…" :
       state.transitServiceStatus === "error" ? "Swiss PT unavailable" : "awaiting GPS";
 
-    const entries = state.diagnosticLog.slice(-28);
+    // The Live Intelligence panel is for transport reasoning, not the raw GPS
+    // sample stream. Keep SPEED/GPS samples in the downloadable diagnostics TSV,
+    // but hide them here so route/classifier events remain readable while moving.
+    const entries = state.diagnosticLog.filter(item => Boolean(item.event)).slice(-28);
     if (!entries.length) {
-      feed.textContent = "Waiting for diagnostic events…";
+      feed.textContent = "Waiting for transport events…";
     } else {
       feed.innerHTML = entries.map(item => {
         const text = liveIntelligenceLine(item);

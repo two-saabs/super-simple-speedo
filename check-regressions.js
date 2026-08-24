@@ -72,6 +72,7 @@ const contracts = [
   ['transport badge remains bottom positioned', /#transportBadge\s*\{[^}]*bottom:/s],
   ['compact copied log is capped at 300 lines', /COMPACT_LOG_MAX_LINES\s*=\s*300/],
   ['transport confidence metrics are visible in experimental mode', /id=["']transportMetrics["']/],
+  ['live intelligence hides raw GPS samples', /diagnosticLog\.filter\(item => Boolean\(item\.event\)\)\.slice\(-28\)/],
   ['transport confidence exposes real classifier inputs', /confirmedRoadPct/],
   ['transport detective can classify buses', /bus:\s*["']🚌 Bus-like["']/],
   ['transport detective can classify walking', /walking:\s*["']🚶 Walking["']/],
