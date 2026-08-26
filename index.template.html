@@ -1096,11 +1096,38 @@
       transition: max-height .28s ease, padding .28s ease, opacity .2s ease, border-color .2s ease;
     }
     .experimental-transport-setting.show {
-      max-height: 220px;
+      max-height: 360px;
       padding-top: 16px;
       padding-bottom: 16px;
       border-top-color: rgba(255,255,255,.09);
       opacity: 1;
+    }
+    .experimental-choice-card {
+      margin-top: 2px;
+      padding: 15px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      background: rgba(255,255,255,.025);
+    }
+    .experimental-choice-card.recommended {
+      background: rgba(255,255,255,.045);
+    }
+    .experimental-choice-card .setting-row { align-items: flex-start; }
+    .experimental-choice-card .switch { flex: 0 0 auto; margin-top: 1px; }
+    .experimental-choice-kicker {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 7px;
+      border-radius: 7px;
+      background: rgba(52,199,89,.14);
+      color: #66d781;
+      font-size: 10px;
+      font-weight: 760;
+      letter-spacing: .02em;
+    }
+    .experimental-choice-kicker.standalone {
+      background: rgba(45,156,219,.14);
+      color: #61b9ed;
     }
     #transportBadge {
       position: fixed;
@@ -1891,25 +1918,31 @@
       </div>
     </div>
 
-    <div class="setting experimental-transport-setting" id="experimentalTransportSetting" aria-hidden="true">
-      <div class="setting-row">
-        <div>
-          <div class="setting-title">Transport detective</div>
-          <div class="setting-note">Experimental transport detection combining movement patterns with nearby Swiss public-transport stops and timetables. When enabled, current coordinates may be sent to transport.opendata.ch for timetable matching.</div>
-          <div class="setting-note" id="transportDetectiveStatus">Not enough movement yet.</div>
+    <div class="setting experimental-transport-setting" id="experimentalJourneySetting" aria-hidden="true">
+      <div class="experimental-choice-card recommended">
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Super Simple Journey</div>
+            <div class="experimental-choice-kicker">Recommended · all-in-one</div>
+            <div class="setting-note">Understands how you are moving and builds a simple session timeline such as Walking → S4 → Tram 16. Includes the Transport Detective engine automatically.</div>
+            <div class="setting-note" id="journeyStatus">Off.</div>
+          </div>
+          <button class="switch" id="journeyModeSwitch" aria-label="Toggle Super Simple Journey"></button>
         </div>
-        <button class="switch" id="transportDetectiveSwitch" aria-label="Toggle transport detective"></button>
       </div>
     </div>
 
-    <div class="setting experimental-transport-setting" id="experimentalJourneySetting" aria-hidden="true">
-      <div class="setting-row">
-        <div>
-          <div class="setting-title">Super Simple Journey</div>
-          <div class="setting-note">Experimental session timeline: automatically turns movement into simple segments such as Walking → S4 → Tram 16. Uses Transport detective and keeps the timeline only for this app session.</div>
-          <div class="setting-note" id="journeyStatus">Off.</div>
+    <div class="setting experimental-transport-setting" id="experimentalTransportSetting" aria-hidden="true">
+      <div class="experimental-choice-card">
+        <div class="setting-row">
+          <div>
+            <div class="setting-title">Transport Detective</div>
+            <div class="experimental-choice-kicker standalone">Standalone</div>
+            <div class="setting-note">Just identify the current vehicle type and public-transport line. No journey timeline. Current coordinates may be sent to transport.opendata.ch for Swiss timetable matching.</div>
+            <div class="setting-note" id="transportDetectiveStatus">Off.</div>
+          </div>
+          <button class="switch" id="transportDetectiveSwitch" aria-label="Toggle standalone Transport Detective"></button>
         </div>
-        <button class="switch" id="journeyModeSwitch" aria-label="Toggle Super Simple Journey"></button>
       </div>
     </div>
 
@@ -3074,11 +3107,12 @@
     const available = state.experimentalMode;
     setting?.classList.toggle("show", available);
     setting?.setAttribute("aria-hidden", String(!available));
-    toggle?.classList.toggle("on", state.transportDetectiveEnabled);
-    toggle?.setAttribute("aria-pressed", String(state.transportDetectiveEnabled));
+    const standaloneEnabled = state.transportDetectiveEnabled && !state.journeyModeEnabled;
+    toggle?.classList.toggle("on", standaloneEnabled);
+    toggle?.setAttribute("aria-pressed", String(standaloneEnabled));
 
     const enabled = available && state.transportDetectiveEnabled;
-    const showDetectorBadge = enabled && !state.journeyModeEnabled;
+    const showDetectorBadge = available && standaloneEnabled;
     badge?.classList.toggle("show", showDetectorBadge);
     badge?.setAttribute("aria-hidden", String(!showDetectorBadge));
     const metricsEl = $("transportMetrics");
@@ -3111,7 +3145,11 @@
     const showMetrics = false;
     metricsEl?.classList.toggle("show", false);
     metricsEl?.setAttribute("aria-hidden", "true");
-    if (status) status.textContent = guess.reason || "Not enough movement yet.";
+    if (status) {
+      status.textContent = state.journeyModeEnabled
+        ? "Included in Super Simple Journey."
+        : (standaloneEnabled ? (guess.reason || "Learning movement pattern…") : "Off.");
+    }
     updateJourneyUi();
   }
 
@@ -4784,36 +4822,41 @@
     applyTheme();
   });
 
+  function clearTransportExperimentState() {
+    state.transportSamples = [];
+    state.transportStops = [];
+    state.transportMoving = false;
+    state.transportStopStartedAt = null;
+    state.transportGuess = { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
+    state.transitCandidate = null;
+    state.transitEvidence = [];
+    state.transitSpeedRecoverySamples = [];
+  }
+
   $("transportDetectiveSwitch").addEventListener("click", () => {
-    state.transportDetectiveEnabled = !state.transportDetectiveEnabled;
+    const standaloneWasEnabled = state.transportDetectiveEnabled && !state.journeyModeEnabled;
+    state.journeyModeEnabled = false;
+    localStorage.setItem("journeyModeEnabled", "false");
+    resetJourneySession();
+
+    state.transportDetectiveEnabled = !standaloneWasEnabled;
     localStorage.setItem("transportDetectiveEnabled", String(state.transportDetectiveEnabled));
-    if (!state.transportDetectiveEnabled) {
-      state.journeyModeEnabled = false;
-      localStorage.setItem("journeyModeEnabled", "false");
-      resetJourneySession();
-      state.transportSamples = [];
-      state.transportStops = [];
-      state.transportMoving = false;
-      state.transportStopStartedAt = null;
-      state.transportGuess = { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
-      state.transitCandidate = null;
-      state.transitEvidence = [];
-      state.transitSpeedRecoverySamples = [];
-    }
+    if (!state.transportDetectiveEnabled) clearTransportExperimentState();
+
     updateTransportUi();
-    showToast(state.transportDetectiveEnabled ? "Transport detective on" : "Transport detective off");
+    showToast(state.transportDetectiveEnabled ? "Transport Detective on" : "Transport Detective off");
   });
 
   $("journeyModeSwitch").addEventListener("click", () => {
-    state.journeyModeEnabled = !state.journeyModeEnabled;
+    const turningOn = !state.journeyModeEnabled;
+    state.journeyModeEnabled = turningOn;
+    state.transportDetectiveEnabled = turningOn;
     localStorage.setItem("journeyModeEnabled", String(state.journeyModeEnabled));
-    if (state.journeyModeEnabled && !state.transportDetectiveEnabled) {
-      state.transportDetectiveEnabled = true;
-      localStorage.setItem("transportDetectiveEnabled", "true");
-    }
+    localStorage.setItem("transportDetectiveEnabled", String(state.transportDetectiveEnabled));
     resetJourneySession();
+    if (!turningOn) clearTransportExperimentState();
     updateTransportUi();
-    showToast(state.journeyModeEnabled ? "Super Simple Journey on" : "Super Simple Journey off");
+    showToast(turningOn ? "Super Simple Journey on" : "Super Simple Journey off");
   });
 
   $("experimentalSwitch").addEventListener("click", () => {
