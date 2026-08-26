@@ -1148,6 +1148,40 @@
       letter-spacing: -.01em;
     }
 
+    #journeyPanel {
+      position: fixed;
+      left: 50%;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+      transform: translateX(-50%);
+      z-index: 8;
+      display: none;
+      width: min(88vw, 390px);
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      background: rgba(12,12,12,.74);
+      color: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events: none;
+    }
+    #journeyPanel.show { display: block; }
+    .journey-current { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+    .journey-mode { font-size:20px; font-weight:820; letter-spacing:-.02em; }
+    .journey-line { font-size:20px; font-weight:820; letter-spacing:-.02em; text-align:right; }
+    .journey-meta { margin-top:3px; font-size:11px; font-weight:700; opacity:.52; }
+    .journey-timeline { display:flex; gap:6px; overflow:hidden; margin-top:10px; }
+    .journey-chip {
+      min-width:0; padding:5px 8px; border-radius:10px; background:rgba(255,255,255,.08);
+      font-size:11px; font-weight:730; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .journey-chip.current { background:rgba(255,255,255,.15); }
+    body.driver-mode #journeyPanel { opacity:.72; }
+    @media (orientation: landscape) {
+      #journeyPanel { bottom: calc(env(safe-area-inset-bottom, 0px) + 3px); width:min(76vw, 390px); padding-top:9px; padding-bottom:9px; }
+      .journey-timeline { margin-top:7px; }
+    }
+
     /* Detailed classifier evidence belongs in Diagnostics / Live Intelligence,
        not on the driving screen. Keep this node for diagnostic/test contracts. */
     #transportMetrics { display: none !important; }
@@ -1525,7 +1559,7 @@
       <div class="launch-step hidden" id="launchStepTransit">Connecting to public transport data…</div>
       <div class="launch-step" id="launchStepReady">Ready to go</div>
     </div>
-    <div class="launch-disclaimer">Driving safely and respecting speed limits is always the responsibility of the driver.</div>
+    <div class="launch-disclaimer" id="launchDisclaimer">Driving safely and respecting speed limits is always the responsibility of the driver.</div>
     <button class="launch-action" id="letsDriveButton" type="button">Let’s go!</button>
     <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
     <div class="launch-progress" aria-hidden="true"><span id="launchProgress"></span></div>
@@ -1580,7 +1614,7 @@
       <button id="disconnect" class="disconnect-button hidden">Disconnect GPS</button>
     </div>
     <div id="status"></div>
-    <div id="driverResponsibility">Driving safely and respecting speed limits<br>is always the responsibility of the driver.</div>
+    <div id="driverResponsibility" class="hidden" aria-hidden="true">Driving safely and respecting speed limits<br>is always the responsibility of the driver.</div>
   </footer>
 </div>
 
@@ -1608,6 +1642,14 @@
 
 <div id="transportMetrics" aria-live="polite" aria-hidden="true"></div>
 <div id="transportBadge" aria-live="polite" aria-hidden="true">🧭 Learning journey…</div>
+<div id="journeyPanel" aria-live="polite" aria-hidden="true">
+  <div class="journey-current">
+    <div class="journey-mode" id="journeyModeLabel">Thinking…</div>
+    <div class="journey-line" id="journeyLineLabel"></div>
+  </div>
+  <div class="journey-meta" id="journeyMeta">Learning how you are moving…</div>
+  <div class="journey-timeline" id="journeyTimeline"></div>
+</div>
 
 <div class="modal" id="settingsModal" aria-hidden="true">
   <div class="sheet">
@@ -1860,6 +1902,17 @@
       </div>
     </div>
 
+    <div class="setting experimental-transport-setting" id="experimentalJourneySetting" aria-hidden="true">
+      <div class="setting-row">
+        <div>
+          <div class="setting-title">Super Simple Journey</div>
+          <div class="setting-note">Experimental session timeline: automatically turns movement into simple segments such as Walking → S4 → Tram 16. Uses Transport detective and keeps the timeline only for this app session.</div>
+          <div class="setting-note" id="journeyStatus">Off.</div>
+        </div>
+        <button class="switch" id="journeyModeSwitch" aria-label="Toggle Super Simple Journey"></button>
+      </div>
+    </div>
+
     <div class="setting experimental-theme-setting" id="experimentalThemeSetting" aria-hidden="true">
       <div class="setting-title">Theme</div>
       <div class="setting-note">Choose Classic or preview the calmer, Volvo-inspired Modern theme.</div>
@@ -1894,7 +1947,8 @@
           <button class="wide-button secondary" id="clearDiagnostics">Clear log</button>
         </div>
         <div class="setting-note" style="margin-top:14px">Actual mode (optional ground truth)</div>
-        <div class="segmented" id="groundTruthButtons" style="grid-template-columns:repeat(5,1fr);margin-top:8px">
+        <div class="segmented" id="groundTruthButtons" style="grid-template-columns:repeat(3,1fr);margin-top:8px">
+          <button class="segment-button" data-ground-truth="stationary">I’m not moving</button>
           <button class="segment-button" data-ground-truth="walking">Walk</button>
           <button class="segment-button" data-ground-truth="bus">Bus</button>
           <button class="segment-button" data-ground-truth="car">Car</button>
@@ -2074,6 +2128,11 @@
     theme: localStorage.getItem("speedoTheme") || "dark",
     experimentalMode: localStorage.getItem("experimentalMode") === "true",
     transportDetectiveEnabled: localStorage.getItem("transportDetectiveEnabled") === "true",
+    journeyModeEnabled: localStorage.getItem("journeyModeEnabled") === "true",
+    journeySegments: [],
+    journeyCurrent: null,
+    journeyPendingKey: null,
+    journeyPendingCount: 0,
     transportSamples: [],
     transportStops: [],
     transportMoving: false,
@@ -2223,6 +2282,8 @@
     const transitStep = $("launchStepTransit");
     if (transitStep) transitStep.classList.toggle("hidden", !(state.experimentalMode && state.transportDetectiveEnabled));
     setLaunchSteps("active", "", "");
+    const disclaimer = $("launchDisclaimer");
+    if (disclaimer) disclaimer.classList.remove("hidden");
     const button = $("letsDriveButton");
     if (button) {
       button.disabled = false;
@@ -2238,6 +2299,8 @@
       button.disabled = true;
       button.textContent = "Starting…";
     }
+    const disclaimer = $("launchDisclaimer");
+    if (disclaimer) disclaimer.classList.add("hidden");
 
     startupMinimumCompleteAt = Date.now() + 1600;
     const checklist = $("launchChecklist");
@@ -2876,6 +2939,133 @@
     })[mode] || "🧭 Thinking…";
   }
 
+  const JOURNEY_WAITING_SEGMENT_DELAY_MS = 90 * 1000;
+
+  function journeyModeName(mode) {
+    return ({ walking: "Walking", bus: "Bus", car: "Car", tram: "Tram", train: "Train", waiting: "Waiting" })[mode] || "Thinking…";
+  }
+
+  function journeyModeIcon(mode) {
+    return ({ walking: "🚶", bus: "🚌", car: "🚗", tram: "🚋", train: "🚆", waiting: "•" })[mode] || "🧭";
+  }
+
+  function formatJourneyDuration(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    if (total < 60) return `${total}s`;
+    const minutes = Math.floor(total / 60);
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours}h ${minutes % 60}m`;
+  }
+
+  function resetJourneySession() {
+    state.journeySegments = [];
+    state.journeyCurrent = null;
+    state.journeyPendingKey = null;
+    state.journeyPendingCount = 0;
+    updateJourneyUi(true);
+  }
+
+  function observeJourney(now = Date.now()) {
+    if (!(state.experimentalMode && state.journeyModeEnabled && state.transportDetectiveEnabled)) return;
+    const guess = state.transportGuess || { mode: "unknown" };
+    const stationaryForMs = !state.transportMoving && state.transportStopStartedAt
+      ? Math.max(0, now - state.transportStopStartedAt)
+      : 0;
+    let mode = stationaryForMs >= JOURNEY_WAITING_SEGMENT_DELAY_MS ? "waiting" : guess.mode;
+    if (!mode || mode === "unknown") return;
+
+    const transitCandidate = state.transitCandidate && now - state.transitCandidate.matchedAt <= TRANSIT_CANDIDATE_MAX_AGE_MS
+      ? state.transitCandidate
+      : null;
+    const line = ["bus", "tram", "train"].includes(mode) ? (transitCandidate?.line || "") : "";
+
+    // If the vehicle is already right and the line arrives a little later, enrich
+    // the current segment rather than manufacturing a second journey leg.
+    if (state.journeyCurrent && state.journeyCurrent.mode === mode && !state.journeyCurrent.line && line) {
+      state.journeyCurrent.line = line;
+      state.journeyCurrent.key = `${mode}:${line}`;
+      state.journeyPendingKey = null;
+      state.journeyPendingCount = 0;
+      return;
+    }
+
+    const key = `${mode}:${line}`;
+    if (state.journeyCurrent?.key === key) {
+      state.journeyPendingKey = null;
+      state.journeyPendingCount = 0;
+      return;
+    }
+
+    // A different PT line can briefly appear as nearby timetable evidence changes.
+    // Require two observations before splitting an otherwise unchanged vehicle leg.
+    const sameTransitMode = state.journeyCurrent && state.journeyCurrent.mode === mode && ["bus", "tram", "train"].includes(mode);
+    if (sameTransitMode) {
+      if (state.journeyPendingKey !== key) {
+        state.journeyPendingKey = key;
+        state.journeyPendingCount = 1;
+        return;
+      }
+      state.journeyPendingCount += 1;
+      if (state.journeyPendingCount < 2) return;
+    }
+
+    if (state.journeyCurrent) {
+      state.journeyCurrent.endAt = now;
+      state.journeySegments.push(state.journeyCurrent);
+      state.journeySegments = state.journeySegments.slice(-12);
+    }
+    state.journeyCurrent = { key, mode, line, startAt: now, endAt: null };
+    state.journeyPendingKey = null;
+    state.journeyPendingCount = 0;
+  }
+
+  function updateJourneyUi(renderOnly = false) {
+    const setting = $("experimentalJourneySetting");
+    const toggle = $("journeyModeSwitch");
+    const panel = $("journeyPanel");
+    const available = state.experimentalMode;
+    const enabled = available && state.journeyModeEnabled;
+    setting?.classList.toggle("show", available);
+    setting?.setAttribute("aria-hidden", String(!available));
+    toggle?.classList.toggle("on", state.journeyModeEnabled);
+    toggle?.setAttribute("aria-pressed", String(state.journeyModeEnabled));
+    panel?.classList.toggle("show", enabled);
+    panel?.setAttribute("aria-hidden", String(!enabled));
+    if (!enabled) return;
+
+    if (!renderOnly) observeJourney();
+    const now = Date.now();
+    const current = state.journeyCurrent;
+    const modeEl = $("journeyModeLabel");
+    const lineEl = $("journeyLineLabel");
+    const metaEl = $("journeyMeta");
+    const timelineEl = $("journeyTimeline");
+    const statusEl = $("journeyStatus");
+
+    if (!current) {
+      if (modeEl) modeEl.textContent = "Thinking…";
+      if (lineEl) lineEl.textContent = "";
+      if (metaEl) metaEl.textContent = "Learning how you are moving…";
+      if (timelineEl) timelineEl.innerHTML = "";
+      if (statusEl) statusEl.textContent = "On — waiting for a confident movement segment.";
+      return;
+    }
+
+    if (modeEl) modeEl.textContent = `${journeyModeIcon(current.mode)} ${journeyModeName(current.mode)}`;
+    if (lineEl) lineEl.textContent = current.line || "";
+    if (metaEl) metaEl.textContent = `Current leg · ${formatJourneyDuration(now - current.startAt)} · session only`;
+    if (statusEl) statusEl.textContent = `On — ${journeyModeName(current.mode)}${current.line ? ` ${current.line}` : ""}.`;
+
+    const segments = [...state.journeySegments.slice(-4), current];
+    if (timelineEl) timelineEl.innerHTML = segments.map((segment, index) => {
+      const endAt = segment.endAt || now;
+      const label = `${journeyModeIcon(segment.mode)} ${segment.line || journeyModeName(segment.mode)} · ${formatJourneyDuration(endAt - segment.startAt)}`;
+      const currentClass = index === segments.length - 1 ? " current" : "";
+      return `<div class="journey-chip${currentClass}">${escapeHtml(label)}</div>`;
+    }).join("");
+  }
+
   function updateTransportUi() {
     const setting = $("experimentalTransportSetting");
     const toggle = $("transportDetectiveSwitch");
@@ -2888,8 +3078,9 @@
     toggle?.setAttribute("aria-pressed", String(state.transportDetectiveEnabled));
 
     const enabled = available && state.transportDetectiveEnabled;
-    badge?.classList.toggle("show", enabled);
-    badge?.setAttribute("aria-hidden", String(!enabled));
+    const showDetectorBadge = enabled && !state.journeyModeEnabled;
+    badge?.classList.toggle("show", showDetectorBadge);
+    badge?.setAttribute("aria-hidden", String(!showDetectorBadge));
     const metricsEl = $("transportMetrics");
     const guess = state.transportGuess || { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
     const stationaryForMs = !state.transportMoving && state.transportStopStartedAt
@@ -2921,6 +3112,7 @@
     metricsEl?.classList.toggle("show", false);
     metricsEl?.setAttribute("aria-hidden", "true");
     if (status) status.textContent = guess.reason || "Not enough movement yet.";
+    updateJourneyUi();
   }
 
   function normaliseTransitMode(category = "", name = "") {
@@ -3290,6 +3482,7 @@
     $("experimentalThemeSetting").classList.toggle("show", enabled);
     $("experimentalThemeSetting").setAttribute("aria-hidden", String(!enabled));
     updateTransportUi();
+    updateJourneyUi(true);
     $("visualClassicButton").classList.toggle("active", state.visualTheme === "classic");
     $("visualModernButton").classList.toggle("active", state.visualTheme === "modern");
     document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
@@ -4595,6 +4788,9 @@
     state.transportDetectiveEnabled = !state.transportDetectiveEnabled;
     localStorage.setItem("transportDetectiveEnabled", String(state.transportDetectiveEnabled));
     if (!state.transportDetectiveEnabled) {
+      state.journeyModeEnabled = false;
+      localStorage.setItem("journeyModeEnabled", "false");
+      resetJourneySession();
       state.transportSamples = [];
       state.transportStops = [];
       state.transportMoving = false;
@@ -4606,6 +4802,18 @@
     }
     updateTransportUi();
     showToast(state.transportDetectiveEnabled ? "Transport detective on" : "Transport detective off");
+  });
+
+  $("journeyModeSwitch").addEventListener("click", () => {
+    state.journeyModeEnabled = !state.journeyModeEnabled;
+    localStorage.setItem("journeyModeEnabled", String(state.journeyModeEnabled));
+    if (state.journeyModeEnabled && !state.transportDetectiveEnabled) {
+      state.transportDetectiveEnabled = true;
+      localStorage.setItem("transportDetectiveEnabled", "true");
+    }
+    resetJourneySession();
+    updateTransportUi();
+    showToast(state.journeyModeEnabled ? "Super Simple Journey on" : "Super Simple Journey off");
   });
 
   $("experimentalSwitch").addEventListener("click", () => {
@@ -4982,6 +5190,7 @@
   setTimeout(showInstallCard, 4600);
   applyTheme();
   applyExperimentalSettings();
+  setInterval(() => updateJourneyUi(true), 1000);
   applyStatisticsSettings();
   try { updateDiagnosticsDisplay(); } catch (_) {}
   applyVisibility();
