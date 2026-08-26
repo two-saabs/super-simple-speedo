@@ -2650,10 +2650,12 @@
       state.transitServiceStatus === "checking" ? "connecting…" :
       state.transitServiceStatus === "error" ? "Swiss PT unavailable" : "awaiting GPS";
 
-    // The Live Intelligence panel is for transport reasoning, not the raw GPS
-    // sample stream. Keep SPEED/GPS samples in the downloadable diagnostics TSV,
-    // but hide them here so route/classifier events remain readable while moving.
-    const entries = state.diagnosticLog.filter(item => Boolean(item.event)).slice(-28);
+    // The Live Intelligence panel is for real-world transport reasoning, not
+    // engineering housekeeping. Keep SPEED/GPS samples and WAKE_LOCK events in
+    // diagnostics/export, but hide them here so classifier/route events stay readable.
+    const entries = state.diagnosticLog
+      .filter(item => Boolean(item.event) && item.event !== "WAKE_LOCK")
+      .slice(-28);
     if (!entries.length) {
       feed.textContent = "Waiting for transport events…";
     } else {
