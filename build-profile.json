@@ -1,4 +1,5 @@
 {
   "channel": "stable",
-  "experimentalFeatures": false
+  "experimentalFeatures": false,
+  "EXPERIMENTAL_FEATURES": false
 }
