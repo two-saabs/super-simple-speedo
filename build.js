@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { injectSupportDiagnostics } = require("./support-diagnostics");
 const key = process.env.GEOAPIFY_API_KEY;
 if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify."); process.exit(1); }
 const rootDir = __dirname;
@@ -32,6 +33,7 @@ fs.mkdirSync(outputDir, { recursive: true });
 let html = readRequiredFile("index.template.html");
 html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.html");
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
+html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
 if (experimentalFeatures) {
   html = replaceRequiredSnippet(html, `Version ${appVersion}`, `Version ${appVersion} · Experimental`, "index.template.html");
 } else {
