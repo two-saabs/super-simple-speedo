@@ -16,7 +16,7 @@
 
 Each branch contains `build-profile.json`.
 
-Stable builds set `experimentalFeatures` to `false`. The build then:
+The stable profile is the production equivalent of `EXPERIMENTAL_FEATURES=false`. The build then:
 
 - hides the Experimental settings section;
 - forces Journey and Transport Detective state off;
@@ -24,7 +24,7 @@ Stable builds set `experimentalFeatures` to `false`. The build then:
 - forces the stable visual theme;
 - blocks requests to `transport.opendata.ch` as a defence-in-depth privacy guard.
 
-Experimental builds set `experimentalFeatures` to `true` and show `· Experimental` beside the version in About.
+The experimental profile enables those features and shows `· Experimental` beside the version in About.
 
 ## Release rule
 
