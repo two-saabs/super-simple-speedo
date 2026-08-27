@@ -4,7 +4,10 @@ on:
   push:
     paths:
       - "index.template.html"
+      - "build.js"
+      - "build-profile.json"
       - "check-regressions.js"
+      - "check-privacy.js"
       - "speed-engine.js"
       - "test-speed-engine.js"
       - "test-data/**"
@@ -12,7 +15,10 @@ on:
   pull_request:
     paths:
       - "index.template.html"
+      - "build.js"
+      - "build-profile.json"
       - "check-regressions.js"
+      - "check-privacy.js"
       - "speed-engine.js"
       - "test-speed-engine.js"
       - "test-data/**"
@@ -32,6 +38,9 @@ jobs:
 
       - name: Check product and diagnostic contracts
         run: node check-regressions.js index.template.html
+
+      - name: Check production privacy contracts
+        run: node check-privacy.js
 
       - name: Replay speed behaviour fixtures
         run: node test-speed-engine.js
