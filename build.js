@@ -35,6 +35,7 @@ html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.htm
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
 html = replaceRequiredSnippet(html, "Free forever. ", "", "index.template.html");
 html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
+html = html.replace("<body>", '<body><div style="position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:10000;color:#ff9500;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;pointer-events:none">Test Version</div>');
 if (experimentalFeatures) {
   html = replaceRequiredSnippet(html, `Version ${appVersion}`, `Version ${appVersion} · Experimental`, "index.template.html");
 } else {
