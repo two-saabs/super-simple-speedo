@@ -33,6 +33,7 @@ fs.mkdirSync(outputDir, { recursive: true });
 let html = readRequiredFile("index.template.html");
 html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.html");
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
+html = replaceRequiredSnippet(html, "Free forever. ", "", "index.template.html");
 html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
 if (experimentalFeatures) {
   html = replaceRequiredSnippet(html, `Version ${appVersion}`, `Version ${appVersion} · Experimental`, "index.template.html");
