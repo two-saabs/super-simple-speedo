@@ -30,6 +30,20 @@ function validCoordinate(value, min, max) {
   return Number.isFinite(n) && n >= min && n <= max;
 }
 
+function validWaypoint(point) {
+  // Geoapify Map Matching expects each waypoint as
+  // { location: [longitude, latitude], timestamp?, bearing? }.
+  // Accept that canonical shape, while retaining support for the older
+  // lat/lon object form if a caller ever sends it.
+  if (Array.isArray(point?.location) && point.location.length === 2) {
+    const [lon, lat] = point.location;
+    return validCoordinate(lat, -90, 90) && validCoordinate(lon, -180, 180);
+  }
+
+  return validCoordinate(point?.lat ?? point?.latitude, -90, 90) &&
+    validCoordinate(point?.lon ?? point?.longitude, -180, 180);
+}
+
 exports.handler = async function handler(event) {
   const origin = event.headers?.origin || event.headers?.Origin || "";
 
@@ -87,7 +101,7 @@ exports.handler = async function handler(event) {
       }
 
       for (const point of body.waypoints) {
-        if (!validCoordinate(point?.lat ?? point?.latitude, -90, 90) || !validCoordinate(point?.lon ?? point?.longitude, -180, 180)) {
+        if (!validWaypoint(point)) {
           return json(400, { error: "Invalid waypoint" }, origin);
         }
       }
