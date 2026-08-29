@@ -47,15 +47,25 @@ jobs:
       - name: Replay speed behaviour fixtures
         run: node test-speed-engine.js
 
-      - name: Build stable release output
+      - name: Build configured release output
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
 
-      - name: Verify stable support UI and experimental isolation
+      - name: Verify support UI and channel isolation
         run: |
           grep -q 'Help & Diagnostics' dist/index.html
           grep -q 'Share diagnostic log' dist/index.html
           grep -q 'Nothing is uploaded automatically' dist/index.html
-          grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
-          grep -q 'Experimental transport API disabled in stable build' dist/index.html
+
+          if node -e "process.exit(require('./build-profile.json').experimentalFeatures ? 0 : 1)"; then
+            echo "Checking experimental build contract"
+            if grep -q 'Experimental transport API disabled in stable build' dist/index.html; then
+              echo "Experimental build unexpectedly contains the stable transport-disable guard"
+              exit 1
+            fi
+          else
+            echo "Checking stable build contract"
+            grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
+            grep -q 'Experimental transport API disabled in stable build' dist/index.html
+          fi
