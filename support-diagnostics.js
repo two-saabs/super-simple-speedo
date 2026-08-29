@@ -133,6 +133,21 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     'sanitised support report code insertion'
   );
 
+  // IndexedDB transaction errors can occasionally arrive with tx.error === null.
+  // Diagnostics are best-effort, so ignore null failures but keep real errors visible.
+  html = replaceRequired(
+    html,
+    '  async function archiveDiagnosticEntry(entry) {\n    const db = await openDiagnosticArchive();',
+    '  async function archiveDiagnosticEntry(entry) {\n    if (!entry || typeof entry !== "object") return;\n    const db = await openDiagnosticArchive();',
+    'diagnostic archive entry guard'
+  );
+  html = replaceRequired(
+    html,
+    '    } catch (error) {\n      console.warn("Could not archive diagnostic entry", error);\n    }',
+    '    } catch (error) {\n      if (error) console.warn("Could not archive diagnostic entry", error);\n    }',
+    'diagnostic archive null warning guard'
+  );
+
   if (!experimentalFeatures) {
     html = replaceRequired(html, 'const DIAGNOSTIC_MAX_ENTRIES = 1200;', 'const DIAGNOSTIC_MAX_ENTRIES = 300;', 'stable recent diagnostic cap');
     html = replaceRequired(html, 'const DIAGNOSTIC_ARCHIVE_DAYS = 30;', 'const DIAGNOSTIC_ARCHIVE_DAYS = 1;', 'stable diagnostic retention');
