@@ -24,8 +24,9 @@ const appVersion = versionConfig.version;
 if (typeof appVersion !== "string" || !/^\d+\.\d+\.\d+$/.test(appVersion)) { console.error("Invalid version.json"); process.exit(1); }
 const buildProfile = JSON.parse(readRequiredFile("build-profile.json"));
 const experimentalFeatures = buildProfile.experimentalFeatures === true;
-const buildChannel = experimentalFeatures ? "experimental" : "stable";
-if (!["stable", "experimental"].includes(buildProfile.channel) || buildProfile.channel !== buildChannel) {
+const buildChannel = buildProfile.channel;
+if (!["stable", "test", "experimental"].includes(buildChannel) ||
+    experimentalFeatures !== (buildChannel === "experimental")) {
   console.error("Invalid build-profile.json");
   process.exit(1);
 }
@@ -35,7 +36,37 @@ html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.htm
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
 html = replaceRequiredSnippet(html, "Free forever. ", "", "index.template.html");
 html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
-html = html.replace("<body>", '<body><div style="position:fixed;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:10000;color:#ff9500;font-size:12px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;pointer-events:none">Test Version</div>');
+
+// Test/experimental identity is build metadata, not application layout.
+// The marker reserves its own predictable portrait header band so it cannot
+// collide with Super Simple Speedo's shared title/settings geometry.
+const buildTimeUtc = new Date().toISOString().replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+const channelIdentity = `
+  <style>
+    .build-channel-marker {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+      color: #ff9500;
+      text-align: center;
+      text-transform: uppercase;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .build-channel-name { font-size: 12px; font-weight: 900; letter-spacing: .12em; }
+    .build-channel-meta { margin-top: 4px; font-size: 9px; font-weight: 720; letter-spacing: .05em; opacity: .70; text-transform: none; }
+    @media (orientation: portrait) {
+      body.has-build-channel #app { padding-top: max(58px, calc(env(safe-area-inset-top) + 40px)); }
+    }
+  </style>
+  <div class="build-channel-marker" aria-hidden="true">
+    <div class="build-channel-name">TEST VERSION</div>
+    <div class="build-channel-meta">v${appVersion} · built ${buildTimeUtc}</div>
+  </div>`;
+html = html.replace("</head>", `${channelIdentity.split('<div class=')[0]}</head>`);
+html = html.replace("<body>", `<body class="has-build-channel">${channelIdentity.slice(channelIdentity.indexOf('<div class='))}`);
 if (experimentalFeatures) {
   html = replaceRequiredSnippet(html, `Version ${appVersion}`, `Version ${appVersion} · Experimental`, "index.template.html");
 } else {

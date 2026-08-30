@@ -8,6 +8,7 @@ on:
       - "build-profile.json"
       - "support-diagnostics.js"
       - "check-regressions.js"
+      - "check-channel-contract.js"
       - "check-privacy.js"
       - "speed-engine.js"
       - "test-speed-engine.js"
@@ -20,6 +21,7 @@ on:
       - "build-profile.json"
       - "support-diagnostics.js"
       - "check-regressions.js"
+      - "check-channel-contract.js"
       - "check-privacy.js"
       - "speed-engine.js"
       - "test-speed-engine.js"
@@ -40,6 +42,9 @@ jobs:
 
       - name: Check product and diagnostic contracts
         run: node check-regressions.js index.template.html
+
+      - name: Check release-channel contracts
+        run: node check-channel-contract.js
 
       - name: Check production privacy contracts
         run: node check-privacy.js
