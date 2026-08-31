@@ -148,6 +148,16 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     'diagnostic archive null warning guard'
   );
 
+  // Driver mode is entered and its exit timer is started from the current trusted
+  // display speed. Use that same current speed state when the delayed exit fires;
+  // lastAcceptedSpeed can legitimately lag behind at zero and strand the UI faded.
+  html = replaceRequired(
+    html,
+    '        if (state.watchId !== null && state.lastAcceptedSpeed < DRIVER_MODE_EXIT_SPEED) {\n          applyDriverMode(false, "BELOW_6_KMH_FOR_5_SECONDS");\n        }',
+    '        if (state.watchId !== null && state.targetSpeed < DRIVER_MODE_EXIT_SPEED) {\n          applyDriverMode(false, "BELOW_6_KMH_FOR_5_SECONDS");\n        }',
+    'driver mode delayed exit uses current trusted speed'
+  );
+
   if (!experimentalFeatures) {
     html = replaceRequired(html, 'const DIAGNOSTIC_MAX_ENTRIES = 1200;', 'const DIAGNOSTIC_MAX_ENTRIES = 300;', 'stable recent diagnostic cap');
     html = replaceRequired(html, 'const DIAGNOSTIC_ARCHIVE_DAYS = 30;', 'const DIAGNOSTIC_ARCHIVE_DAYS = 1;', 'stable diagnostic retention');
