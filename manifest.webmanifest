@@ -3,7 +3,7 @@
   "name": "Super Simple Speedo",
   "short_name": "Speedo",
   "description": "A calm, simple GPS speedometer with automatic road speed limits.",
-  "start_url": "/",
+  "start_url": "/web",
   "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
