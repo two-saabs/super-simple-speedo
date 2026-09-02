@@ -17,19 +17,19 @@ profile.experimentalFeatures === isExperimental ? pass("experimental feature fla
 profile.EXPERIMENTAL_FEATURES === isExperimental ? pass("legacy experimental feature flag matches channel") : fail("legacy experimental feature flag does not match channel");
 /^\d+\.\d+\.\d+$/.test(version) ? pass(`semantic version: ${version}`) : fail("invalid version");
 
-// Shared portrait geometry must stay in the common template. Channel identity may
-// reserve a band, but must not replace/reposition the shared header itself.
-/template[\s\S]*/; // keep this script intentionally dependency-free
+/template[\s\S]*/;
 /--safe-top:\s*max\(14px,\s*env\(safe-area-inset-top\)\)/.test(template) ? pass("shared safe-top primitive present") : fail("shared safe-top primitive changed");
 /#app\s*\{[\s\S]*?padding:\s*var\(--safe-top\)\s+18px\s+var\(--safe-bottom\)/.test(template) ? pass("shared app padding contract present") : fail("shared app padding contract changed");
 
 if (profile.channel === "test") {
   /TEST VERSION/.test(build) ? pass("test identity present") : fail("test identity missing");
-  /build-channel-meta/.test(build) && /built \$\{buildTimeUtc\}/.test(build) ? pass("test version/build timestamp present") : fail("test build metadata missing");
+  /build-channel-meta/.test(build) && /built \$\{buildTimeZurich\}/.test(build) ? pass("test version/build timestamp present") : fail("test build metadata missing");
+  /Europe\/Zurich/.test(build) ? pass("test build timezone is Zurich") : fail("test build timezone is not Zurich");
   /EXPERIMENTAL MODE/.test(build) ? fail("test build contains experimental marker") : pass("test has no experimental marker");
 } else if (profile.channel === "experimental") {
   /EXPERIMENTAL MODE/.test(build) ? pass("experimental identity present") : fail("experimental identity missing");
-  /build-channel-meta/.test(build) && /built \$\{buildTimeUtc\}/.test(build) ? pass("experimental version/build timestamp present") : fail("experimental build metadata missing");
+  /build-channel-meta/.test(build) && /built \$\{buildTimeZurich\}/.test(build) ? pass("experimental version/build timestamp present") : fail("experimental build metadata missing");
+  /Europe\/Zurich/.test(build) ? pass("experimental build timezone is Zurich") : fail("experimental build timezone is not Zurich");
 } else {
   /build-channel-marker/.test(build) ? fail("stable build unexpectedly contains channel marker") : pass("stable build has no channel marker");
 }
