@@ -45,6 +45,12 @@ let html = readRequiredFile("index.template.html");
 html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.html");
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
 html = replaceRequiredSnippet(html, "Free forever. ", "", "index.template.html");
+html = replaceRequiredSnippet(
+  html,
+  '        <div>Your journeys are your business.</div>',
+  '        <div>Your journeys are your business.</div>\n        <div style="margin-top:10px;"><a href="/privacy.html" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">Privacy Policy</a></div>',
+  "index.template.html"
+);
 html = applyRoadFreshnessFix(html, replaceRequiredSnippet);
 html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
 
