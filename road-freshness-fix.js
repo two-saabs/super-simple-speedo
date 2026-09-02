@@ -1,0 +1,49 @@
+'use strict';
+
+function applyRoadFreshnessFix(source, replaceRequiredSnippet) {
+  source = replaceRequiredSnippet(
+    source,
+    '    acceptedAutoLimit: null,\n    acceptedAutoRoad: "",',
+    '    acceptedAutoLimit: null,\n    acceptedAutoRoad: "",\n    acceptedAutoPosition: null,',
+    "index.template.html"
+  );
+
+  source = replaceRequiredSnippet(
+    source,
+    `    if (stage === "error") {\n      sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit unavailable";\n      roadEl.textContent = hasLastConfirmed ? (displayRoadName(state.acceptedAutoRoad) || "Last confirmed road") : "Lookup unavailable";\n      setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");\n      return;\n    }\n\n    sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit";\n    roadEl.textContent = hasLastConfirmed ? (displayRoadName(state.acceptedAutoRoad) || "Last confirmed road") : (displayRoadName(message) || ({\n      locating: "Finding road...",\n      waiting: "Finding your location…",\n      collecting: "Checking road...",\n      matching: "Checking road...",\n      nodata: "No road identified"\n    }[stage] || "Checking road..."));\n    setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");`,
+    `    if (stage === "error") {\n      sourceEl.textContent = hasLastConfirmed ? "Last confirmed limit" : "Automatic limit unavailable";\n      roadEl.textContent = hasLastConfirmed ? "Checking road..." : "Lookup unavailable";\n      setRoadConfidence(hasLastConfirmed ? "estimate" : "", hasLastConfirmed ? "Rechecking" : "");\n      return;\n    }\n\n    sourceEl.textContent = hasLastConfirmed ? "Last confirmed limit" : "Automatic limit";\n    roadEl.textContent = hasLastConfirmed ? "Checking road..." : (displayRoadName(message) || ({\n      locating: "Finding road...",\n      waiting: "Finding your location…",\n      collecting: "Checking road...",\n      matching: "Checking road...",\n      nodata: "No road identified"\n    }[stage] || "Checking road..."));\n    setRoadConfidence(hasLastConfirmed ? "estimate" : "", hasLastConfirmed ? "Rechecking" : "");`,
+    "index.template.html"
+  );
+
+  source = replaceRequiredSnippet(
+    source,
+    `          state.acceptedAutoLimit = roundedLimit;\n          state.acceptedAutoRoad = displayRoadName(roadName);`,
+    `          state.acceptedAutoLimit = roundedLimit;\n          state.acceptedAutoRoad = displayRoadName(roadName);\n          state.acceptedAutoPosition = {\n            latitude: currentCoords.latitude,\n            longitude: currentCoords.longitude\n          };`,
+    "index.template.html"
+  );
+
+  source = replaceRequiredSnippet(
+    source,
+    `          setLimit(state.acceptedAutoLimit, "Automatic limit from:", state.acceptedAutoRoad || "Last matched road");\n          setAutomaticStatus("confirming", state.acceptedAutoRoad || "Last matched road");`,
+    `          setLimit(state.acceptedAutoLimit, "Last confirmed limit", "Checking road...");\n          setAutomaticStatus("matching", "Checking road...");`,
+    "index.template.html"
+  );
+
+  source = replaceRequiredSnippet(
+    source,
+    `    if (startupGpsPending) {`,
+    `    if (state.mode === "auto" && state.acceptedAutoPosition && state.roadMatchStage === "matched") {\n      const distanceFromConfirmedRoad = distanceMetres(state.acceptedAutoPosition, c);\n      if (distanceFromConfirmedRoad >= 60) {\n        sourceEl.textContent = "Last confirmed limit";\n        roadEl.textContent = "Checking road...";\n        setRoadConfidence("estimate", "Rechecking");\n        setMatchStage("matching", "");\n      }\n    }\n\n    if (startupGpsPending) {`,
+    "index.template.html"
+  );
+
+  source = replaceRequiredSnippet(
+    source,
+    `    state.acceptedAutoLimit = null;\n    state.acceptedAutoRoad = "";`,
+    `    state.acceptedAutoLimit = null;\n    state.acceptedAutoRoad = "";\n    state.acceptedAutoPosition = null;`,
+    "index.template.html"
+  );
+
+  return source;
+}
+
+module.exports = { applyRoadFreshnessFix };
