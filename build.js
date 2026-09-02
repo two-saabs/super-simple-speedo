@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { injectSupportDiagnostics } = require("./support-diagnostics");
+const { applyRoadFreshnessFix } = require("./road-freshness-fix");
 const key = process.env.GEOAPIFY_API_KEY;
 if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify."); process.exit(1); }
 const rootDir = __dirname;
@@ -19,6 +20,15 @@ function replaceRequiredSnippet(source, before, after, filename) {
   if (!source.includes(before)) { console.error(`Build failed: expected release-control snippet was not found in ${filename}.`); process.exit(1); }
   return source.replace(before, after);
 }
+function zurichBuildTime() {
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+    timeZoneName: "short"
+  }).formatToParts(new Date());
+  const get = type => parts.find(part => part.type === type)?.value || "";
+  return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")} ${get("timeZoneName")}`;
+}
 const versionConfig = JSON.parse(readRequiredFile("version.json"));
 const appVersion = versionConfig.version;
 if (typeof appVersion !== "string" || !/^\d+\.\d+\.\d+$/.test(appVersion)) { console.error("Invalid version.json"); process.exit(1); }
@@ -35,12 +45,10 @@ let html = readRequiredFile("index.template.html");
 html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.html");
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
 html = replaceRequiredSnippet(html, "Free forever. ", "", "index.template.html");
+html = applyRoadFreshnessFix(html, replaceRequiredSnippet);
 html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
 
-// Test/experimental identity is build metadata, not application layout.
-// The marker reserves its own predictable portrait header band so it cannot
-// collide with Super Simple Speedo's shared title/settings geometry.
-const buildTimeUtc = new Date().toISOString().replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+const buildTimeZurich = zurichBuildTime();
 const channelIdentity = `
   <style>
     .build-channel-marker {
@@ -63,7 +71,7 @@ const channelIdentity = `
   </style>
   <div class="build-channel-marker" aria-hidden="true">
     <div class="build-channel-name">TEST VERSION</div>
-    <div class="build-channel-meta">v${appVersion} · built ${buildTimeUtc}</div>
+    <div class="build-channel-meta">v${appVersion} · built ${buildTimeZurich}</div>
   </div>`;
 html = html.replace("</head>", `${channelIdentity.split('<div class=')[0]}</head>`);
 html = html.replace("<body>", `<body class="has-build-channel">${channelIdentity.slice(channelIdentity.indexOf('<div class='))}`);
@@ -79,30 +87,10 @@ if (experimentalFeatures) {
 }
 const releaseGuard = `(() => {\n  const EXPERIMENTAL_FEATURES = ${experimentalFeatures};\n  const BUILD_CHANNEL = ${JSON.stringify(buildChannel)};\n  if (!EXPERIMENTAL_FEATURES) {\n    ["experimentalMode", "transportDetectiveEnabled", "journeyModeEnabled", "visualTheme"].forEach(key => localStorage.removeItem(key));\n    const nativeFetch = window.fetch.bind(window);\n    window.fetch = (input, init) => {\n      const url = typeof input === "string" ? input : (input?.url || "");\n      if (String(url).includes("transport.opendata.ch")) {\n        return Promise.reject(new Error("Experimental transport API disabled in stable build"));\n      }\n      return nativeFetch(input, init);\n    };\n  }`;
 html = replaceRequiredSnippet(html, "(() => {", releaseGuard, "index.template.html");
-html = replaceRequiredSnippet(
-  html,
-  'experimentalMode: localStorage.getItem("experimentalMode") === "true",',
-  'experimentalMode: EXPERIMENTAL_FEATURES && localStorage.getItem("experimentalMode") === "true",',
-  "index.template.html"
-);
-html = replaceRequiredSnippet(
-  html,
-  'transportDetectiveEnabled: localStorage.getItem("transportDetectiveEnabled") === "true",',
-  'transportDetectiveEnabled: EXPERIMENTAL_FEATURES && localStorage.getItem("transportDetectiveEnabled") === "true",',
-  "index.template.html"
-);
-html = replaceRequiredSnippet(
-  html,
-  'journeyModeEnabled: localStorage.getItem("journeyModeEnabled") === "true",',
-  'journeyModeEnabled: EXPERIMENTAL_FEATURES && localStorage.getItem("journeyModeEnabled") === "true",',
-  "index.template.html"
-);
-html = replaceRequiredSnippet(
-  html,
-  'visualTheme: localStorage.getItem("visualTheme") || "classic",',
-  'visualTheme: EXPERIMENTAL_FEATURES ? (localStorage.getItem("visualTheme") || "classic") : "classic",',
-  "index.template.html"
-);
+html = replaceRequiredSnippet(html,'experimentalMode: localStorage.getItem("experimentalMode") === "true",','experimentalMode: EXPERIMENTAL_FEATURES && localStorage.getItem("experimentalMode") === "true",',"index.template.html");
+html = replaceRequiredSnippet(html,'transportDetectiveEnabled: localStorage.getItem("transportDetectiveEnabled") === "true",','transportDetectiveEnabled: EXPERIMENTAL_FEATURES && localStorage.getItem("transportDetectiveEnabled") === "true",',"index.template.html");
+html = replaceRequiredSnippet(html,'journeyModeEnabled: localStorage.getItem("journeyModeEnabled") === "true",','journeyModeEnabled: EXPERIMENTAL_FEATURES && localStorage.getItem("journeyModeEnabled") === "true",',"index.template.html");
+html = replaceRequiredSnippet(html,'visualTheme: localStorage.getItem("visualTheme") || "classic",','visualTheme: EXPERIMENTAL_FEATURES ? (localStorage.getItem("visualTheme") || "classic") : "classic",',"index.template.html");
 writeOutputFile("index.html", html);
 let sw = readRequiredFile("service-worker.js");
 sw = replaceAllRequired(sw, "__APP_VERSION__", appVersion, "service-worker.js");
