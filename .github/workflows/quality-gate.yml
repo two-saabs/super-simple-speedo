@@ -5,6 +5,7 @@ on:
     paths:
       - "index.template.html"
       - "build.js"
+      - "road-freshness-fix.js"
       - "build-profile.json"
       - "support-diagnostics.js"
       - "check-regressions.js"
@@ -18,6 +19,7 @@ on:
     paths:
       - "index.template.html"
       - "build.js"
+      - "road-freshness-fix.js"
       - "build-profile.json"
       - "support-diagnostics.js"
       - "check-regressions.js"
@@ -56,6 +58,13 @@ jobs:
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
+
+      - name: Verify road freshness behaviour
+        run: |
+          grep -q 'acceptedAutoPosition' dist/index.html
+          grep -q 'distanceFromConfirmedRoad >= 60' dist/index.html
+          grep -q 'const candidateRoad = hasLastConfirmed && stage === "confirming" ? displayRoadName(message) : ""' dist/index.html
+          grep -q 'setRoadConfidence("estimate", "Best estimate")' dist/index.html
 
       - name: Verify support UI and channel isolation
         run: |
