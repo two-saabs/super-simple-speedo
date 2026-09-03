@@ -73,11 +73,14 @@ jobs:
 
       - name: Verify support UI and channel isolation
         run: |
-          grep -q 'Help, contact & privacy' dist/index.html
-          grep -q 'Contact support' dist/index.html
+          grep -q 'Help & privacy' dist/index.html
+          grep -q 'Need help?' dist/index.html
+          grep -q '>Email us<' dist/index.html
+          grep -q 'Something not working?' dist/index.html
           grep -q 'support@supersimplespeedo.app' dist/index.html
           grep -q 'Share diagnostic log' dist/index.html
           grep -q 'Nothing is uploaded automatically' dist/index.html
+          grep -q 'Read privacy policy' dist/index.html
           ! grep -q '<div class="settings-section-title">Help & Diagnostics</div>' dist/index.html
 
           if node -e "process.exit(require('./build-profile.json').experimentalFeatures ? 0 : 1)"; then
