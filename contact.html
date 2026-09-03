@@ -8,7 +8,9 @@
   <style>
     :root { color-scheme: dark; background:#000; color:#fff; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif; }
     body { margin:0; background:#000; color:#fff; }
-    main { max-width:760px; margin:0 auto; padding:48px 22px 72px; line-height:1.55; }
+    main { max-width:760px; margin:0 auto; padding:32px 22px 72px; line-height:1.55; }
+    .back { display:inline-flex; align-items:center; gap:8px; margin:0 0 38px; color:#aaa; font-size:.95rem; font-weight:650; text-decoration:none; }
+    .back:hover, .back:focus { color:#fff; }
     h1 { font-size:2rem; margin:0 0 6px; }
     p { color:#ddd; }
     .muted { color:#999; }
@@ -19,15 +21,11 @@
 </head>
 <body>
 <main>
+  <a class="back" href="/" aria-label="Back to Super Simple Speedo home">← Back to Super Simple Speedo</a>
   <h1>Contact Super Simple Speedo</h1>
   <p>Questions, feedback, bugs or ideas? I’d love to hear from you.</p>
-
-  <div class="contact">
-    <a href="mailto:support@supersimplespeedo.app">support@supersimplespeedo.app</a>
-  </div>
-
+  <div class="contact"><a href="mailto:support@supersimplespeedo.app">support@supersimplespeedo.app</a></div>
   <p>If you’re reporting a problem, including your app version and build number helps. You can also include the sanitised Support Diagnostics from the app; these are designed to exclude precise coordinates, road and station names, public-transport destinations and line identifiers, API keys, and persistent identifiers.</p>
-
   <p class="muted">Super Simple Speedo · Made in Switzerland 🇨🇭</p>
   <p><a href="/privacy.html">Privacy Policy</a></p>
 </main>
