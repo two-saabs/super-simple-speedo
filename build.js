@@ -3,6 +3,7 @@ const path = require("path");
 const { injectSupportDiagnostics } = require("./support-diagnostics");
 const { applyRoadFreshnessFix } = require("./road-freshness-fix");
 const { applyStartupRobustnessFix } = require("./startup-robustness-fix");
+const { applyHelpContactPrivacyFix } = require("./help-contact-privacy-fix");
 const key = process.env.GEOAPIFY_API_KEY;
 if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify."); process.exit(1); }
 const rootDir = __dirname;
@@ -28,6 +29,7 @@ html = replaceRequiredSnippet(html,'        <div>Your journeys are your business
 html = applyRoadFreshnessFix(html, replaceRequiredSnippet);
 html = applyStartupRobustnessFix(html, replaceRequiredSnippet);
 html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
+html = applyHelpContactPrivacyFix(html, replaceRequiredSnippet, { appVersion, buildChannel });
 const buildTimeZurich = zurichBuildTime();
 const channelIdentity = `\n  <style>\n    .build-channel-marker { position:fixed; top:max(8px,env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:10000; color:#ff9500; text-align:center; text-transform:uppercase; pointer-events:none; white-space:nowrap; }\n    .build-channel-name { font-size:12px; font-weight:900; letter-spacing:.12em; }\n    .build-channel-meta { margin-top:4px; font-size:9px; font-weight:720; letter-spacing:.05em; opacity:.70; text-transform:none; }\n    @media (orientation:portrait) { body.has-build-channel #app { padding-top:max(58px,calc(env(safe-area-inset-top) + 40px)); } }\n  </style>\n  <div class="build-channel-marker" aria-hidden="true">\n    <div class="build-channel-name">TEST VERSION</div>\n    <div class="build-channel-meta">v${appVersion} · built ${buildTimeZurich}</div>\n  </div>`;
 html = html.replace("</head>", `${channelIdentity.split('<div class=')[0]}</head>`);
