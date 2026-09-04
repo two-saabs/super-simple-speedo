@@ -1,13 +1,17 @@
 function applyRoadCardRefresh(html) {
+  const interactiveBefore = `        <button id="limitButton" class="unknown" aria-label="Change speed limit">\n          <span id="limit">?</span>\n        </button>`;
+  const interactiveAfter = `        <div id="limitButton" class="unknown" aria-label="Speed limit">\n          <span id="limit">?</span>\n        </div>`;
+  if (html.includes(interactiveBefore)) html = html.replace(interactiveBefore, interactiveAfter);
+
   const css = `
-<style id="road-card-refresh-v2">
+<style id="road-card-refresh-v3">
   /* Task 4: visually bind the speed-limit sign and road evidence without
-     changing any road-matching, confidence or speed-limit behaviour. */
+     changing road-matching, confidence or speed-limit inference behaviour. */
   .lower {
     width: min(680px, 94vw);
     grid-template-columns: 148px minmax(0, 1fr);
     gap: 24px;
-    padding: 18px 22px 32px;
+    padding: 18px 22px;
     border: 1px solid var(--soft-border);
     border-radius: 30px;
     background: color-mix(in srgb, var(--panel) 92%, transparent);
@@ -19,17 +23,22 @@ function applyRoadCardRefresh(html) {
     background: rgba(255,255,255,.90);
     box-shadow: 0 16px 42px rgba(0,0,0,.10);
   }
+  /* The displayed limit is now informational only: no TAP affordance and no
+     accidental route into the manual-limit modal. */
+  #limitButton {
+    pointer-events: none;
+    cursor: default;
+  }
   .lower #limitButton::after {
-    bottom: -24px;
-    opacity: .34;
+    display: none !important;
+    content: none !important;
   }
   .road-info {
     align-self: center;
   }
 
   /* Keep the approved portrait geometry: dial where it is, generous breathing
-     room, then the card beginning at the existing road-sign height. The extra
-     bottom padding keeps TAP inside the card instead of touching its border. */
+     room, then the more compact road card at the existing road-sign height. */
   @media (orientation: portrait) {
     .lower {
       margin-top: clamp(24px, 5vh, 58px);
@@ -39,9 +48,7 @@ function applyRoadCardRefresh(html) {
     }
   }
 
-  /* Landscape: centre the functional pair vertically in the usable area.
-     The header stays independently pinned at the top. Reserve enough vertical
-     space between sign and road text for the TAP affordance to remain visible. */
+  /* Landscape: centre the functional pair vertically in the usable area. */
   @media (orientation: landscape) and (max-height: 560px) {
     .cluster {
       transform: translateY(clamp(62px, 12vh, 88px));
@@ -52,19 +59,15 @@ function applyRoadCardRefresh(html) {
     .lower {
       width: min(330px, 39vw);
       margin: 0;
-      padding: 16px 18px 20px;
+      padding: 16px 18px 18px;
       grid-template-columns: 1fr;
       justify-items: center;
-      gap: 36px;
+      gap: 14px;
       border-radius: 28px;
     }
     #limitButton {
       width: 118px;
       height: 118px;
-    }
-    .lower #limitButton::after {
-      bottom: -25px;
-      opacity: .34;
     }
     .road-info {
       width: 100%;
