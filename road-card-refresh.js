@@ -1,13 +1,13 @@
 function applyRoadCardRefresh(html) {
   const css = `
-<style id="road-card-refresh-v1">
+<style id="road-card-refresh-v2">
   /* Task 4: visually bind the speed-limit sign and road evidence without
      changing any road-matching, confidence or speed-limit behaviour. */
   .lower {
     width: min(680px, 94vw);
     grid-template-columns: 148px minmax(0, 1fr);
     gap: 24px;
-    padding: 18px 22px;
+    padding: 18px 22px 32px;
     border: 1px solid var(--soft-border);
     border-radius: 30px;
     background: color-mix(in srgb, var(--panel) 92%, transparent);
@@ -20,14 +20,16 @@ function applyRoadCardRefresh(html) {
     box-shadow: 0 16px 42px rgba(0,0,0,.10);
   }
   .lower #limitButton::after {
-    bottom: -25px;
+    bottom: -24px;
+    opacity: .34;
   }
   .road-info {
     align-self: center;
   }
 
   /* Keep the approved portrait geometry: dial where it is, generous breathing
-     room, then the card beginning at the existing road-sign height. */
+     room, then the card beginning at the existing road-sign height. The extra
+     bottom padding keeps TAP inside the card instead of touching its border. */
   @media (orientation: portrait) {
     .lower {
       margin-top: clamp(24px, 5vh, 58px);
@@ -38,7 +40,8 @@ function applyRoadCardRefresh(html) {
   }
 
   /* Landscape: centre the functional pair vertically in the usable area.
-     The header stays independently pinned at the top. */
+     The header stays independently pinned at the top. Reserve enough vertical
+     space between sign and road text for the TAP affordance to remain visible. */
   @media (orientation: landscape) and (max-height: 560px) {
     .cluster {
       transform: translateY(clamp(62px, 12vh, 88px));
@@ -49,15 +52,19 @@ function applyRoadCardRefresh(html) {
     .lower {
       width: min(330px, 39vw);
       margin: 0;
-      padding: 16px 18px 19px;
+      padding: 16px 18px 20px;
       grid-template-columns: 1fr;
       justify-items: center;
-      gap: 14px;
+      gap: 36px;
       border-radius: 28px;
     }
     #limitButton {
       width: 118px;
       height: 118px;
+    }
+    .lower #limitButton::after {
+      bottom: -25px;
+      opacity: .34;
     }
     .road-info {
       width: 100%;
