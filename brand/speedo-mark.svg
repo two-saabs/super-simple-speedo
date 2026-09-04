@@ -1,22 +1,43 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Super Simple Speedo logo">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#101820"/><stop offset="1" stop-color="#05080b"/>
+      <stop offset="0" stop-color="#111a22"/>
+      <stop offset="1" stop-color="#070a0d"/>
     </linearGradient>
     <linearGradient id="blue" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#21c8f6"/><stop offset="1" stop-color="#128cff"/>
+      <stop offset="0" stop-color="#20c9f4"/>
+      <stop offset="1" stop-color="#118dff"/>
     </linearGradient>
     <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#c4c7cc"/><stop offset="1" stop-color="#9ba0a7"/>
+      <stop offset="0" stop-color="#c7c9cd"/>
+      <stop offset="1" stop-color="#a5aab0"/>
     </linearGradient>
   </defs>
+
   <rect width="512" height="512" rx="92" fill="url(#bg)"/>
-  <rect x="12" y="12" width="488" height="488" rx="82" fill="none" stroke="#33404a" stroke-width="3"/>
-  <!-- Approved broad blue sweep: flat cut at the needle, rounded outer end. -->
-  <path d="M72 322 C76 198 171 103 296 103 C337 103 374 112 407 130 L365 171 C343 160 319 155 292 155 C196 155 124 228 124 322 C124 340 113 352 98 352 C82 352 72 341 72 322 Z" fill="url(#blue)"/>
-  <!-- Approved separate silver sweep, beginning after a clean black gap. -->
-  <path d="M423 149 C458 191 476 244 476 307 C476 336 463 352 445 352 C427 352 416 338 419 316 C422 265 410 224 384 191 Z" fill="url(#silver)"/>
-  <!-- Long white needle with circular hub, matching the approved reference. -->
-  <path d="M244 314 L404 137 L277 334 Z" fill="#fff"/>
-  <circle cx="252" cy="333" r="31" fill="#fff"/>
+  <rect x="14" y="14" width="484" height="484" rx="80" fill="none" stroke="#3b4852" stroke-width="3"/>
+
+  <!-- Master blue sweep: thick, broad and slightly flattened across the crown. -->
+  <path d="M58 322
+           C61 196 157 100 286 96
+           C333 95 375 105 413 125
+           L370 171
+           C345 159 317 153 288 154
+           C194 157 124 229 121 322
+           C120 343 107 357 89 357
+           C70 357 57 344 58 322 Z"
+        fill="url(#blue)"/>
+
+  <!-- Master silver sweep: full right-hand segment, visibly broader and lower. -->
+  <path d="M419 149
+           C459 192 479 247 478 313
+           C478 338 464 356 444 356
+           C425 356 413 341 415 319
+           C417 267 406 226 381 193
+           Z"
+        fill="url(#silver)"/>
+
+  <!-- Needle lands cleanly in the gap between blue and silver. -->
+  <path d="M239 313 L403 140 L276 337 Z" fill="#ffffff"/>
+  <circle cx="250" cy="337" r="32" fill="#ffffff"/>
 </svg>
