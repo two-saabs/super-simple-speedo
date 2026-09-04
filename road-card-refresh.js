@@ -3,29 +3,43 @@ function applyRoadCardRefresh(html) {
   const interactiveAfter = `        <div id="limitButton" class="unknown" aria-label="Speed limit">\n          <span id="limit">?</span>\n        </div>`;
   if (html.includes(interactiveBefore)) html = html.replace(interactiveBefore, interactiveAfter);
 
+  /* The driver presentation enters at 10 km/h and should return after five
+     seconds at 6 km/h or below. The original strict < 6 check could leave the
+     header permanently dimmed while the accepted speed sat exactly at 6. */
+  html = html.replace(
+    `if (state.driverModeActive && trustedSpeed < DRIVER_MODE_EXIT_SPEED && !state.driverExitTimer) {`,
+    `if (state.driverModeActive && trustedSpeed <= DRIVER_MODE_EXIT_SPEED && !state.driverExitTimer) {`
+  );
+  html = html.replace(
+    `if (state.watchId !== null && state.lastAcceptedSpeed < DRIVER_MODE_EXIT_SPEED) {`,
+    `if (state.watchId !== null && state.lastAcceptedSpeed <= DRIVER_MODE_EXIT_SPEED) {`
+  );
+
   const css = `
-<style id="road-card-refresh-v3">
+<style id="road-card-refresh-v4">
   /* Task 4: visually bind the speed-limit sign and road evidence without
      changing road-matching, confidence or speed-limit inference behaviour. */
   .lower {
-    width: min(680px, 94vw);
-    grid-template-columns: 148px minmax(0, 1fr);
-    gap: 24px;
-    padding: 18px 22px;
+    width: min(620px, 90vw);
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 20px;
+    padding: 14px 18px;
     border: 1px solid var(--soft-border);
-    border-radius: 30px;
+    border-radius: 28px;
     background: color-mix(in srgb, var(--panel) 92%, transparent);
-    box-shadow: 0 18px 48px rgba(0,0,0,.28);
+    box-shadow: 0 16px 42px rgba(0,0,0,.26);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }
   body.light .lower {
     background: rgba(255,255,255,.90);
-    box-shadow: 0 16px 42px rgba(0,0,0,.10);
+    box-shadow: 0 14px 36px rgba(0,0,0,.09);
   }
-  /* The displayed limit is now informational only: no TAP affordance and no
+  /* The displayed limit is informational only: no TAP affordance and no
      accidental route into the manual-limit modal. */
   #limitButton {
+    width: 124px;
+    height: 124px;
     pointer-events: none;
     cursor: default;
   }
@@ -38,7 +52,7 @@ function applyRoadCardRefresh(html) {
   }
 
   /* Keep the approved portrait geometry: dial where it is, generous breathing
-     room, then the more compact road card at the existing road-sign height. */
+     room, then the compact road card at the existing road-sign height. */
   @media (orientation: portrait) {
     .lower {
       margin-top: clamp(24px, 5vh, 58px);
@@ -57,21 +71,21 @@ function applyRoadCardRefresh(html) {
       padding-top: 0;
     }
     .lower {
-      width: min(330px, 39vw);
+      width: min(310px, 37vw);
       margin: 0;
-      padding: 16px 18px 18px;
+      padding: 14px 16px 16px;
       grid-template-columns: 1fr;
       justify-items: center;
-      gap: 14px;
-      border-radius: 28px;
+      gap: 12px;
+      border-radius: 26px;
     }
     #limitButton {
-      width: 118px;
-      height: 118px;
+      width: 110px;
+      height: 110px;
     }
     .road-info {
       width: 100%;
-      max-width: 270px;
+      max-width: 250px;
       text-align: center;
     }
     #source, #road, #roadConfidence {
