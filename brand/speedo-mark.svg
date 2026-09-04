@@ -1,43 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Super Simple Speedo logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 1271" role="img" aria-label="Super Simple Speedo logo">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#111a22"/>
-      <stop offset="1" stop-color="#070a0d"/>
+      <stop offset="0" stop-color="#111820"/>
+      <stop offset="1" stop-color="#05080b"/>
     </linearGradient>
     <linearGradient id="blue" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#20c9f4"/>
-      <stop offset="1" stop-color="#118dff"/>
+      <stop offset="0" stop-color="#22c9f4"/>
+      <stop offset="1" stop-color="#138cff"/>
     </linearGradient>
     <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#c7c9cd"/>
-      <stop offset="1" stop-color="#a5aab0"/>
+      <stop offset="0" stop-color="#c7c9ce"/>
+      <stop offset="1" stop-color="#9ea3aa"/>
     </linearGradient>
   </defs>
 
-  <rect width="512" height="512" rx="92" fill="url(#bg)"/>
-  <rect x="14" y="14" width="484" height="484" rx="80" fill="none" stroke="#3b4852" stroke-width="3"/>
+  <!-- Background and border matched to the approved mockup. -->
+  <rect x="48" y="38" width="1224" height="1194" rx="150" fill="url(#bg)"/>
+  <rect x="55" y="45" width="1210" height="1180" rx="143" fill="none" stroke="#394651" stroke-width="5"/>
 
-  <!-- Master blue sweep: thick, broad and slightly flattened across the crown. -->
-  <path d="M58 322
-           C61 196 157 100 286 96
-           C333 95 375 105 413 125
-           L370 171
-           C345 159 317 153 288 154
-           C194 157 124 229 121 322
-           C120 343 107 357 89 357
-           C70 357 57 344 58 322 Z"
-        fill="url(#blue)"/>
+  <!-- These three silhouettes are traced from the approved logo reference. -->
+  <path d="M955 421 L902 386 L845 360 L770 338 L710 329 L575 334 L494 356 L428 385 L316 463 L272 508 L225 571 L186 647 L164 715 L155 779 L161 833 L180 853 L208 863 L239 858 L259 843 L272 821 L286 723 L320 645 L391 558 L481 494 L561 463 L675 450 L767 464 L860 503 Z" fill="url(#blue)"/>
 
-  <!-- Master silver sweep: full right-hand segment, visibly broader and lower. -->
-  <path d="M419 149
-           C459 192 479 247 478 313
-           C478 338 464 356 444 356
-           C425 356 413 341 415 319
-           C417 267 406 226 381 193
-           Z"
-        fill="url(#silver)"/>
+  <path d="M990 453 L974 469 L917 547 L968 605 L1007 672 L1024 717 L1037 782 L1038 826 L1047 848 L1070 865 L1086 869 L1116 866 L1141 849 L1152 829 L1154 817 L1152 758 L1135 674 L1109 607 L1074 545 L1031 491 Z" fill="url(#silver)"/>
 
-  <!-- Needle lands cleanly in the gap between blue and silver. -->
-  <path d="M239 313 L403 140 L276 337 Z" fill="#ffffff"/>
-  <circle cx="250" cy="337" r="32" fill="#ffffff"/>
+  <path d="M937 473 L794 594 L613 761 L590 761 L579 765 L554 783 L536 819 L536 847 L545 870 L558 886 L580 899 L607 904 L633 899 L661 879 L674 857 L677 839 L674 817 L679 807 Z" fill="#ffffff"/>
 </svg>
