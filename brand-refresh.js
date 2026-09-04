@@ -1,8 +1,9 @@
 function applyBrandRefresh(html) {
+  const brandRevision = "20260904-approved-v1";
   const launchBefore = `    <div class="launch-ring">\n      <div class="launch-mark">Super Simple Speedo</div>\n    </div>`;
-  const launchAfter = `    <div class="launch-brand" aria-label="Super Simple Speedo">\n      <div class="launch-brand-icon"><img class="launch-brand-mark" src="brand/speedo-mark.svg" alt=""></div>\n      <div class="launch-brand-name"><span>Super Simple</span><strong>Speedo</strong></div>\n      <div class="launch-brand-tagline">GPS speedometer, simply done.</div>\n    </div>`;
+  const launchAfter = `    <div class="launch-brand" aria-label="Super Simple Speedo">\n      <div class="launch-brand-icon"><img class="launch-brand-mark" src="brand/speedo-mark.svg?v=${brandRevision}" alt=""></div>\n      <div class="launch-brand-name"><span>Super Simple</span><strong>Speedo</strong></div>\n      <div class="launch-brand-tagline">GPS speedometer, simply done.</div>\n    </div>`;
   const runningBefore = `    <div class="app-title">Super Simple Speedo</div>`;
-  const runningAfter = `    <div class="app-title" aria-label="Super Simple Speedo"><img class="app-brand-mark" src="brand/speedo-mark.svg" alt=""></div>`;
+  const runningAfter = `    <div class="app-title" aria-label="Super Simple Speedo"><img class="app-brand-mark" src="brand/speedo-mark.svg?v=${brandRevision}" alt=""></div>`;
 
   if (!html.includes(launchBefore)) throw new Error("Brand refresh: launch logo target not found");
   if (!html.includes(runningBefore)) throw new Error("Brand refresh: running logo target not found");
