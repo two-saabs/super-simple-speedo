@@ -5,36 +5,15 @@ function applyStartupRobustnessFix(html, replaceRequiredSnippet) {
     `  let startupGpsFallbackTimer = null;\n  let startupLaunchWatchdogTimer = null;\n  let startupGpsAttemptId = 0;\n  let startupMinimumCompleteAt = 0;\n  let startupCompletionScheduled = false;`,
     "index.template.html"
   );
-
   html = replaceRequiredSnippet(
     html,
     `    startupMinimumCompleteAt = Date.now() + 1600;\n    const checklist = $("launchChecklist");\n    if (checklist) checklist.classList.remove("hidden");\n    setLaunchSteps("complete", "active", "");\n    state.wakeLockWanted = true;\n\n    // GPS is the critical path. Never wait for an iOS wake-lock promise before\n    // starting it: wake lock is a best-effort enhancement only.\n    if (state.watchId === null) startGPS({ startup: true });\n    Promise.resolve(requestWakeLock({ fromUserGesture: true })).catch(() => false);\n    if (button) button.classList.add("hidden");\n\n    // A startup watchdog prevents a silent dead screen. If the geolocation\n    // callbacks never arrive, release the launch screen and let the normal app\n    // surface show its GPS state so the user can retry.\n    setTimeout(() => {\n      if (!startupGpsFinished && startupGpsPending) {\n        addDiagnostic({ event: "STARTUP_WATCHDOG", outcome: "RELEASED", reason: "no_gps_callback" });\n        finishStartupWithoutGps("GPS still connecting · retry from the app");\n      }\n    }, 12000);`,
-    `    startupMinimumCompleteAt = Date.now() + 1600;\n    const checklist = $("launchChecklist");\n    if (checklist) checklist.classList.remove("hidden");\n    setLaunchSteps("complete", "active", "");\n    state.wakeLockWanted = true;\n\n    // Arm the launch watchdog before entering the GPS path. If iOS/WebKit stalls\n    // before watchPosition is registered, startup must still escape cleanly.\n    const startupAttempt = ++startupGpsAttemptId;\n    startupGpsPending = true;\n    startupGpsFinished = false;\n    if (startupLaunchWatchdogTimer) clearTimeout(startupLaunchWatchdogTimer);\n    addDiagnostic({ event: "STARTUP_GPS_REQUESTED", outcome: "BEGIN", attempt: startupAttempt });\n    startupLaunchWatchdogTimer = setTimeout(() => {\n      if (startupAttempt !== startupGpsAttemptId || startupGpsFinished) return;\n      addDiagnostic({ event: "STARTUP_GPS_WATCHDOG", outcome: "RELEASED", reason: "no_first_callback", attempt: startupAttempt });\n      finishStartupWithoutGps("GPS taking longer · continuing…");\n    }, 15000);\n\n    // GPS is the critical path. Never wait for an iOS wake-lock promise before\n    // starting it: wake lock is a best-effort enhancement only.\n    try {\n      if (state.watchId === null) startGPS({ startup: true });\n      else completeGpsConnection({ startup: true });\n    } catch (error) {\n      addDiagnostic({ event: "STARTUP_GPS_REQUEST_ERROR", outcome: "ERROR", reason: String(error?.message || error), attempt: startupAttempt });\n    }\n    Promise.resolve(requestWakeLock({ fromUserGesture: true })).catch(() => false);\n    if (button) button.classList.add("hidden");`,
+    `    startupMinimumCompleteAt = Date.now() + 1600;\n    const checklist = $("launchChecklist");\n    if (checklist) checklist.classList.remove("hidden");\n    setLaunchSteps("complete", "active", "");\n    state.wakeLockWanted = true;\n\n    // Arm the launch watchdog before entering the GPS path. If iOS/WebKit stalls\n    // before watchPosition is registered, startup must still escape cleanly.\n    const startupAttempt = ++startupGpsAttemptId;\n    startupGpsPending = true;\n    startupGpsFinished = false;\n    if (startupLaunchWatchdogTimer) clearTimeout(startupLaunchWatchdogTimer);\n    addDiagnostic({ event: "STARTUP_GPS_REQUESTED", outcome: "BEGIN", attempt: startupAttempt });\n    startupLaunchWatchdogTimer = setTimeout(() => {\n      if (startupAttempt !== startupGpsAttemptId || startupGpsFinished) return;\n      addDiagnostic({ event: "STARTUP_GPS_WATCHDOG", outcome: "RELEASED", reason: "no_first_callback", attempt: startupAttempt });\n      finishStartupWithoutGps("GPS taking longer · continuing…");\n    }, 15000);\n\n    try {\n      if (state.watchId === null) startGPS({ startup: true });\n      else completeGpsConnection({ startup: true });\n    } catch (error) {\n      addDiagnostic({ event: "STARTUP_GPS_REQUEST_ERROR", outcome: "ERROR", reason: String(error?.message || error), attempt: startupAttempt });\n    }\n    Promise.resolve(requestWakeLock({ fromUserGesture: true })).catch(() => false);\n    if (button) button.classList.add("hidden");`,
     "index.template.html"
   );
-
-  html = replaceRequiredSnippet(
-    html,
-    `  function onPosition(position) {\n    const c = position.coords;\n    if (startupGpsPending) {`,
-    `  function onPosition(position) {\n    const c = position.coords;\n    if (startupGpsPending) {\n      addDiagnostic({\n        event: "STARTUP_GPS_FIRST_CALLBACK",\n        outcome: "RECEIVED",\n        accuracyMetres: roundDiagnostic(c.accuracy, 0),\n        attempt: startupGpsAttemptId\n      });`,
-    "index.template.html"
-  );
-
-  html = replaceRequiredSnippet(
-    html,
-    `      startupGpsFinished = true;\n      startupGpsPending = false;\n      if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);`,
-    `      startupGpsFinished = true;\n      startupGpsPending = false;\n      if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);\n      if (startupLaunchWatchdogTimer) {\n        clearTimeout(startupLaunchWatchdogTimer);\n        startupLaunchWatchdogTimer = null;\n      }`,
-    "index.template.html"
-  );
-
-  html = replaceRequiredSnippet(
-    html,
-    `    startupGpsFinished = true;\n    startupGpsPending = false;\n    if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);\n    $("launchStepLocation").textContent = message;`,
-    `    startupGpsFinished = true;\n    startupGpsPending = false;\n    if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);\n    if (startupLaunchWatchdogTimer) {\n      clearTimeout(startupLaunchWatchdogTimer);\n      startupLaunchWatchdogTimer = null;\n    }\n    $("launchStepLocation").textContent = message;`,
-    "index.template.html"
-  );
-
+  html = replaceRequiredSnippet(html,`  function onPosition(position) {\n    const c = position.coords;\n    if (startupGpsPending) {`,`  function onPosition(position) {\n    const c = position.coords;\n    if (startupGpsPending) {\n      addDiagnostic({\n        event: "STARTUP_GPS_FIRST_CALLBACK",\n        outcome: "RECEIVED",\n        accuracyMetres: roundDiagnostic(c.accuracy, 0),\n        attempt: startupGpsAttemptId\n      });`,"index.template.html");
+  html = replaceRequiredSnippet(html,`      startupGpsFinished = true;\n      startupGpsPending = false;\n      if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);`,`      startupGpsFinished = true;\n      startupGpsPending = false;\n      if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);\n      if (startupLaunchWatchdogTimer) {\n        clearTimeout(startupLaunchWatchdogTimer);\n        startupLaunchWatchdogTimer = null;\n      }`,"index.template.html");
+  html = replaceRequiredSnippet(html,`    startupGpsFinished = true;\n    startupGpsPending = false;\n    if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);\n    $("launchStepLocation").textContent = message;`,`    startupGpsFinished = true;\n    startupGpsPending = false;\n    if (startupGpsFallbackTimer) clearTimeout(startupGpsFallbackTimer);\n    if (startupLaunchWatchdogTimer) {\n      clearTimeout(startupLaunchWatchdogTimer);\n      startupLaunchWatchdogTimer = null;\n    }\n    $("launchStepLocation").textContent = message;`,"index.template.html");
   return html;
 }
-
 module.exports = { applyStartupRobustnessFix };

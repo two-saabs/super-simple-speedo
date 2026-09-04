@@ -1,0 +1,26 @@
+{
+  "name": "super-simple-speedo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Super Simple Speedo — stable web app and iOS App Store shell",
+  "scripts": {
+    "build": "node build.js",
+    "build:ios": "node -r ./ios-settings-redesign-preload.js build-ios.js",
+    "quality": "node check-regressions.js && node check-privacy.js",
+    "ios:init": "npm run build:ios && npx cap add ios && npx cap sync ios && node scripts/configure-ios.js",
+    "ios:sync": "npm run build:ios && npx cap sync ios && node scripts/configure-ios.js",
+    "ios:open": "npx cap open ios",
+    "ios:tests:install": "node scripts/install-ios-tests.js"
+  },
+  "dependencies": {
+    "@capacitor/app-launcher": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/geolocation": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "esbuild": "^0.25.0"
+  }
+}

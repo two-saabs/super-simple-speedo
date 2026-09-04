@@ -1,0 +1,19 @@
+{
+  "appId": "app.supersimplespeedo.ios",
+  "appName": "Super Simple Speedo",
+  "webDir": "dist",
+  "loggingBehavior": "debug",
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "DARK",
+      "backgroundColor": "#000000"
+    }
+  },
+  "server": {
+    "iosScheme": "capacitor"
+  }
+}

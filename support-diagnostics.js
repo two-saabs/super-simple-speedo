@@ -6,6 +6,37 @@ function replaceRequired(source, before, after, label) {
 }
 
 function injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures }) {
+  html = replaceRequired(
+    html,
+    '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">',
+    'locked iOS viewport scaling'
+  );
+
+  html = replaceRequired(
+    html,
+    '--safe-top: max(14px, env(safe-area-inset-top));',
+    '--safe-top: 14px;',
+    'fixed iOS top safe-area padding'
+  );
+
+  const viewportStyle = `
+  <style id="speedo-ios-viewport-fix">
+    body,
+    #app {
+      height: var(--app-height, 100dvh);
+      min-height: var(--app-height, 100dvh);
+    }
+  </style>
+`;
+
+  html = replaceRequired(
+    html,
+    '</head>',
+    `${viewportStyle}</head>`,
+    'iOS viewport style insertion'
+  );
+
   const supportSection = `
     <div class="settings-section" data-settings-section="help-and-diagnostics">
       <button class="settings-section-header" type="button" aria-expanded="false">
@@ -37,6 +68,8 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
 
   const supportCode = `
   const SUPPORT_REPORT_MAX_EVENTS = 150;
+  let lastViewportDiagnosticSignature = "";
+  let viewportSettleTimer = null;
 
   function supportSafeToken(value, maxLength = 90) {
     const text = String(value ?? "").replace(/[\\t\\r\\n]+/g, " ").trim();
@@ -48,6 +81,57 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     if (!Number.isFinite(timeMs) || !Number.isFinite(firstTimeMs)) return "";
     return Math.max(0, Math.round((timeMs - firstTimeMs) / 1000));
   }
+
+  function refreshViewportGeometry(reason = "resize") {
+    const root = document.documentElement;
+    const layoutHeight = Math.round(root.clientHeight || window.innerHeight || 0);
+    const innerHeight = Math.round(window.innerHeight || 0);
+    const visualHeight = Math.round(window.visualViewport?.height || 0);
+    const visualScale = Number(window.visualViewport?.scale || 1);
+    const visualOffsetTop = Math.round(window.visualViewport?.offsetTop || 0);
+    const visualOffsetLeft = Math.round(window.visualViewport?.offsetLeft || 0);
+
+    // Size the app from the layout viewport, not the visual viewport. iOS can
+    // transiently zoom/pan visualViewport during rotation or foregrounding.
+    if (layoutHeight > 0) root.style.setProperty("--app-height", layoutHeight + "px");
+
+    const orientation = (window.innerWidth || 0) > (window.innerHeight || 0) ? "LANDSCAPE" : "PORTRAIT";
+    const app = document.getElementById("app");
+    const safeTop = app ? Math.round(parseFloat(getComputedStyle(app).paddingTop) || 0) : 0;
+    const scaleToken = Math.round(visualScale * 100) / 100;
+    const signature = [orientation, layoutHeight, innerHeight, visualHeight, scaleToken, visualOffsetTop, visualOffsetLeft, safeTop].join(":");
+    if (signature !== lastViewportDiagnosticSignature) {
+      lastViewportDiagnosticSignature = signature;
+      addDiagnostic({
+        event: "VIEWPORT_CHANGE",
+        outcome: String(reason || "resize").toUpperCase()
+          + "_" + orientation
+          + "_LH" + layoutHeight
+          + "_IH" + innerHeight
+          + "_VH" + visualHeight
+          + "_VS" + scaleToken
+          + "_OT" + visualOffsetTop
+          + "_OL" + visualOffsetLeft
+          + "_ST" + safeTop
+      });
+    }
+  }
+
+  function scheduleViewportRefresh(reason = "resize", immediate = true) {
+    if (immediate) refreshViewportGeometry(reason + ":immediate");
+    clearTimeout(viewportSettleTimer);
+    viewportSettleTimer = setTimeout(() => refreshViewportGeometry(reason + ":settled"), 350);
+  }
+
+  scheduleViewportRefresh("startup");
+  window.addEventListener("resize", () => scheduleViewportRefresh("resize"), { passive: true });
+  window.addEventListener("orientationchange", () => scheduleViewportRefresh("orientation"), { passive: true });
+  // Keep visualViewport as a diagnostic signal only. Do not let its transient
+  // zoomed height resize the app canvas.
+  window.visualViewport?.addEventListener("resize", () => scheduleViewportRefresh("visual", false), { passive: true });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") scheduleViewportRefresh("foreground");
+  });
 
   function sanitisedSupportDiagnosticText() {
     const items = state.diagnosticLog.slice(-SUPPORT_REPORT_MAX_EVENTS);
@@ -133,8 +217,9 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     'sanitised support report code insertion'
   );
 
-  // IndexedDB transaction errors can occasionally arrive with tx.error === null.
-  // Diagnostics are best-effort, so ignore null failures but keep real errors visible.
+  // IndexedDB transaction errors can occasionally arrive with tx.error === null
+  // on iOS. Diagnostics are best-effort: preserve the in-memory/local log and
+  // only print an archive warning when WebKit supplies a real error object.
   html = replaceRequired(
     html,
     '  async function archiveDiagnosticEntry(entry) {\n    const db = await openDiagnosticArchive();',

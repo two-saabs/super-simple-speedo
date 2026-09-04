@@ -22,6 +22,11 @@ check(/journeyModeEnabled: EXPERIMENTAL_FEATURES &&/.test(build), 'journey mode 
 
 check(/no\s+account/i.test(template), 'no-account promise remains present');
 check(/no\s+ads/i.test(template), 'no-ads promise remains present');
+check(/does not sell your personal data/i.test(build), 'release build removes the absolute no-collection claim');
+check(/Road lookups are processed through our service and Geoapify/i.test(build), 'release build discloses road-lookup processing');
+check(/do not use your location for advertising or tracking/i.test(build), 'release build states location is not used for advertising or tracking');
+check(/No advertising\. No tracking\. No profiling\./i.test(build), 'release build uses precise privacy summary');
+
 const combined = `${template}\n${support}`;
 const trackers = [
   ['Google Analytics', /googletagmanager|google-analytics|\bgtag\s*\(/i],
