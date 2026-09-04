@@ -5,10 +5,14 @@ on:
     paths:
       - "index.template.html"
       - "build.js"
+      - "build-ios.js"
       - "build-profile.json"
       - "road-freshness-fix.js"
+      - "road-card-refresh.js"
       - "startup-robustness-fix.js"
       - "help-contact-privacy-fix.js"
+      - "settings-redesign.js"
+      - "brand-refresh.js"
       - "support-diagnostics.js"
       - "check-regressions.js"
       - "check-channel-contract.js"
@@ -21,10 +25,14 @@ on:
     paths:
       - "index.template.html"
       - "build.js"
+      - "build-ios.js"
       - "build-profile.json"
       - "road-freshness-fix.js"
+      - "road-card-refresh.js"
       - "startup-robustness-fix.js"
       - "help-contact-privacy-fix.js"
+      - "settings-redesign.js"
+      - "brand-refresh.js"
       - "support-diagnostics.js"
       - "check-regressions.js"
       - "check-channel-contract.js"
@@ -70,6 +78,27 @@ jobs:
           grep -q 'Last confirmed limit' dist/index.html
           grep -q 'setRoadConfidence("estimate", "Best estimate")' dist/index.html
           grep -q 'candidateRoad' dist/index.html
+
+      - name: Verify no-tap road card contract
+        run: |
+          grep -q 'id="limitButton" class="unknown" aria-label="Speed limit"' dist/index.html
+          grep -q '#limitButton' dist/index.html
+          grep -q 'pointer-events: none' dist/index.html
+          grep -q '.lower #limitButton::after' dist/index.html
+          ! grep -q 'aria-label="Change speed limit"' dist/index.html
+          ! grep -q 'Change speed limit' dist/index.html
+
+      - name: Verify redesigned settings contract
+        run: |
+          grep -q 'data-settings-section="audio"' dist/index.html
+          grep -q 'data-settings-section="display"' dist/index.html
+          grep -q 'data-settings-section="statistics"' dist/index.html
+          grep -q 'data-settings-section="about"' dist/index.html
+          grep -q 'data-settings-section="privacy"' dist/index.html
+          grep -q 'Appearance & Display' dist/index.html
+          grep -q 'Usage & Statistics' dist/index.html
+          grep -q 'settings-redesign-v1' dist/index.html
+          grep -q 'Super Simple Speedo · Made in Switzerland' dist/index.html
 
       - name: Verify support UI and channel isolation
         run: |
