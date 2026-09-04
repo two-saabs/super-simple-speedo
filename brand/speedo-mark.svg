@@ -1,39 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Super Simple Speedo logo">
   <defs>
-    <linearGradient id="blueArc" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0%" stop-color="#22C6F7"/>
-      <stop offset="100%" stop-color="#128BFF"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101820"/><stop offset="1" stop-color="#05080b"/>
     </linearGradient>
-    <linearGradient id="greyArc" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#B6BAC0"/>
-      <stop offset="100%" stop-color="#9AA0A7"/>
+    <linearGradient id="blue" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#21c8f6"/><stop offset="1" stop-color="#128cff"/>
+    </linearGradient>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4c7cc"/><stop offset="1" stop-color="#9ba0a7"/>
     </linearGradient>
   </defs>
-
-  <rect width="512" height="512" rx="96" fill="#0A0F13"/>
-  <rect x="20" y="20" width="472" height="472" rx="84" fill="none" stroke="#34404A" stroke-width="3"/>
-
-  <!-- Filled gauge shapes deliberately mirror the approved artwork. Using
-       filled geometry avoids the round-cap / WebKit rendering artefact that
-       made the grey segment collapse into a pill. -->
-  <path d="M82 329
-           C86 215 160 141 268 132
-           C315 128 355 140 387 162
-           L350 191
-           C323 174 294 168 261 170
-           C182 175 128 233 122 315
-           C120 335 112 347 98 349
-           C86 350 81 342 82 329 Z"
-        fill="url(#blueArc)"/>
-
-  <path d="M401 173
-           C438 210 454 257 454 316
-           C454 337 446 348 432 348
-           C418 348 412 337 413 320
-           C414 269 401 229 374 202
-           Z"
-        fill="url(#greyArc)"/>
-
-  <path d="M246 311 L388 167 L267 327 Z" fill="#FFFFFF"/>
-  <circle cx="246" cy="327" r="27" fill="#FFFFFF"/>
+  <rect width="512" height="512" rx="92" fill="url(#bg)"/>
+  <rect x="12" y="12" width="488" height="488" rx="82" fill="none" stroke="#33404a" stroke-width="3"/>
+  <!-- Approved broad blue sweep: flat cut at the needle, rounded outer end. -->
+  <path d="M72 322 C76 198 171 103 296 103 C337 103 374 112 407 130 L365 171 C343 160 319 155 292 155 C196 155 124 228 124 322 C124 340 113 352 98 352 C82 352 72 341 72 322 Z" fill="url(#blue)"/>
+  <!-- Approved separate silver sweep, beginning after a clean black gap. -->
+  <path d="M423 149 C458 191 476 244 476 307 C476 336 463 352 445 352 C427 352 416 338 419 316 C422 265 410 224 384 191 Z" fill="url(#silver)"/>
+  <!-- Long white needle with circular hub, matching the approved reference. -->
+  <path d="M244 314 L404 137 L277 334 Z" fill="#fff"/>
+  <circle cx="252" cy="333" r="31" fill="#fff"/>
 </svg>
