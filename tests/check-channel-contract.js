@@ -41,7 +41,7 @@ if (!built) {
 const capPath = path.join(root, "capacitor.config.json");
 if (fs.existsSync(capPath)) {
   const cap = JSON.parse(fs.readFileSync(capPath, "utf8"));
-  cap.ios?.contentInset === "never" ? pass("iOS safe-area ownership is CSS-only") : fail("iOS contentInset must be never");
+  cap.ios?.contentInset === "always" ? pass("iOS native safe-area inset enabled") : fail("iOS contentInset must remain always");
 }
 
 if (process.exitCode) process.exit(process.exitCode);
