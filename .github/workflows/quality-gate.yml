@@ -5,41 +5,29 @@ on:
     paths:
       - "index.template.html"
       - "build.js"
-      - "build-ios.js"
       - "build-profile.json"
-      - "road-freshness-fix.js"
-      - "road-card-refresh.js"
-      - "startup-robustness-fix.js"
-      - "help-contact-privacy-fix.js"
-      - "settings-redesign.js"
-      - "brand-refresh.js"
-      - "support-diagnostics.js"
-      - "check-regressions.js"
-      - "check-channel-contract.js"
-      - "check-privacy.js"
-      - "speed-engine.js"
-      - "test-speed-engine.js"
+      - "manifest.webmanifest"
+      - "icons/**"
+      - "brand/**"
+      - "build/**"
+      - "tests/**"
+      - "*.js"
       - "test-data/**"
+      - "speed-engine.js"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
       - "index.template.html"
       - "build.js"
-      - "build-ios.js"
       - "build-profile.json"
-      - "road-freshness-fix.js"
-      - "road-card-refresh.js"
-      - "startup-robustness-fix.js"
-      - "help-contact-privacy-fix.js"
-      - "settings-redesign.js"
-      - "brand-refresh.js"
-      - "support-diagnostics.js"
-      - "check-regressions.js"
-      - "check-channel-contract.js"
-      - "check-privacy.js"
-      - "speed-engine.js"
-      - "test-speed-engine.js"
+      - "manifest.webmanifest"
+      - "icons/**"
+      - "brand/**"
+      - "build/**"
+      - "tests/**"
+      - "*.js"
       - "test-data/**"
+      - "speed-engine.js"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -54,11 +42,35 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Verify app and brand PNG assets
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          function checkPng(path, expectedWidth, expectedHeight) {
+            const data = fs.readFileSync(path);
+            const signature = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+            if (data.length < 1000) throw new Error(`${path} is suspiciously small (${data.length} bytes)`);
+            if (!data.subarray(0, 8).equals(signature)) throw new Error(`${path} is not a valid PNG`);
+            const width = data.readUInt32BE(16);
+            const height = data.readUInt32BE(20);
+            if (expectedWidth && (width !== expectedWidth || height !== expectedHeight)) {
+              throw new Error(`${path} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}`);
+            }
+            console.log(`${path}: ${width}x${height}, ${data.length} bytes`);
+          }
+          checkPng('icons/icon-192.png', 192, 192);
+          checkPng('icons/icon-512.png', 512, 512);
+          checkPng('icons/icon-1024.png', 1024, 1024);
+          checkPng('brand/start-up-and-website-logo.png');
+          const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
+          const sources = new Set((manifest.icons || []).map(icon => String(icon.src || '').split('?')[0]));
+          for (const required of ['/icons/icon-192.png', '/icons/icon-512.png']) {
+            if (!sources.has(required)) throw new Error(`manifest.webmanifest does not reference ${required}`);
+          }
+          NODE
+
       - name: Check product and diagnostic contracts
         run: node check-regressions.js index.template.html
-
-      - name: Check release-channel contracts
-        run: node check-channel-contract.js
 
       - name: Check production privacy contracts
         run: node check-privacy.js
@@ -70,6 +82,15 @@ jobs:
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
+
+      - name: Check release-channel contracts against built output
+        run: node tests/check-channel-contract.js
+
+      - name: Verify approved branding reached the build
+        run: |
+          test -f dist/brand/start-up-and-website-logo.png
+          grep -q 'brand/start-up-and-website-logo.png' dist/index.html
+          ! grep -q 'speedo-mark.svg' dist/index.html
 
       - name: Verify road freshness behaviour
         run: |
@@ -111,12 +132,6 @@ jobs:
           grep -q 'Nothing is uploaded automatically' dist/index.html
           grep -q 'Read privacy policy' dist/index.html
           ! grep -q '<div class="settings-section-title">Help & Diagnostics</div>' dist/index.html
-
-          if node -e "process.exit(require('./build-profile.json').experimentalFeatures ? 0 : 1)"; then
-            echo "Checking experimental build contract"
-            grep -q '# build_channel=experimental' dist/index.html
-          else
-            echo "Checking stable build contract"
-            grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
-            grep -q 'Experimental transport API disabled in stable build' dist/index.html
-          fi
+          grep -q '# build_channel=test' dist/index.html
+          grep -q 'TEST VERSION' dist/index.html
+          ! grep -q 'EXPERIMENTAL VERSION' dist/index.html
