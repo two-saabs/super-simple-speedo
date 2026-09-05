@@ -92,6 +92,17 @@ if (!fs.existsSync(sourceIcon)) {
 }
 
 fs.mkdirSync(appIconDir, { recursive: true });
+// Capacitor/Xcode can leave older generated icon files in AppIcon.appiconset.
+// Xcode treats any image not referenced by Contents.json as an "unassigned
+// child", so remove stale files before writing our single canonical icon.
+for (const entry of fs.readdirSync(appIconDir)) {
+  if (entry === "Contents.json" || entry === path.basename(appIcon)) continue;
+  const stalePath = path.join(appIconDir, entry);
+  if (fs.statSync(stalePath).isFile()) {
+    fs.unlinkSync(stalePath);
+    console.log(`Removed stale iOS app icon asset: ${entry}`);
+  }
+}
 try {
   execFileSync("sips", [sourceIcon, "-s", "format", "jpeg", "-s", "formatOptions", "best", "--out", tempJpeg], { stdio: "ignore" });
   execFileSync("sips", ["-s", "format", "png", tempJpeg, "--out", appIcon], { stdio: "ignore" });
