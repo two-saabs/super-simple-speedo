@@ -121,6 +121,16 @@ jobs:
           grep -q 'Made in Switzerland' dist/home.html
           ! grep -qi 'Built with care' dist/home.html
 
+      - name: Verify hero presentation contract
+        run: |
+          grep -q 'class="hero-road-scene"' dist/home.html
+          grep -q 'class="road-horizon"' dist/home.html
+          grep -q 'class="road-plane"' dist/home.html
+          grep -q 'class="iphone-frame"' dist/home.html
+          grep -q 'class="iphone-screen"' dist/home.html
+          grep -q 'class="dynamic-island"' dist/home.html
+          grep -q 'prefers-reduced-motion' dist/home.html
+
       - name: Verify website routing contract
         run: |
           grep -q 'from = "/"' netlify.toml
