@@ -38,6 +38,7 @@
   from = "/privacy.html"
   to = "/#privacy"
   status = 302
+  force = true
 
 [[redirects]]
   from = "/contact"
