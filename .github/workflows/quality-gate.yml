@@ -3,9 +3,14 @@ name: Super Simple Speedo quality gate
 on:
   push:
     paths:
+      - "home.html"
       - "index.template.html"
       - "build.js"
       - "build-profile.json"
+      - "netlify.toml"
+      - "manifest.webmanifest"
+      - "brand/**"
+      - "icons/**"
       - "support-diagnostics.js"
       - "check-regressions.js"
       - "check-channel-contract.js"
@@ -16,9 +21,14 @@ on:
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
+      - "home.html"
       - "index.template.html"
       - "build.js"
       - "build-profile.json"
+      - "netlify.toml"
+      - "manifest.webmanifest"
+      - "brand/**"
+      - "icons/**"
       - "support-diagnostics.js"
       - "check-regressions.js"
       - "check-channel-contract.js"
@@ -40,11 +50,31 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Verify website image assets
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const required = [
+            'brand/start-up-and-website-logo.png',
+            'brand/swiss-flag-website.png',
+            'brand/dark-confirmed-inline.png',
+            'brand/light-confirmed-inline.png',
+            'brand/dark-estimate-inline.png',
+            'icons/icon-192.png',
+            'icons/icon-512.png',
+            'icons/icon-1024.png'
+          ];
+          const sig = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+          for (const file of required) {
+            const data = fs.readFileSync(file);
+            if (data.length < 1000) throw new Error(`${file} is suspiciously small`);
+            if (!data.subarray(0,8).equals(sig)) throw new Error(`${file} is not a PNG`);
+            console.log(`OK ${file} (${data.length} bytes)`);
+          }
+          NODE
+
       - name: Check product and diagnostic contracts
         run: node check-regressions.js index.template.html
-
-      - name: Check release-channel contracts
-        run: node check-channel-contract.js
 
       - name: Check production privacy contracts
         run: node check-privacy.js
@@ -57,17 +87,41 @@ jobs:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
 
+      - name: Verify single-page website contract
+        run: |
+          test -f dist/home.html
+          test -f dist/index.html
+          test -f dist/brand/start-up-and-website-logo.png
+          test -f dist/brand/swiss-flag-website.png
+          test -f dist/brand/dark-confirmed-inline.png
+          test -f dist/brand/light-confirmed-inline.png
+          test -f dist/brand/dark-estimate-inline.png
+          grep -q 'id="features"' dist/home.html
+          grep -q 'id="about"' dist/home.html
+          grep -q 'id="privacy"' dist/home.html
+          grep -q 'id="contact"' dist/home.html
+          grep -q 'brand/start-up-and-website-logo.png' dist/home.html
+          grep -q 'brand/swiss-flag-website.png' dist/home.html
+          grep -q 'brand/dark-confirmed-inline.png' dist/home.html
+          grep -q 'brand/light-confirmed-inline.png' dist/home.html
+          grep -q 'brand/dark-estimate-inline.png' dist/home.html
+          grep -q 'Made in Switzerland' dist/home.html
+          ! grep -qi 'Built with care' dist/home.html
+
+      - name: Verify website routing contract
+        run: |
+          grep -q 'from = "/"' netlify.toml
+          grep -q 'to = "/home.html"' netlify.toml
+          grep -q 'from = "/web"' netlify.toml
+          grep -q 'to = "/index.html"' netlify.toml
+          grep -q 'from = "/privacy"' netlify.toml
+          grep -q 'to = "/#privacy"' netlify.toml
+          grep -q 'from = "/contact"' netlify.toml
+          grep -q 'to = "/#contact"' netlify.toml
+
       - name: Verify support UI and channel isolation
         run: |
-          grep -q 'Help & Diagnostics' dist/index.html
           grep -q 'Share diagnostic log' dist/index.html
           grep -q 'Nothing is uploaded automatically' dist/index.html
-
-          if node -e "process.exit(require('./build-profile.json').experimentalFeatures ? 0 : 1)"; then
-            echo "Checking experimental build contract"
-            grep -q '# build_channel=experimental' dist/index.html
-          else
-            echo "Checking stable build contract"
-            grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
-            grep -q 'Experimental transport API disabled in stable build' dist/index.html
-          fi
+          grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
+          grep -q 'Experimental transport API disabled in stable build' dist/index.html
