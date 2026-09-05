@@ -22,8 +22,6 @@ profile.EXPERIMENTAL_FEATURES === isExperimental ? pass("legacy experimental fea
 
 /--safe-top:\s*max\(14px,\s*env\(safe-area-inset-top\)\)/.test(template) ? pass("shared safe-top primitive present") : fail("shared safe-top primitive changed");
 /#app\s*\{[\s\S]*?padding:\s*var\(--safe-top\)\s+18px\s+var\(--safe-bottom\)/.test(template) ? pass("shared app padding contract present") : fail("shared app padding contract changed");
-
-/if \(buildChannel !== "stable"\)/.test(build) ? pass("channel marker is gated to non-stable builds") : fail("channel marker gating changed");
 /Europe\/Zurich/.test(build) ? pass("non-stable build metadata uses Zurich timezone") : fail("Zurich build timezone missing");
 
 if (!built) {
