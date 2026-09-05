@@ -87,14 +87,12 @@ replaceRequired(
   "native location permission settings block"
 );
 
-// The unified web settings already contain the Privacy Policy link. For the
-// native WKWebView make it absolute so it opens the public policy rather than
-// resolving to a bundled local file path.
-replaceRequired(
-  'href="/privacy.html" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;font-weight:700;">Read privacy policy</a>',
-  'href="https://supersimplespeedo.app/privacy.html" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;font-weight:700;">Read privacy policy</a>',
-  "in-app privacy policy link"
-);
+// The shared stable build now points directly at the Privacy section on the
+// public product homepage. Keep this as an explicit iOS packaging contract.
+if (!html.includes('href="https://supersimplespeedo.app/#privacy" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;font-weight:700;">Read privacy policy</a>')) {
+  console.error("iOS build failed: expected homepage privacy-section link was not found.");
+  process.exit(1);
+}
 
 const injectedKey = process.env.GEOAPIFY_API_KEY;
 if (!injectedKey) {
