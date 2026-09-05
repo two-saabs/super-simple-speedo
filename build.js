@@ -92,7 +92,7 @@ for (const filename of ["manifest.webmanifest", "_headers", "privacy.html", "con
   const src = path.join(rootDir, filename);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outputDir, filename));
 }
-for (const dir of ["audio", "icons"]) {
+for (const dir of ["audio", "icons", "brand"]) {
   const src = path.join(rootDir, dir);
   if (fs.existsSync(src)) fs.cpSync(src, path.join(outputDir, dir), { recursive: true });
 }
