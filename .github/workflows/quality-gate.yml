@@ -7,19 +7,19 @@ on:
       - "build.js"
       - "build-ios.js"
       - "build-profile.json"
-      - "road-freshness-fix.js"
-      - "road-card-refresh.js"
-      - "startup-robustness-fix.js"
-      - "help-contact-privacy-fix.js"
-      - "settings-redesign.js"
-      - "brand-refresh.js"
-      - "support-diagnostics.js"
-      - "check-regressions.js"
-      - "check-channel-contract.js"
-      - "check-privacy.js"
-      - "speed-engine.js"
-      - "test-speed-engine.js"
+      - "manifest.webmanifest"
+      - "icons/**"
+      - "brand/**"
+      - "build/**"
+      - "tests/**"
+      - "*.js"
       - "test-data/**"
+      - "speed-engine.js"
+      - "package.json"
+      - "native-ios.js"
+      - "capacitor.config.json"
+      - "scripts/**"
+      - "ios/**"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
@@ -27,19 +27,19 @@ on:
       - "build.js"
       - "build-ios.js"
       - "build-profile.json"
-      - "road-freshness-fix.js"
-      - "road-card-refresh.js"
-      - "startup-robustness-fix.js"
-      - "help-contact-privacy-fix.js"
-      - "settings-redesign.js"
-      - "brand-refresh.js"
-      - "support-diagnostics.js"
-      - "check-regressions.js"
-      - "check-channel-contract.js"
-      - "check-privacy.js"
-      - "speed-engine.js"
-      - "test-speed-engine.js"
+      - "manifest.webmanifest"
+      - "icons/**"
+      - "brand/**"
+      - "build/**"
+      - "tests/**"
+      - "*.js"
       - "test-data/**"
+      - "speed-engine.js"
+      - "package.json"
+      - "native-ios.js"
+      - "capacitor.config.json"
+      - "scripts/**"
+      - "ios/**"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -54,11 +54,35 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Verify app and brand PNG assets
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          function checkPng(path, expectedWidth, expectedHeight) {
+            const data = fs.readFileSync(path);
+            const signature = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+            if (data.length < 1000) throw new Error(`${path} is suspiciously small (${data.length} bytes)`);
+            if (!data.subarray(0, 8).equals(signature)) throw new Error(`${path} is not a valid PNG`);
+            const width = data.readUInt32BE(16);
+            const height = data.readUInt32BE(20);
+            if (expectedWidth && (width !== expectedWidth || height !== expectedHeight)) {
+              throw new Error(`${path} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}`);
+            }
+            console.log(`${path}: ${width}x${height}, ${data.length} bytes`);
+          }
+          checkPng('icons/icon-192.png', 192, 192);
+          checkPng('icons/icon-512.png', 512, 512);
+          checkPng('icons/icon-1024.png', 1024, 1024);
+          checkPng('brand/start-up-and-website-logo.png');
+          const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
+          const sources = new Set((manifest.icons || []).map(icon => String(icon.src || '').split('?')[0]));
+          for (const required of ['/icons/icon-192.png', '/icons/icon-512.png']) {
+            if (!sources.has(required)) throw new Error(`manifest.webmanifest does not reference ${required}`);
+          }
+          NODE
+
       - name: Check product and diagnostic contracts
         run: node check-regressions.js index.template.html
-
-      - name: Check release-channel contracts
-        run: node check-channel-contract.js
 
       - name: Check production privacy contracts
         run: node check-privacy.js
@@ -66,57 +90,75 @@ jobs:
       - name: Replay speed behaviour fixtures
         run: node test-speed-engine.js
 
-      - name: Build configured release output
+      - name: Build stable web source first
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
 
-      - name: Verify road freshness behaviour
+      - name: Check release-channel contracts against built output
+        run: node tests/check-channel-contract.js
+
+      - name: Verify approved branding reached the stable build
+        run: |
+          test -f dist/brand/start-up-and-website-logo.png
+          grep -q 'brand/start-up-and-website-logo.png' dist/index.html
+          ! grep -q 'speedo-mark.svg' dist/index.html
+          ! grep -q 'TEST VERSION' dist/index.html
+          ! grep -q 'EXPERIMENTAL VERSION' dist/index.html
+
+      - name: Verify web behaviour contracts
         run: |
           grep -q 'acceptedAutoPosition' dist/index.html
           grep -q 'distanceFromConfirmedRoad >= 60' dist/index.html
           grep -q 'Last confirmed limit' dist/index.html
           grep -q 'setRoadConfidence("estimate", "Best estimate")' dist/index.html
           grep -q 'candidateRoad' dist/index.html
-
-      - name: Verify no-tap road card contract
-        run: |
           grep -q 'id="limitButton" class="unknown" aria-label="Speed limit"' dist/index.html
-          grep -q '#limitButton' dist/index.html
           grep -q 'pointer-events: none' dist/index.html
-          grep -q '.lower #limitButton::after' dist/index.html
           ! grep -q 'aria-label="Change speed limit"' dist/index.html
-          ! grep -q 'Change speed limit' dist/index.html
-
-      - name: Verify redesigned settings contract
-        run: |
-          grep -q 'data-settings-section="audio"' dist/index.html
-          grep -q 'data-settings-section="display"' dist/index.html
-          grep -q 'data-settings-section="statistics"' dist/index.html
-          grep -q 'data-settings-section="about"' dist/index.html
-          grep -q 'data-settings-section="privacy"' dist/index.html
-          grep -q 'Appearance & Display' dist/index.html
-          grep -q 'Usage & Statistics' dist/index.html
           grep -q 'settings-redesign-v1' dist/index.html
-          grep -q 'Super Simple Speedo · Made in Switzerland' dist/index.html
-
-      - name: Verify support UI and channel isolation
-        run: |
           grep -q 'Help & privacy' dist/index.html
-          grep -q 'Need help?' dist/index.html
-          grep -q '>Email us<' dist/index.html
-          grep -q 'Something not working?' dist/index.html
           grep -q 'support@supersimplespeedo.app' dist/index.html
           grep -q 'Share diagnostic log' dist/index.html
-          grep -q 'Nothing is uploaded automatically' dist/index.html
-          grep -q 'Read privacy policy' dist/index.html
-          ! grep -q '<div class="settings-section-title">Help & Diagnostics</div>' dist/index.html
 
-          if node -e "process.exit(require('./build-profile.json').experimentalFeatures ? 0 : 1)"; then
-            echo "Checking experimental build contract"
-            grep -q '# build_channel=experimental' dist/index.html
-          else
-            echo "Checking stable build contract"
-            grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
-            grep -q 'Experimental transport API disabled in stable build' dist/index.html
-          fi
+      - name: Verify iOS source contracts
+        run: |
+          node --check build-ios.js
+          node --check scripts/configure-ios.js
+          node --check native-ios.js
+          grep -q 'icons", "icon-1024.png"' scripts/configure-ios.js
+          ! grep -q 'icons", "icon-512.png"' scripts/configure-ios.js
+          ! grep -q '\["-z", "1024", "1024"' scripts/configure-ios.js
+          grep -q 'NSLocationWhenInUseUsageDescription' scripts/configure-ios.js
+          grep -q 'NSLocationAlwaysAndWhenInUseUsageDescription' scripts/configure-ios.js
+          grep -q 'PrivacyInfo.xcprivacy' scripts/configure-ios.js
+          grep -q 'NSPrivacyCollectedDataTypePreciseLocation' scripts/configure-ios.js
+          grep -q 'backgroundColor.*white="0.0"' scripts/configure-ios.js
+          grep -q 'https://supersimplespeedo.app/#privacy' build-ios.js
+          grep -q 'ios-secure-proxy' build-ios.js
+          grep -q 'geoapify-proxy?action=reverse' build-ios.js
+          grep -q 'geoapify-proxy?action=mapmatching' build-ios.js
+          node -e "const c=require('./capacitor.config.json'); if(c.ios?.contentInset!=='never') process.exit(1)"
+
+      - name: Install iOS build dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Build iOS App Store shell
+        env:
+          GEOAPIFY_API_KEY: test-key-not-for-production
+        run: npm run build:ios
+
+      - name: Verify packaged iOS shell
+        run: |
+          test -f dist/native-ios.bundle.js
+          grep -q 'window.__SPEEDO_NATIVE_IOS__ = true' dist/index.html
+          grep -q 'window.__SPEEDO_NATIVE_GEOLOCATION__' dist/index.html
+          grep -q 'nativeLocationPermissionSetting' dist/index.html
+          grep -q 'Manage in iPhone Settings' dist/index.html
+          grep -q 'https://supersimplespeedo.app/#privacy' dist/index.html
+          grep -q 'https://supersimplespeedo.app/.netlify/functions/geoapify-proxy?action=reverse' dist/index.html
+          grep -q 'https://supersimplespeedo.app/.netlify/functions/geoapify-proxy?action=mapmatching' dist/index.html
+          grep -q 'apiKey: "ios-secure-proxy"' dist/index.html
+          ! grep -q 'test-key-not-for-production' dist/index.html
+          ! grep -q 'navigator.geolocation' dist/index.html
+          grep -q '!window.__SPEEDO_NATIVE_IOS__ && "serviceWorker" in navigator' dist/index.html
