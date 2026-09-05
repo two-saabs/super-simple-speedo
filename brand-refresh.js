@@ -1,6 +1,6 @@
 function applyBrandRefresh(html) {
-  const brandRevision = "20260905-website-logo-v1";
-  const approvedMark = `brand/website-logo.png?v=${brandRevision}`;
+  const brandRevision = "20260905-startup-website-logo-v1";
+  const approvedMark = `brand/start-up-and-website-logo.png?v=${brandRevision}`;
   const launchBefore = `    <div class="launch-ring">\n      <div class="launch-mark">Super Simple Speedo</div>\n    </div>`;
   const launchAfter = `    <div class="launch-brand" aria-label="Super Simple Speedo">\n      <div class="launch-brand-icon"><img class="launch-brand-mark" src="${approvedMark}" alt=""></div>\n      <div class="launch-brand-name"><span>Super Simple</span><strong>Speedo</strong></div>\n      <div class="launch-brand-tagline">GPS speedometer, simply done.</div>\n    </div>`;
   const runningBefore = `    <div class="app-title">Super Simple Speedo</div>`;
