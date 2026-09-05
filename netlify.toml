@@ -16,3 +16,34 @@
   from = "/web/"
   to = "/index.html"
   status = 200
+
+# Temporary single-page website while the product site is being consolidated.
+[[redirects]]
+  from = "/features"
+  to = "/#features"
+  status = 302
+
+[[redirects]]
+  from = "/about"
+  to = "/#about"
+  status = 302
+
+[[redirects]]
+  from = "/privacy"
+  to = "/#privacy"
+  status = 302
+
+[[redirects]]
+  from = "/privacy.html"
+  to = "/#privacy"
+  status = 302
+
+[[redirects]]
+  from = "/contact"
+  to = "/#contact"
+  status = 302
+
+[[redirects]]
+  from = "/contact.html"
+  to = "/#contact"
+  status = 302
