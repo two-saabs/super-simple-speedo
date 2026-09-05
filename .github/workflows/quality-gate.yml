@@ -85,7 +85,7 @@ jobs:
         run: node check-regressions.js index.template.html
 
       - name: Check production privacy contracts
-        run: node check-privacy.js
+        run: node tests/check-privacy.js
 
       - name: Replay speed behaviour fixtures
         run: node test-speed-engine.js
