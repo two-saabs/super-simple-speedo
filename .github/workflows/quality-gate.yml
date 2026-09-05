@@ -48,10 +48,8 @@ on:
 jobs:
   quality-gate:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -61,14 +59,9 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const required = [
-            'brand/start-up-and-website-logo.png',
-            'brand/swiss-flag-website.png',
-            'brand/dark-confirmed-inline.png',
-            'brand/light-confirmed-inline.png',
-            'brand/dark-estimate-inline.png',
-            'icons/icon-192.png',
-            'icons/icon-512.png',
-            'icons/icon-1024.png'
+            'brand/start-up-and-website-logo.png','brand/swiss-flag-website.png',
+            'brand/dark-confirmed-inline.png','brand/light-confirmed-inline.png','brand/dark-estimate-inline.png',
+            'icons/icon-192.png','icons/icon-512.png','icons/icon-1024.png'
           ];
           const sig = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
           for (const file of required) {
@@ -77,17 +70,16 @@ jobs:
             if (!data.subarray(0,8).equals(sig)) throw new Error(`${file} is not a PNG`);
             console.log(`OK ${file} (${data.length} bytes)`);
           }
+          const alpine = fs.readFileSync('brand/alpine-road-background.svg','utf8');
+          if (!alpine.includes('<svg') || !alpine.includes('viewBox="0 0 1600 1000"')) throw new Error('Alpine backdrop is invalid');
           NODE
 
       - name: Check product and diagnostic contracts
         run: node check-regressions.js index.template.html
-
       - name: Check production privacy contracts
         run: node check-privacy.js
-
       - name: Replay speed behaviour fixtures
         run: node test-speed-engine.js
-
       - name: Build configured release output
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
@@ -104,32 +96,29 @@ jobs:
         run: |
           test -f dist/home.html
           test -f dist/index.html
-          test -f dist/brand/start-up-and-website-logo.png
-          test -f dist/brand/swiss-flag-website.png
-          test -f dist/brand/dark-confirmed-inline.png
-          test -f dist/brand/light-confirmed-inline.png
-          test -f dist/brand/dark-estimate-inline.png
+          test -f dist/brand/alpine-road-background.svg
           grep -q 'id="features"' dist/home.html
           grep -q 'id="about"' dist/home.html
           grep -q 'id="privacy"' dist/home.html
           grep -q 'id="contact"' dist/home.html
-          grep -q 'brand/start-up-and-website-logo.png' dist/home.html
-          grep -q 'brand/swiss-flag-website.png' dist/home.html
-          grep -q 'brand/dark-confirmed-inline.png' dist/home.html
-          grep -q 'brand/light-confirmed-inline.png' dist/home.html
-          grep -q 'brand/dark-estimate-inline.png' dist/home.html
           grep -q 'Made in Switzerland' dist/home.html
           ! grep -qi 'Built with care' dist/home.html
+          ! grep -q 'Android planned' dist/home.html
 
-      - name: Verify hero presentation contract
+      - name: Verify Alpine hero presentation contract
         run: |
-          grep -q 'class="hero-road-scene"' dist/home.html
-          grep -q 'class="road-horizon"' dist/home.html
-          grep -q 'class="road-plane"' dist/home.html
+          grep -q "alpine-road-background.svg" dist/home.html
           grep -q 'class="iphone-frame"' dist/home.html
           grep -q 'class="iphone-screen"' dist/home.html
           grep -q 'class="dynamic-island"' dist/home.html
-          grep -q 'prefers-reduced-motion' dist/home.html
+          grep -q 'class="hero-facts"' dist/home.html
+          grep -q 'Completely free' dist/home.html
+          grep -q 'No account or subscription needed' dist/home.html
+          grep -q 'No advertisements' dist/home.html
+          grep -q 'class="launch-button"' dist/home.html
+          grep -q 'Launch Webapp in Browser' dist/home.html
+          grep -q 'overflow-x:clip' dist/home.html
+          grep -q '@media (max-width:680px)' dist/home.html
 
       - name: Verify website routing contract
         run: |
@@ -149,3 +138,5 @@ jobs:
           grep -q 'Nothing is uploaded automatically' dist/index.html
           grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
           grep -q 'Experimental transport API disabled in stable build' dist/index.html
+          grep -q 'https://supersimplespeedo.app/#privacy' dist/index.html
+          ! grep -q 'href="/privacy.html"' dist/index.html
