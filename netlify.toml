@@ -1,5 +1,5 @@
 [build]
-  command = "node build.js"
+  command = "node build.js && cp home.html dist/home.html && cp contact.html dist/contact.html"
   publish = "dist"
 
 [[redirects]]
