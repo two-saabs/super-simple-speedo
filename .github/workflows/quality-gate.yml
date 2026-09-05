@@ -110,8 +110,15 @@ jobs:
 
       - name: Verify website routing contract
         run: |
-          grep -q 'from = "/"' netlify.toml
-          grep -q 'to = "/home.html"' netlify.toml
+          node <<'NODE'
+          const fs = require('fs');
+          const text = fs.readFileSync('netlify.toml', 'utf8');
+          const root = text.match(/\[\[redirects\]\][\s\S]*?from = "\/"[\s\S]*?(?=\n\[\[redirects\]\]|$)/);
+          if (!root) throw new Error('Missing root redirect');
+          if (!/to = "\/home\.html"/.test(root[0])) throw new Error('Root redirect must target /home.html');
+          if (!/status = 200/.test(root[0])) throw new Error('Root redirect must be a 200 rewrite');
+          if (!/force = true/.test(root[0])) throw new Error('Root rewrite must set force = true so /index.html cannot shadow the homepage');
+          NODE
           grep -q 'from = "/web"' netlify.toml
           grep -q 'to = "/index.html"' netlify.toml
           grep -q 'from = "/privacy"' netlify.toml
