@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { applySettingsRedesign } = require('./settings-redesign');
+const { applySettingsRedesign } = require('./build/settings-redesign');
 
 const originalWriteFileSync = fs.writeFileSync.bind(fs);
 fs.writeFileSync = function patchedWriteFileSync(file, data, options) {
