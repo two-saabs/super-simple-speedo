@@ -78,22 +78,22 @@ const privacyManifestXml = `<?xml version="1.0" encoding="UTF-8"?>
 fs.writeFileSync(privacyManifest, privacyManifestXml, "utf8");
 console.log("Configured app privacy manifest: precise location for app functionality; no tracking or identity linking.");
 
-// Keep the native App Store icon in sync with the existing Speedo web icon.
+// Keep the native App Store icon in sync with the approved 1024px Speedo icon.
 // Apple requires an opaque 1024x1024 marketing icon, so we deliberately
 // round-trip through JPEG before writing the final PNG to strip any alpha.
-const sourceIcon = path.join(rootDir, "icons", "icon-512.png");
+const sourceIcon = path.join(rootDir, "icons", "icon-1024.png");
 const appIconDir = path.join(iosAppDir, "Assets.xcassets", "AppIcon.appiconset");
 const appIcon = path.join(appIconDir, "AppIcon-1024.png");
 const tempJpeg = path.join(appIconDir, ".AppIcon-1024-temp.jpg");
 
 if (!fs.existsSync(sourceIcon)) {
-  console.error("iOS configuration failed: icons/icon-512.png was not found.");
+  console.error("iOS configuration failed: icons/icon-1024.png was not found.");
   process.exit(1);
 }
 
 fs.mkdirSync(appIconDir, { recursive: true });
 try {
-  execFileSync("sips", ["-z", "1024", "1024", sourceIcon, "-s", "format", "jpeg", "-s", "formatOptions", "best", "--out", tempJpeg], { stdio: "ignore" });
+  execFileSync("sips", [sourceIcon, "-s", "format", "jpeg", "-s", "formatOptions", "best", "--out", tempJpeg], { stdio: "ignore" });
   execFileSync("sips", ["-s", "format", "png", tempJpeg, "--out", appIcon], { stdio: "ignore" });
 } catch (error) {
   console.error("iOS configuration failed while preparing the 1024x1024 app icon with macOS sips.");
@@ -117,7 +117,7 @@ const appIconContents = {
   }
 };
 fs.writeFileSync(path.join(appIconDir, "Contents.json"), `${JSON.stringify(appIconContents, null, 2)}\n`, "utf8");
-console.log("Prepared opaque 1024x1024 iOS app icon from the existing Speedo icon.");
+console.log("Prepared opaque 1024x1024 iOS app icon from icons/icon-1024.png.");
 
 // A launch screen should feel like the first frame of the app, not an advert
 // or a second branded loading screen. Speedo's default canvas is black, so a
