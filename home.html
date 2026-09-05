@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="dark light">
   <meta name="theme-color" content="#000000">
   <title>Super Simple Speedo — GPS speedometer, simply done.</title>
-  <meta name="description" content="A clean, privacy-first GPS speedometer with automatic speed-limit detection. Free, no ads, no account, no subscription.">
+  <meta name="description" content="A clean, privacy-first GPS speedometer with automatic speed-limit detection. Completely free, no advertisements, no account or subscription needed.">
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
   <style>
     :root { color-scheme:dark; --bg:#000; --fg:#fff; --muted:#a8a8a8; --panel:#0d1117; --panel2:#111; --border:#262626; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif; }
@@ -30,7 +30,6 @@
     .eyebrow img { width:20px; height:20px; object-fit:contain; }
     h1 { margin:18px 0 18px; font-size:clamp(52px, 8vw, 86px); line-height:.92; letter-spacing:-.065em; }
     .tagline { margin:0; font-size:clamp(25px, 4vw, 36px); line-height:1.15; font-weight:750; letter-spacing:-.035em; color:#e8e8e8; }
-    .promise { margin:16px 0 0; font-size:clamp(18px, 2.5vw, 23px); line-height:1.35; color:var(--muted); letter-spacing:-.02em; }
     .lead { max-width:680px; margin:14px 0 0; font-size:clamp(17px, 2vw, 20px); line-height:1.45; color:#c8c8c8; letter-spacing:-.015em; }
     .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:34px; }
     .button { min-height:52px; padding:0 20px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; font-weight:800; }
@@ -40,7 +39,7 @@
     .availability { margin-top:16px; font-size:13px; color:var(--muted); }
     .hero-shot { display:flex; justify-content:center; }
     .hero-shot img { width:min(100%, 480px); max-height:620px; object-fit:contain; border-radius:28px; }
-    .facts { margin-top:clamp(58px, 9vh, 96px); display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .facts { margin-top:clamp(58px, 9vh, 96px); display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
     .fact { padding:24px 20px 24px 0; font-size:16px; font-weight:750; }
     .fact::before { content:'✓'; color:#55d98d; margin-right:9px; font-weight:900; }
     .fact + .fact { padding-left:20px; border-left:1px solid var(--border); }
@@ -75,9 +74,8 @@
       .nav-links { gap:12px; font-size:13px; }
       main { padding-top:42px; }
       h1 { font-size:clamp(52px, 15vw, 70px); }
-      .facts { grid-template-columns:1fr 1fr; }
-      .fact:nth-child(3) { border-left:0; border-top:1px solid var(--border); padding-left:0; }
-      .fact:nth-child(4) { border-top:1px solid var(--border); }
+      .facts { grid-template-columns:1fr; }
+      .fact + .fact { border-left:0; border-top:1px solid var(--border); padding-left:0; }
       .screens { grid-template-columns:1fr; }
       footer { flex-direction:column; align-items:flex-start; }
     }
@@ -97,7 +95,6 @@
           <div class="eyebrow"><img src="/brand/swiss-flag-website.png" alt="">Made in Switzerland</div>
           <h1>Super Simple<br>Speedo.</h1>
           <p class="tagline">GPS speedometer, simply done.</p>
-          <p class="promise">Your speed. Nothing you don’t need.</p>
           <p class="lead">A clean, privacy-first speedometer with automatic speed-limit detection where available.</p>
           <div class="actions">
             <span class="button disabled" aria-disabled="true">iPhone · App Store soon</span>
@@ -109,7 +106,7 @@
       </section>
 
       <section class="facts" aria-label="Product principles">
-        <div class="fact">Free</div><div class="fact">No advertisements</div><div class="fact">No account needed</div><div class="fact">No subscription</div>
+        <div class="fact">Completely free</div><div class="fact">No account or subscription needed</div><div class="fact">No advertisements</div>
       </section>
 
       <section class="section" id="features">
