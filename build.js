@@ -1,12 +1,12 @@
 const fs = require("fs");
 const path = require("path");
-const { injectSupportDiagnostics } = require("./support-diagnostics");
-const { applyRoadFreshnessFix } = require("./road-freshness-fix");
-const { applyStartupRobustnessFix } = require("./startup-robustness-fix");
-const { applyHelpContactPrivacyFix } = require("./help-contact-privacy-fix");
-const { applySettingsRedesign } = require("./settings-redesign");
-const { applyBrandRefresh } = require("./brand-refresh");
-const { applyRoadCardRefresh } = require("./road-card-refresh");
+const { injectSupportDiagnostics } = require("./build/support-diagnostics");
+const { applyRoadFreshnessFix } = require("./build/road-freshness-fix");
+const { applyStartupRobustnessFix } = require("./build/startup-robustness-fix");
+const { applyHelpContactPrivacyFix } = require("./build/help-contact-privacy-fix");
+const { applySettingsRedesign } = require("./build/settings-redesign");
+const { applyBrandRefresh } = require("./build/brand-refresh");
+const { applyRoadCardRefresh } = require("./build/road-card-refresh");
 const key = process.env.GEOAPIFY_API_KEY;
 if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify."); process.exit(1); }
 const rootDir = __dirname;

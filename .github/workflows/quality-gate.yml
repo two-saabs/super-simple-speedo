@@ -5,47 +5,25 @@ on:
     paths:
       - "index.template.html"
       - "build.js"
-      - "build-ios.js"
       - "build-profile.json"
       - "manifest.webmanifest"
       - "icons/**"
       - "brand/**"
-      - "road-freshness-fix.js"
-      - "road-card-refresh.js"
-      - "startup-robustness-fix.js"
-      - "help-contact-privacy-fix.js"
-      - "settings-redesign.js"
-      - "brand-refresh.js"
-      - "support-diagnostics.js"
-      - "check-regressions.js"
-      - "check-channel-contract.js"
-      - "check-privacy.js"
+      - "build/**"
+      - "tests/**"
       - "speed-engine.js"
-      - "test-speed-engine.js"
-      - "test-data/**"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
       - "index.template.html"
       - "build.js"
-      - "build-ios.js"
       - "build-profile.json"
       - "manifest.webmanifest"
       - "icons/**"
       - "brand/**"
-      - "road-freshness-fix.js"
-      - "road-card-refresh.js"
-      - "startup-robustness-fix.js"
-      - "help-contact-privacy-fix.js"
-      - "settings-redesign.js"
-      - "brand-refresh.js"
-      - "support-diagnostics.js"
-      - "check-regressions.js"
-      - "check-channel-contract.js"
-      - "check-privacy.js"
+      - "build/**"
+      - "tests/**"
       - "speed-engine.js"
-      - "test-speed-engine.js"
-      - "test-data/**"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -60,7 +38,7 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Verify app icon files are complete PNGs
+      - name: Verify app and brand PNG assets
         run: |
           node <<'NODE'
           const fs = require('fs');
@@ -72,7 +50,7 @@ jobs:
             if (!data.subarray(0, 8).equals(pngSignature)) throw new Error(`${path} is not a valid PNG`);
             const width = data.readUInt32BE(16);
             const height = data.readUInt32BE(20);
-            if (width !== expectedWidth || height !== expectedHeight) {
+            if (expectedWidth && (width !== expectedWidth || height !== expectedHeight)) {
               throw new Error(`${path} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}`);
             }
             console.log(`${path}: ${width}x${height}, ${data.length} bytes`);
@@ -81,6 +59,9 @@ jobs:
           checkPng('icons/icon-192.png', 192, 192);
           checkPng('icons/icon-512.png', 512, 512);
           checkPng('icons/icon-1024.png', 1024, 1024);
+          checkPng('brand/start-up-and-website-logo.png');
+
+          if (fs.existsSync('brand/speedo-mark.svg')) throw new Error('obsolete brand/speedo-mark.svg must not return');
 
           const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
           const iconSources = new Set((manifest.icons || []).map(icon => String(icon.src || '').split('?')[0]));
@@ -90,21 +71,27 @@ jobs:
           NODE
 
       - name: Check product and diagnostic contracts
-        run: node check-regressions.js index.template.html
-
-      - name: Check release-channel contracts
-        run: node check-channel-contract.js
+        run: node tests/check-regressions.js index.template.html
 
       - name: Check production privacy contracts
-        run: node check-privacy.js
+        run: node tests/check-privacy.js
 
       - name: Replay speed behaviour fixtures
-        run: node test-speed-engine.js
+        run: node tests/test-speed-engine.js
 
       - name: Build configured release output
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
+
+      - name: Check release-channel contracts against built output
+        run: node tests/check-channel-contract.js
+
+      - name: Verify approved branding reached the build
+        run: |
+          test -f dist/brand/start-up-and-website-logo.png
+          grep -q 'brand/start-up-and-website-logo.png' dist/index.html
+          ! grep -q 'speedo-mark.svg' dist/index.html
 
       - name: Verify road freshness behaviour
         run: |
@@ -151,7 +138,7 @@ jobs:
             echo "Checking experimental build contract"
             grep -q '# build_channel=experimental' dist/index.html
           else
-            echo "Checking stable build contract"
+            echo "Checking stable/test build contract"
             grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
             grep -q 'Experimental transport API disabled in stable build' dist/index.html
           fi

@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { createSpeedState, processSpeedSample } = require("./speed-engine");
+const { createSpeedState, processSpeedSample } = require("../speed-engine");
 
 const fixtureDirectory = path.join(__dirname, "test-data");
 const fixtureFiles = fs.readdirSync(fixtureDirectory)

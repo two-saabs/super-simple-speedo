@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const candidatePath = process.argv[2] || 'index.template.html';
+const candidatePath = process.argv[2] || path.join(__dirname, '..', 'index.template.html');
 const baselinePath = process.argv[3] || null;
 
 function stop(message, exitCode = 2) {
@@ -12,27 +12,16 @@ function stop(message, exitCode = 2) {
   process.exit(exitCode);
 }
 
-if (!fs.existsSync(candidatePath)) {
-  stop(`Cannot find ${candidatePath}`);
-}
+if (!fs.existsSync(candidatePath)) stop(`Cannot find ${candidatePath}`);
 
 const read = filePath => fs.readFileSync(filePath, 'utf8');
 const candidate = read(candidatePath);
 const failures = [];
 const warnings = [];
-
 const pass = message => console.log(`PASS  ${message}`);
-const fail = message => {
-  failures.push(message);
-  console.error(`FAIL  ${message}`);
-};
-const warn = message => {
-  warnings.push(message);
-  console.warn(`WARN  ${message}`);
-};
-const has = (text, pattern) => (
-  typeof pattern === 'string' ? text.includes(pattern) : pattern.test(text)
-);
+const fail = message => { failures.push(message); console.error(`FAIL  ${message}`); };
+const warn = message => { warnings.push(message); console.warn(`WARN  ${message}`); };
+const has = (text, pattern) => typeof pattern === 'string' ? text.includes(pattern) : pattern.test(text);
 
 console.log(`\nSuper Simple Speedo quality gate`);
 console.log(`Checking: ${path.resolve(candidatePath)}\n`);
@@ -128,51 +117,26 @@ const contracts = [
   ['driver responsibility wording remains present', /responsibility\s+of\s+the\s+driver/i]
 ];
 
-for (const [name, pattern] of contracts) {
-  has(candidate, pattern) ? pass(name) : fail(name);
-}
+for (const [name, pattern] of contracts) has(candidate, pattern) ? pass(name) : fail(name);
 
-if (/timeZone:\s*["']Europe\/(?:Zurich|Berlin|Rome)["']/.test(candidate)) {
-  fail('timezone must not be hard-coded');
-} else {
-  pass('timezone is not hard-coded');
-}
+if (/timeZone:\s*["']Europe\/(?:Zurich|Berlin|Rome)["']/.test(candidate)) fail('timezone must not be hard-coded'); else pass('timezone is not hard-coded');
+if (/Google Analytics|googletagmanager|gtag\s*\(/i.test(candidate)) fail('unexpected analytics code detected'); else pass('no Google Analytics code detected');
+if (/\b(?:TODO|FIXME)\b/.test(candidate)) warn('TODO or FIXME marker remains in the production template');
 
-if (/Google Analytics|googletagmanager|gtag\s*\(/i.test(candidate)) {
-  fail('unexpected analytics code detected');
-} else {
-  pass('no Google Analytics code detected');
-}
-
-if (/\b(?:TODO|FIXME)\b/.test(candidate)) {
-  warn('TODO or FIXME marker remains in the production template');
-}
-
-function setOfMatches(text, regex, group = 1) {
-  const output = new Set();
-  for (const match of text.matchAll(regex)) output.add(match[group]);
-  return output;
-}
-
-function removed(before, after) {
-  return [...before].filter(value => !after.has(value)).sort();
-}
+function setOfMatches(text, regex, group = 1) { const output = new Set(); for (const match of text.matchAll(regex)) output.add(match[group]); return output; }
+function removed(before, after) { return [...before].filter(value => !after.has(value)).sort(); }
 
 if (baselinePath) {
   if (!fs.existsSync(baselinePath)) stop(`Cannot find baseline ${baselinePath}`);
   const baseline = read(baselinePath);
-
   const comparisons = [
     ['DOM ids', /\bid=["']([^"']+)["']/g],
     ['localStorage contracts', /localStorage\.(?:getItem|setItem)\(["']([^"']+)["']/g],
     ['diagnostic event types', /event:\s*["']([A-Z0-9_]+)["']/g]
   ];
-
   for (const [label, regex] of comparisons) {
     const removedItems = removed(setOfMatches(baseline, regex), setOfMatches(candidate, regex));
-    removedItems.length
-      ? fail(`${label} removed since baseline: ${removedItems.join(', ')}`)
-      : pass(`no baseline ${label.toLowerCase()} were removed`);
+    removedItems.length ? fail(`${label} removed since baseline: ${removedItems.join(', ')}`) : pass(`no baseline ${label.toLowerCase()} were removed`);
   }
 }
 

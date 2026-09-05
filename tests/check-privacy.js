@@ -2,10 +2,13 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
+const root = path.join(__dirname, '..');
+const readRoot = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-const template = fs.readFileSync('index.template.html', 'utf8');
-const build = fs.readFileSync('build.js', 'utf8');
-const support = fs.readFileSync('support-diagnostics.js', 'utf8');
+const template = readRoot('index.template.html');
+const build = readRoot('build.js');
+const support = readRoot('build/support-diagnostics.js');
 const failures = [];
 const pass = message => console.log(`PASS  ${message}`);
 const fail = message => { failures.push(message); console.error(`FAIL  ${message}`); };
