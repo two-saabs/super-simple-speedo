@@ -5,26 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <meta name="theme-color" content="#000000">
-  <title>Super Simple Speedo — GPS speedometer. Simply done.</title>
-  <meta name="description" content="A clean, privacy-first GPS speedometer with automatic speed-limit detection. No ads, no account, no tracking.">
+  <title>Super Simple Speedo — GPS speedometer, simply done.</title>
+  <meta name="description" content="A clean, privacy-first GPS speedometer with automatic speed-limit detection. Free, no ads, no account, no subscription.">
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
   <style>
-    :root { color-scheme:dark; --bg:#000; --fg:#fff; --muted:#a8a8a8; --panel:#111; --border:#262626; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif; }
+    :root { color-scheme:dark; --bg:#000; --fg:#fff; --muted:#a8a8a8; --panel:#0d1117; --panel2:#111; --border:#262626; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif; }
     * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
     html,body { margin:0; min-height:100%; background:var(--bg); color:var(--fg); }
     body { min-height:100vh; }
     a { color:inherit; }
-    .page { width:min(1080px, calc(100% - 40px)); margin:0 auto; }
-    nav { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
+    .page { width:min(1120px, calc(100% - 40px)); margin:0 auto; }
+    nav { min-height:76px; display:flex; align-items:center; justify-content:space-between; gap:18px; position:sticky; top:0; z-index:20; background:rgba(0,0,0,.88); backdrop-filter:blur(16px); border-bottom:1px solid rgba(255,255,255,.05); }
+    .nav-inner { width:min(1120px, calc(100% - 40px)); margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:18px; }
     .brand { display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:-.02em; text-decoration:none; }
-    .brand img { width:34px; height:34px; border-radius:9px; }
-    .nav-links { display:flex; gap:20px; font-size:14px; color:var(--muted); }
+    .brand img { width:42px; height:42px; object-fit:contain; }
+    .nav-links { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:18px; font-size:14px; color:var(--muted); }
     .nav-links a { text-decoration:none; }
-    main { padding:clamp(58px, 10vh, 120px) 0 80px; }
-    .hero { max-width:820px; }
-    .eyebrow { font-size:13px; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:var(--muted); }
-    h1 { margin:18px 0 18px; font-size:clamp(54px, 9vw, 92px); line-height:.92; letter-spacing:-.065em; }
-    .tagline { margin:0; font-size:clamp(25px, 4vw, 36px); line-height:1.15; font-weight:700; letter-spacing:-.035em; color:#e8e8e8; }
+    .nav-links a:hover { color:#fff; }
+    main { padding:clamp(44px, 8vh, 92px) 0 60px; }
+    .hero-grid { display:grid; grid-template-columns:1.05fr .95fr; align-items:center; gap:clamp(34px,6vw,74px); }
+    .hero { max-width:720px; }
+    .eyebrow { display:inline-flex; align-items:center; gap:9px; font-size:13px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+    .eyebrow img { width:20px; height:20px; object-fit:contain; }
+    h1 { margin:18px 0 18px; font-size:clamp(52px, 8vw, 86px); line-height:.92; letter-spacing:-.065em; }
+    .tagline { margin:0; font-size:clamp(25px, 4vw, 36px); line-height:1.15; font-weight:750; letter-spacing:-.035em; color:#e8e8e8; }
     .promise { margin:16px 0 0; font-size:clamp(18px, 2.5vw, 23px); line-height:1.35; color:var(--muted); letter-spacing:-.02em; }
     .lead { max-width:680px; margin:14px 0 0; font-size:clamp(17px, 2vw, 20px); line-height:1.45; color:#c8c8c8; letter-spacing:-.015em; }
     .actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:34px; }
@@ -33,58 +38,138 @@
     .button.secondary { border:1px solid var(--border); background:var(--panel); color:#fff; }
     .button.disabled { color:#777; border:1px solid var(--border); background:#080808; cursor:default; }
     .availability { margin-top:16px; font-size:13px; color:var(--muted); }
-    .facts { margin-top:clamp(64px, 10vh, 110px); display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .hero-shot { display:flex; justify-content:center; }
+    .hero-shot img { width:min(100%, 480px); max-height:620px; object-fit:contain; border-radius:28px; }
+    .facts { margin-top:clamp(58px, 9vh, 96px); display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
     .fact { padding:24px 20px 24px 0; font-size:16px; font-weight:750; }
+    .fact::before { content:'✓'; color:#55d98d; margin-right:9px; font-weight:900; }
     .fact + .fact { padding-left:20px; border-left:1px solid var(--border); }
-    .story { display:grid; grid-template-columns:1fr 1fr; gap:48px; padding:clamp(64px, 10vh, 110px) 0; }
-    .story h2 { margin:0; font-size:clamp(34px,5vw,56px); line-height:1; letter-spacing:-.045em; }
-    .story p { margin:0; color:#c8c8c8; font-size:18px; line-height:1.6; }
-    footer { padding:30px 0 48px; border-top:1px solid var(--border); display:flex; justify-content:space-between; gap:20px; color:var(--muted); font-size:14px; }
-    footer div:last-child { display:flex; gap:20px; }
+    .section { padding:clamp(64px, 9vh, 104px) 0; border-bottom:1px solid var(--border); scroll-margin-top:90px; }
+    .section-grid { display:grid; grid-template-columns:.82fr 1.18fr; gap:clamp(34px,7vw,86px); align-items:start; }
+    .section h2 { margin:0; font-size:clamp(34px,5vw,54px); line-height:1; letter-spacing:-.045em; }
+    .section h3 { margin:34px 0 8px; font-size:20px; letter-spacing:-.02em; }
+    .section p, .section li { color:#c8c8c8; font-size:17px; line-height:1.65; }
+    .section p:first-child { margin-top:0; }
+    .muted { color:var(--muted)!important; }
+    .screens { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:38px; }
+    .screen-card { background:var(--panel); border:1px solid var(--border); border-radius:22px; padding:12px; }
+    .screen-card img { width:100%; display:block; border-radius:16px; }
+    .screen-card p { margin:10px 4px 2px; font-size:13px; color:var(--muted); }
+    .privacy-copy ul { padding-left:20px; }
+    .contact-box { margin-top:22px; padding:22px; border:1px solid var(--border); border-radius:18px; background:var(--panel2); }
+    .contact-box a { font-size:18px; font-weight:800; text-decoration:none; overflow-wrap:anywhere; }
+    .made { display:inline-flex; align-items:center; gap:9px; }
+    .made img { width:22px; height:22px; object-fit:contain; }
+    footer { padding:30px 0 48px; display:flex; justify-content:space-between; align-items:center; gap:20px; color:var(--muted); font-size:14px; }
+    footer div:last-child { display:flex; flex-wrap:wrap; gap:18px; }
     footer a { text-decoration:none; }
+    @media (max-width:820px) {
+      .hero-grid, .section-grid { grid-template-columns:1fr; }
+      .hero-shot { order:-1; }
+      .hero-shot img { width:min(88%, 430px); }
+    }
     @media (max-width:720px) {
-      .page { width:min(100% - 28px, 1080px); }
+      .page,.nav-inner { width:min(100% - 28px, 1120px); }
       nav { min-height:66px; }
       .brand span { display:none; }
-      .nav-links { gap:14px; }
-      main { padding-top:56px; }
-      h1 { font-size:clamp(54px, 16vw, 72px); }
+      .nav-links { gap:12px; font-size:13px; }
+      main { padding-top:42px; }
+      h1 { font-size:clamp(52px, 15vw, 70px); }
       .facts { grid-template-columns:1fr 1fr; }
       .fact:nth-child(3) { border-left:0; border-top:1px solid var(--border); padding-left:0; }
       .fact:nth-child(4) { border-top:1px solid var(--border); }
-      .story { grid-template-columns:1fr; gap:24px; }
-      footer { flex-direction:column; }
+      .screens { grid-template-columns:1fr; }
+      footer { flex-direction:column; align-items:flex-start; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <nav>
-      <a class="brand" href="/" aria-label="Super Simple Speedo home"><img src="/icons/icon-192.png" alt=""><span>Super Simple Speedo</span></a>
-      <div class="nav-links"><a href="/web">Web app</a><a href="/contact">Contact</a></div>
-    </nav>
+  <nav>
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="Super Simple Speedo home"><img src="/brand/start-up-and-website-logo.png" alt=""><span>Super Simple Speedo</span></a>
+      <div class="nav-links"><a href="#features">Features</a><a href="#about">About</a><a href="#privacy">Privacy</a><a href="#contact">Contact</a><a href="/web">Web app</a></div>
+    </div>
+  </nav>
+  <div class="page" id="top">
     <main>
-      <section class="hero">
-        <div class="eyebrow">Super Simple Speedo</div>
-        <h1>Super Simple<br>Speedo.</h1>
-        <p class="tagline">GPS speedometer. Simply done.</p>
-        <p class="promise">Your speed. Nothing you don’t need.</p>
-        <p class="lead">A clean, privacy-first speedometer with automatic speed-limit detection where available.</p>
-        <div class="actions">
-          <span class="button disabled" aria-disabled="true">iPhone · App Store soon</span>
-          <a class="button secondary" href="/web">Use in your browser</a>
+      <section class="hero-grid">
+        <div class="hero">
+          <div class="eyebrow"><img src="/brand/swiss-flag-website.png" alt="">Made in Switzerland</div>
+          <h1>Super Simple<br>Speedo.</h1>
+          <p class="tagline">GPS speedometer, simply done.</p>
+          <p class="promise">Your speed. Nothing you don’t need.</p>
+          <p class="lead">A clean, privacy-first speedometer with automatic speed-limit detection where available.</p>
+          <div class="actions">
+            <span class="button disabled" aria-disabled="true">iPhone · App Store soon</span>
+            <a class="button secondary" href="/web">Use in your browser</a>
+          </div>
+          <div class="availability">Android planned · browser version available now</div>
         </div>
-        <div class="availability">Android planned · browser version available now</div>
+        <div class="hero-shot"><img src="/brand/dark-confirmed-inline.png" alt="Super Simple Speedo in dark mode with a confirmed road and speed limit"></div>
       </section>
+
       <section class="facts" aria-label="Product principles">
-        <div class="fact">Free</div><div class="fact">No ads</div><div class="fact">No account</div><div class="fact">No tracking</div>
+        <div class="fact">Free</div><div class="fact">No advertisements</div><div class="fact">No account needed</div><div class="fact">No subscription</div>
       </section>
-      <section class="story">
-        <h2>A speedometer that stays out of the way.</h2>
-        <p>Super Simple Speedo focuses on the information that matters while you’re moving: your speed, the road limit when it can be identified, and a clear display that is easy to read at a glance. The web version remains available, while native iPhone and Android distributions become the main way to use the app.</p>
+
+      <section class="section" id="features">
+        <div class="section-grid">
+          <h2>Simple where it matters.</h2>
+          <div>
+            <p>Super Simple Speedo focuses on the information that matters while you’re moving: your current speed, the road limit when it can be identified, and a clear display designed to be read at a glance.</p>
+            <p>It uses GPS for speed, can automatically look up road and speed-limit information, supports light and dark appearance, and clearly distinguishes confirmed road information from a best estimate.</p>
+          </div>
+        </div>
+        <div class="screens">
+          <div class="screen-card"><img src="/brand/light-confirmed-inline.png" alt="Light mode with a confirmed speed limit"><p>Light mode · confirmed road</p></div>
+          <div class="screen-card"><img src="/brand/dark-estimate-inline.png" alt="Dark mode showing a best estimate while road information is being confirmed"><p>Dark mode · best estimate</p></div>
+          <div class="screen-card"><img src="/brand/dark-confirmed-inline.png" alt="Dark mode with a confirmed road and speed limit"><p>Dark mode · confirmed road</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="about">
+        <div class="section-grid">
+          <h2>A speedometer that stays out of the way.</h2>
+          <div>
+            <p>Super Simple Speedo started from a very simple idea: when you need a speedometer, you should be able to open one and immediately understand it.</p>
+            <p>The web version remains available, while native iPhone and Android versions become the main way to use the app. The product is intentionally small, privacy-conscious and focused rather than trying to become another driving dashboard full of things you did not ask for.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="privacy">
+        <div class="section-grid">
+          <h2>Privacy.</h2>
+          <div class="privacy-copy">
+            <p class="muted">Effective: 29 August 2026</p>
+            <p>Super Simple Speedo is designed to do a small job with as little data collection as practical. It has no user accounts, no advertising, and no user tracking.</p>
+            <h3>Location</h3>
+            <p>Super Simple Speedo uses your device’s precise location while you are using the app to calculate your current speed and to provide automatic road and speed-limit information. Speed calculation is performed on the device. When automatic road or speed-limit lookup is used, location coordinates are transmitted securely from the app to a server function operated for Super Simple Speedo and then to Geoapify so that the road or speed limit can be identified.</p>
+            <h3>What we do not do</h3>
+            <ul><li>We do not require or maintain a Super Simple Speedo user account.</li><li>We do not use location or other app data for advertising or marketing.</li><li>We do not track you across apps, websites, or services.</li><li>We do not sell personal data.</li><li>We do not enable Netlify Web Analytics or Real User Monitoring for the service.</li></ul>
+            <h3>Diagnostics</h3>
+            <p>Diagnostic information is kept locally on the device and is not uploaded automatically. If you choose to share a diagnostic log, sharing is initiated by you. The shareable format is designed to exclude precise coordinates, road and station names, public-transport destinations and line identifiers, API keys, and persistent identifiers.</p>
+            <h3>Retention and your choices</h3>
+            <p>Super Simple Speedo does not maintain an application database of your journeys or location history. You can stop location access at any time in your device settings. If our data practices change, this privacy information and the app’s store privacy information will be updated.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="contact">
+        <div class="section-grid">
+          <h2>Contact.</h2>
+          <div>
+            <p>Questions, feedback, bugs or ideas? We’d love to hear from you.</p>
+            <div class="contact-box"><a href="mailto:support@supersimplespeedo.app">support@supersimplespeedo.app</a></div>
+            <p>If you’re reporting a problem, including your app version and build number helps. You can also include the sanitised Support Diagnostics from the app.</p>
+          </div>
+        </div>
       </section>
     </main>
-    <footer><div>Made in Switzerland 🇨🇭</div><div><a href="/privacy">Privacy</a><a href="/contact">Contact</a></div></footer>
+    <footer>
+      <div class="made"><img src="/brand/swiss-flag-website.png" alt="">Made in Switzerland</div>
+      <div><a href="#features">Features</a><a href="#about">About</a><a href="#privacy">Privacy</a><a href="#contact">Contact</a><a href="/web">Web app</a></div>
+    </footer>
   </div>
 </body>
 </html>
