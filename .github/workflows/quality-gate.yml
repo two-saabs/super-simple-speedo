@@ -138,7 +138,7 @@ jobs:
           grep -q 'ios-secure-proxy' build-ios.js
           grep -q 'geoapify-proxy?action=reverse' build-ios.js
           grep -q 'geoapify-proxy?action=mapmatching' build-ios.js
-          node -e "const c=require('./capacitor.config.json'); if(c.ios?.contentInset!=='never') process.exit(1)"
+          node -e "const c=require('./capacitor.config.json'); if(c.ios?.contentInset!=='always') process.exit(1)"
 
       - name: Install iOS build dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
