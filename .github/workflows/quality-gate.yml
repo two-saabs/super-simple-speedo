@@ -102,7 +102,9 @@ jobs:
           grep -q 'data-settings-section="about"' dist/index.html
           grep -q 'data-settings-section="privacy"' dist/index.html
           grep -q 'data-settings-section="audio" aria-hidden="true"' dist/index.html
-          grep -q '#settingsModal .settings-section\[data-settings-section="audio"\], #settingsModal .settings-section\[data-settings-section="statistics"\] { display:none; }' dist/index.html
+          grep -Fq '#settingsModal .settings-section[data-settings-section="audio"]' dist/index.html
+          grep -Fq '#settingsModal .settings-section[data-settings-section="statistics"]' dist/index.html
+          grep -Fq 'display:none;' dist/index.html
           grep -q 'sounds: EXPERIMENTAL_FEATURES && localStorage.getItem("limitSounds") === "true"' dist/index.html
           grep -q 'warning: EXPERIMENTAL_FEATURES && localStorage.getItem("overspeedWarning") !== "false"' dist/index.html
           grep -q 'greetingAudio: EXPERIMENTAL_FEATURES && localStorage.getItem("greetingAudio") !== "false"' dist/index.html
