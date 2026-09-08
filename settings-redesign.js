@@ -15,11 +15,8 @@ function applySettingsRedesign(html) {
   #settingsModal .setting-row,#settingsModal .setting,#settingsModal .settings-row { min-height:54px; border-radius:13px; }
   #settingsModal .segment-button,#settingsModal button,#settingsModal [role="button"] { -webkit-tap-highlight-color:transparent; }
   #settingsModal .settings-section[data-settings-section="advanced-and-experimental-features"] { border-style:dashed; }
-  #settingsModal .settings-section[data-settings-section="statistics"] { display:none; }
+  #settingsModal .settings-section[data-settings-section="audio"], #settingsModal .settings-section[data-settings-section="statistics"] { display:none; }
   #settingsModal .settings-redesign-note { margin:18px 8px 2px; text-align:center; font-size:11px; font-weight:650; letter-spacing:.02em; opacity:.34; }
-  #settingsModal [data-settings-section="statistics"] .setting-row { margin-bottom:18px; }
-  #settingsModal [data-settings-section="statistics"] .stat-label,#settingsModal [data-settings-section="statistics"] .data-usage-label { font-weight:580; opacity:.55; }
-  #settingsModal [data-settings-section="statistics"] .stats-delight-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:12px 0 0; }
   body.light #settingsModal .sheet { box-shadow:0 -18px 60px rgba(0,0,0,.15); }
   @media (max-width:390px) { #settingsModal .sheet { width:100vw; padding-left:12px; padding-right:12px; } #settingsModal h2 { font-size:27px; } #settingsModal .settings-section-header { min-height:58px; padding:0 12px; } }
 </style>`;
