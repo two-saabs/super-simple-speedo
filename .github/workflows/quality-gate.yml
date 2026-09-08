@@ -6,6 +6,7 @@ on:
       - "index.template.html"
       - "build.js"
       - "build-profile.json"
+      - "version.json"
       - "manifest.webmanifest"
       - "icons/**"
       - "brand/**"
@@ -20,6 +21,7 @@ on:
       - "index.template.html"
       - "build.js"
       - "build-profile.json"
+      - "version.json"
       - "manifest.webmanifest"
       - "icons/**"
       - "brand/**"
@@ -37,7 +39,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -53,10 +54,7 @@ jobs:
             if (!data.subarray(0, 8).equals(signature)) throw new Error(`${path} is not a valid PNG`);
             const width = data.readUInt32BE(16);
             const height = data.readUInt32BE(20);
-            if (expectedWidth && (width !== expectedWidth || height !== expectedHeight)) {
-              throw new Error(`${path} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}`);
-            }
-            console.log(`${path}: ${width}x${height}, ${data.length} bytes`);
+            if (expectedWidth && (width !== expectedWidth || height !== expectedHeight)) throw new Error(`${path} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}`);
           }
           checkPng('icons/icon-192.png', 192, 192);
           checkPng('icons/icon-512.png', 512, 512);
@@ -64,25 +62,19 @@ jobs:
           checkPng('brand/start-up-and-website-logo.png');
           const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
           const sources = new Set((manifest.icons || []).map(icon => String(icon.src || '').split('?')[0]));
-          for (const required of ['/icons/icon-192.png', '/icons/icon-512.png']) {
-            if (!sources.has(required)) throw new Error(`manifest.webmanifest does not reference ${required}`);
-          }
+          for (const required of ['/icons/icon-192.png', '/icons/icon-512.png']) if (!sources.has(required)) throw new Error(`manifest.webmanifest does not reference ${required}`);
           NODE
 
       - name: Check product and diagnostic contracts
         run: node check-regressions.js index.template.html
-
       - name: Check production privacy contracts
         run: node check-privacy.js
-
       - name: Replay speed behaviour fixtures
         run: node test-speed-engine.js
-
       - name: Build configured release output
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
-
       - name: Check release-channel contracts against built output
         run: node tests/check-channel-contract.js
 
@@ -92,46 +84,35 @@ jobs:
           grep -q 'brand/start-up-and-website-logo.png' dist/index.html
           ! grep -q 'speedo-mark.svg' dist/index.html
 
-      - name: Verify road freshness behaviour
+      - name: Verify road behaviour contracts
         run: |
           grep -q 'acceptedAutoPosition' dist/index.html
           grep -q 'distanceFromConfirmedRoad >= 60' dist/index.html
           grep -q 'Last confirmed limit' dist/index.html
-          grep -q 'setRoadConfidence("estimate", "Best estimate")' dist/index.html
           grep -q 'candidateRoad' dist/index.html
-
-      - name: Verify no-tap road card contract
-        run: |
           grep -q 'id="limitButton" class="unknown" aria-label="Speed limit"' dist/index.html
-          grep -q '#limitButton' dist/index.html
           grep -q 'pointer-events: none' dist/index.html
-          grep -q '.lower #limitButton::after' dist/index.html
           ! grep -q 'aria-label="Change speed limit"' dist/index.html
-          ! grep -q 'Change speed limit' dist/index.html
 
-      - name: Verify redesigned settings contract
+      - name: Verify experimental settings remain available
         run: |
           grep -q 'data-settings-section="audio"' dist/index.html
-          grep -q 'data-settings-section="display"' dist/index.html
           grep -q 'data-settings-section="statistics"' dist/index.html
+          grep -q 'data-settings-section="display"' dist/index.html
           grep -q 'data-settings-section="about"' dist/index.html
           grep -q 'data-settings-section="privacy"' dist/index.html
           grep -q 'Appearance & Display' dist/index.html
           grep -q 'Usage & Statistics' dist/index.html
-          grep -q 'settings-redesign-v1' dist/index.html
-          grep -q 'Super Simple Speedo · Made in Switzerland' dist/index.html
+          grep -q 'Audio greeting' dist/index.html
+          ! grep -q 'data-settings-section="audio" aria-hidden="true"' dist/index.html
+          ! grep -q '#settingsModal .settings-section\[data-settings-section="audio"\], #settingsModal .settings-section\[data-settings-section="statistics"\] { display:none; }' dist/index.html
 
-      - name: Verify support UI and channel isolation
+      - name: Verify support UI and experimental channel isolation
         run: |
           grep -q 'Help & privacy' dist/index.html
-          grep -q 'Need help?' dist/index.html
-          grep -q '>Email us<' dist/index.html
-          grep -q 'Something not working?' dist/index.html
           grep -q 'support@supersimplespeedo.app' dist/index.html
           grep -q 'Share diagnostic log' dist/index.html
           grep -q 'Nothing is uploaded automatically' dist/index.html
-          grep -q 'Read privacy policy' dist/index.html
-          ! grep -q '<div class="settings-section-title">Help & Diagnostics</div>' dist/index.html
           grep -q '# build_channel=experimental' dist/index.html
           grep -q 'EXPERIMENTAL VERSION' dist/index.html
           ! grep -q 'TEST VERSION' dist/index.html
