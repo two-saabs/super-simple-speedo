@@ -43,13 +43,21 @@ if (buildChannel !== "stable") {
   html = html.replace("</head>", `${channelIdentity.split('<div class=')[0]}</head>`);
   html = html.replace("<body>", `<body class="has-build-channel">${channelIdentity.slice(channelIdentity.indexOf('<div class='))}`);
 }
-if (experimentalFeatures) { html = replaceRequiredSnippet(html, `Version ${appVersion}`, `Version ${appVersion} · Experimental`, "index.template.html"); } else { html = replaceRequiredSnippet(html,'<div class="settings-section" data-settings-section="advanced-and-experimental-features">','<div class="settings-section hidden-element" data-settings-section="advanced-and-experimental-features" aria-hidden="true">',"index.template.html"); }
+if (experimentalFeatures) {
+  html = replaceRequiredSnippet(html, `Version ${appVersion}`, `Version ${appVersion} · Experimental`, "index.template.html");
+} else {
+  html = replaceRequiredSnippet(html,'<div class="settings-section" data-settings-section="advanced-and-experimental-features">','<div class="settings-section hidden-element" data-settings-section="advanced-and-experimental-features" aria-hidden="true">',"index.template.html");
+  html = replaceRequiredSnippet(html,'<div class="settings-section" data-settings-section="audio">','<div class="settings-section hidden-element" data-settings-section="audio" aria-hidden="true">',"index.template.html");
+}
 const releaseGuard = `(() => {\n  const EXPERIMENTAL_FEATURES = ${experimentalFeatures};\n  const BUILD_CHANNEL = ${JSON.stringify(buildChannel)};\n  if (!EXPERIMENTAL_FEATURES) {\n    ["experimentalMode", "transportDetectiveEnabled", "journeyModeEnabled", "visualTheme"].forEach(key => localStorage.removeItem(key));\n    const nativeFetch = window.fetch.bind(window);\n    window.fetch = (input, init) => {\n      const url = typeof input === "string" ? input : (input?.url || "");\n      if (String(url).includes("transport.opendata.ch")) return Promise.reject(new Error("Experimental transport API disabled in stable build"));\n      return nativeFetch(input, init);\n    };\n  }`;
 html = replaceRequiredSnippet(html, "(() => {", releaseGuard, "index.template.html");
 html = replaceRequiredSnippet(html,'experimentalMode: localStorage.getItem("experimentalMode") === "true",','experimentalMode: EXPERIMENTAL_FEATURES && localStorage.getItem("experimentalMode") === "true",',"index.template.html");
 html = replaceRequiredSnippet(html,'transportDetectiveEnabled: localStorage.getItem("transportDetectiveEnabled") === "true",','transportDetectiveEnabled: EXPERIMENTAL_FEATURES && localStorage.getItem("transportDetectiveEnabled") === "true",',"index.template.html");
 html = replaceRequiredSnippet(html,'journeyModeEnabled: localStorage.getItem("journeyModeEnabled") === "true",','journeyModeEnabled: EXPERIMENTAL_FEATURES && localStorage.getItem("journeyModeEnabled") === "true",',"index.template.html");
 html = replaceRequiredSnippet(html,'visualTheme: localStorage.getItem("visualTheme") || "classic",','visualTheme: EXPERIMENTAL_FEATURES ? (localStorage.getItem("visualTheme") || "classic") : "classic",',"index.template.html");
+html = replaceRequiredSnippet(html,'sounds: localStorage.getItem("limitSounds") === "true",','sounds: EXPERIMENTAL_FEATURES && localStorage.getItem("limitSounds") === "true",',"index.template.html");
+html = replaceRequiredSnippet(html,'warning: localStorage.getItem("overspeedWarning") !== "false",','warning: EXPERIMENTAL_FEATURES && localStorage.getItem("overspeedWarning") !== "false",',"index.template.html");
+html = replaceRequiredSnippet(html,'greetingAudio: localStorage.getItem("greetingAudio") !== "false",','greetingAudio: EXPERIMENTAL_FEATURES && localStorage.getItem("greetingAudio") !== "false",',"index.template.html");
 writeOutputFile("index.html", html);
 let sw = readRequiredFile("service-worker.js"); sw = replaceAllRequired(sw, "__APP_VERSION__", appVersion, "service-worker.js"); writeOutputFile("service-worker.js", sw);
 for (const filename of ["manifest.webmanifest", "_headers", "privacy.html"]) { const src = path.join(rootDir, filename); if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outputDir, filename)); }
