@@ -145,6 +145,13 @@ function applySettingsRedesign(html) {
       const title = section.querySelector('.settings-section-title');
       if (header) header.dataset.settingsIcon = icons[key] || '•';
       if (title && labels[key]) title.textContent = labels[key];
+
+      if (key === 'statistics') {
+        const privateStatsTitle = section.querySelector('.setting-title');
+        const privateStatsNote = section.querySelector('.setting-note');
+        if (privateStatsTitle) privateStatsTitle.textContent = 'Keep private usage statistics';
+        if (privateStatsNote) privateStatsNote.textContent = 'Stored only on this device. Never sent to us.';
+      }
     });
 
     const sheet = modal.querySelector('.sheet');
