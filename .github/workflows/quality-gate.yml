@@ -6,6 +6,7 @@ on:
       - "index.template.html"
       - "build.js"
       - "build-profile.json"
+      - "version.json"
       - "manifest.webmanifest"
       - "icons/**"
       - "brand/**"
@@ -18,6 +19,7 @@ on:
       - "index.template.html"
       - "build.js"
       - "build-profile.json"
+      - "version.json"
       - "manifest.webmanifest"
       - "icons/**"
       - "brand/**"
@@ -110,17 +112,22 @@ jobs:
           ! grep -q 'aria-label="Change speed limit"' dist/index.html
           ! grep -q 'Change speed limit' dist/index.html
 
-      - name: Verify redesigned settings contract
+      - name: Verify simplified release settings contract
         run: |
-          grep -q 'data-settings-section="audio"' dist/index.html
           grep -q 'data-settings-section="display"' dist/index.html
-          grep -q 'data-settings-section="statistics"' dist/index.html
           grep -q 'data-settings-section="about"' dist/index.html
           grep -q 'data-settings-section="privacy"' dist/index.html
           grep -q 'Appearance & Display' dist/index.html
-          grep -q 'Usage & Statistics' dist/index.html
           grep -q 'settings-redesign-v1' dist/index.html
           grep -q 'Super Simple Speedo · Made in Switzerland' dist/index.html
+          grep -q 'data-settings-section="audio" aria-hidden="true"' dist/index.html
+          grep -q '#settingsModal .settings-section\[data-settings-section="audio"\], #settingsModal .settings-section\[data-settings-section="statistics"\] { display:none; }' dist/index.html
+
+      - name: Verify release audio is disabled
+        run: |
+          grep -q 'sounds: EXPERIMENTAL_FEATURES && localStorage.getItem("limitSounds") === "true"' dist/index.html
+          grep -q 'warning: EXPERIMENTAL_FEATURES && localStorage.getItem("overspeedWarning") !== "false"' dist/index.html
+          grep -q 'greetingAudio: EXPERIMENTAL_FEATURES && localStorage.getItem("greetingAudio") !== "false"' dist/index.html
 
       - name: Verify support UI and channel isolation
         run: |
