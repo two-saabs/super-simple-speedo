@@ -15,6 +15,7 @@ function applySettingsRedesign(html) {
   #settingsModal .setting-row,#settingsModal .setting,#settingsModal .settings-row { min-height:54px; border-radius:13px; }
   #settingsModal .segment-button,#settingsModal button,#settingsModal [role="button"] { -webkit-tap-highlight-color:transparent; }
   #settingsModal .settings-section[data-settings-section="advanced-and-experimental-features"] { border-style:dashed; }
+  #settingsModal .settings-section[data-settings-section="statistics"] { display:none; }
   #settingsModal .settings-redesign-note { margin:18px 8px 2px; text-align:center; font-size:11px; font-weight:650; letter-spacing:.02em; opacity:.34; }
   #settingsModal [data-settings-section="statistics"] .setting-row { margin-bottom:18px; }
   #settingsModal [data-settings-section="statistics"] .stat-label,
