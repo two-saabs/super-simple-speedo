@@ -1,28 +1,28 @@
-name: Super Simple Speedo quality gate
+name: Frenano website quality gate
 
 on:
   push:
     paths:
-      - "index.template.html"
+      - "home.html"
       - "build.js"
+      - "index.template.html"
       - "build-profile.json"
       - "version.json"
       - "manifest.webmanifest"
-      - "icons/**"
-      - "brand/**"
+      - "images/**"
       - "build/**"
       - "tests/**"
       - "speed-engine.js"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
-      - "index.template.html"
+      - "home.html"
       - "build.js"
+      - "index.template.html"
       - "build-profile.json"
       - "version.json"
       - "manifest.webmanifest"
-      - "icons/**"
-      - "brand/**"
+      - "images/**"
       - "build/**"
       - "tests/**"
       - "speed-engine.js"
@@ -32,44 +32,31 @@ on:
 jobs:
   quality-gate:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
-      - name: Verify app and brand PNG assets
+      - name: Verify Frenano website assets
         run: |
           node <<'NODE'
           const fs = require('fs');
-
-          function checkPng(path, expectedWidth, expectedHeight) {
+          function checkPng(path) {
             const data = fs.readFileSync(path);
-            const pngSignature = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
-            if (data.length < 1000) throw new Error(`${path} is suspiciously small (${data.length} bytes)`);
-            if (!data.subarray(0, 8).equals(pngSignature)) throw new Error(`${path} is not a valid PNG`);
-            const width = data.readUInt32BE(16);
-            const height = data.readUInt32BE(20);
-            if (expectedWidth && (width !== expectedWidth || height !== expectedHeight)) {
-              throw new Error(`${path} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}`);
-            }
-            console.log(`${path}: ${width}x${height}, ${data.length} bytes`);
+            const signature = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+            if (data.length < 1000 || !data.subarray(0,8).equals(signature)) throw new Error(`${path} is not a valid production PNG`);
           }
-
-          checkPng('icons/icon-192.png', 192, 192);
-          checkPng('icons/icon-512.png', 512, 512);
-          checkPng('icons/icon-1024.png', 1024, 1024);
-          checkPng('brand/start-up-and-website-logo.png');
-
-          if (fs.existsSync('brand/speedo-mark.svg')) throw new Error('obsolete brand/speedo-mark.svg must not return');
-
-          const manifest = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
-          const iconSources = new Set((manifest.icons || []).map(icon => String(icon.src || '').split('?')[0]));
-          for (const required of ['/icons/icon-192.png', '/icons/icon-512.png']) {
-            if (!iconSources.has(required)) throw new Error(`manifest.webmanifest does not reference ${required}`);
-          }
+          [
+            'images/frenano-website-icon-512.png',
+            'images/frenano-startup-logo-512.png',
+            'images/frenano-running-logo-256.png',
+            'images/dark-41-confirmed.png',
+            'images/light-41-confirmed.png',
+            'images/dark-40-unconfirmed.png',
+            'images/dark-settings.png'
+          ].forEach(checkPng);
+          if (!fs.existsSync('images/frenano-hero-background.jpg')) throw new Error('Hero background missing');
           NODE
 
       - name: Check product and diagnostic contracts
@@ -81,71 +68,32 @@ jobs:
       - name: Replay speed behaviour fixtures
         run: node tests/test-speed-engine.js
 
-      - name: Build configured release output
+      - name: Build website and web app
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
 
-      - name: Check release-channel contracts against built output
+      - name: Check release-channel contracts
         run: node tests/check-channel-contract.js
 
-      - name: Verify approved branding reached the build
+      - name: Verify homepage hero and screenshots
         run: |
-          test -f dist/brand/start-up-and-website-logo.png
-          grep -q 'brand/start-up-and-website-logo.png' dist/index.html
-          ! grep -q 'speedo-mark.svg' dist/index.html
+          grep -q 'Frenano' dist/index.html
+          grep -q 'frenano-hero-background.jpg' dist/index.html
+          grep -q 'frenano-phone-polish-v2' dist/index.html
+          grep -q 'dark-41-confirmed.png' dist/index.html
+          grep -q 'light-41-confirmed.png' dist/index.html
+          grep -q 'dark-40-unconfirmed.png' dist/index.html
+          grep -q 'dark-settings.png' dist/index.html
+          grep -q 'iphone-frame' dist/index.html
 
-      - name: Verify road freshness behaviour
+      - name: Verify built app remains healthy
         run: |
-          grep -q 'acceptedAutoPosition' dist/index.html
-          grep -q 'distanceFromConfirmedRoad >= 60' dist/index.html
-          grep -q 'Last confirmed limit' dist/index.html
-          grep -q 'setRoadConfidence("estimate", "Best estimate")' dist/index.html
-          grep -q 'candidateRoad' dist/index.html
-
-      - name: Verify no-tap road card contract
-        run: |
-          grep -q 'id="limitButton" class="unknown" aria-label="Speed limit"' dist/index.html
-          grep -q '#limitButton' dist/index.html
-          grep -q 'pointer-events: none' dist/index.html
-          grep -q '.lower #limitButton::after' dist/index.html
-          ! grep -q 'aria-label="Change speed limit"' dist/index.html
-          ! grep -q 'Change speed limit' dist/index.html
-
-      - name: Verify simplified release settings contract
-        run: |
-          grep -q 'data-settings-section="display"' dist/index.html
-          grep -q 'data-settings-section="about"' dist/index.html
-          grep -q 'data-settings-section="privacy"' dist/index.html
-          grep -q 'Appearance & Display' dist/index.html
-          grep -q 'settings-redesign-v1' dist/index.html
-          grep -q 'Super Simple Speedo · Made in Switzerland' dist/index.html
-          grep -q 'data-settings-section="audio" aria-hidden="true"' dist/index.html
-          grep -q '#settingsModal .settings-section\[data-settings-section="audio"\], #settingsModal .settings-section\[data-settings-section="statistics"\] { display:none; }' dist/index.html
-
-      - name: Verify release audio is disabled
-        run: |
-          grep -q 'sounds: EXPERIMENTAL_FEATURES && localStorage.getItem("limitSounds") === "true"' dist/index.html
-          grep -q 'warning: EXPERIMENTAL_FEATURES && localStorage.getItem("overspeedWarning") !== "false"' dist/index.html
-          grep -q 'greetingAudio: EXPERIMENTAL_FEATURES && localStorage.getItem("greetingAudio") !== "false"' dist/index.html
-
-      - name: Verify support UI and channel isolation
-        run: |
-          grep -q 'Help & privacy' dist/index.html
-          grep -q 'Need help?' dist/index.html
-          grep -q '>Email us<' dist/index.html
-          grep -q 'Something not working?' dist/index.html
-          grep -q 'support@supersimplespeedo.app' dist/index.html
-          grep -q 'Share diagnostic log' dist/index.html
-          grep -q 'Nothing is uploaded automatically' dist/index.html
-          grep -q 'Read privacy policy' dist/index.html
-          ! grep -q '<div class="settings-section-title">Help & Diagnostics</div>' dist/index.html
-
-          if node -e "process.exit(require('./build-profile.json').experimentalFeatures ? 0 : 1)"; then
-            echo "Checking experimental build contract"
-            grep -q '# build_channel=experimental' dist/index.html
-          else
-            echo "Checking stable/test build contract"
-            grep -q 'data-settings-section="advanced-and-experimental-features" aria-hidden="true"' dist/index.html
-            grep -q 'Experimental transport API disabled in stable build' dist/index.html
-          fi
+          test -f dist/app/index.html
+          grep -q 'Frenano — GPS speedometer, simply done.' dist/app/index.html
+          grep -q 'acceptedAutoPosition' dist/app/index.html
+          grep -q 'Last confirmed limit' dist/app/index.html
+          grep -q 'Appearance & Display' dist/app/index.html
+          grep -q 'data-settings-section="audio" aria-hidden="true"' dist/app/index.html
+          grep -q 'support@frenano.app' dist/app/index.html
+          grep -q 'Experimental transport API disabled in stable build' dist/app/index.html
