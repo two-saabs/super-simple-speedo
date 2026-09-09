@@ -10,8 +10,10 @@ const profile = JSON.parse(readRoot("build-profile.json"));
 const build = readRoot("build.js");
 const template = readRoot("index.template.html");
 const version = JSON.parse(readRoot("version.json")).version;
-const builtPath = path.join(root, "dist", "index.html");
+const builtPath = path.join(root, "dist", "app", "index.html");
 const built = fs.existsSync(builtPath) ? fs.readFileSync(builtPath, "utf8") : "";
+const homePath = path.join(root, "dist", "index.html");
+const home = fs.existsSync(homePath) ? fs.readFileSync(homePath, "utf8") : "";
 const allowed = new Set(["stable", "test", "experimental"]);
 
 allowed.has(profile.channel) ? pass(`known channel: ${profile.channel}`) : fail(`unknown channel: ${profile.channel}`);
@@ -26,18 +28,20 @@ profile.EXPERIMENTAL_FEATURES === isExperimental ? pass("legacy experimental fea
 /if \(buildChannel !== "stable"\)/.test(build) ? pass("channel marker is gated to non-stable builds") : fail("channel marker gating changed");
 /Europe\/Zurich/.test(build) ? pass("non-stable build metadata uses Zurich timezone") : fail("Zurich build timezone missing");
 
+home && /<title>Frenano — GPS speedometer, simply done\.<\/title>/.test(home) ? pass("marketing homepage built at root") : fail("marketing homepage missing at root");
+
 if (!built) {
-  fail("built output missing; run build.js before channel contract");
+  fail("built app output missing; run build.js before channel contract");
 } else if (profile.channel === "test") {
-  /TEST VERSION/.test(built) ? pass("test identity present in built output") : fail("test identity missing from built output");
+  /TEST VERSION/.test(built) ? pass("test identity present in built app output") : fail("test identity missing from built app output");
   /build-channel-marker/.test(built) ? pass("test channel marker present") : fail("test channel marker missing");
   /EXPERIMENTAL VERSION/.test(built) ? fail("test build contains experimental marker") : pass("test has no experimental marker");
 } else if (profile.channel === "experimental") {
-  /EXPERIMENTAL VERSION/.test(built) ? pass("experimental identity present in built output") : fail("experimental identity missing from built output");
+  /EXPERIMENTAL VERSION/.test(built) ? pass("experimental identity present in built app output") : fail("experimental identity missing from built app output");
   /build-channel-marker/.test(built) ? pass("experimental channel marker present") : fail("experimental channel marker missing");
 } else {
-  /build-channel-marker/.test(built) ? fail("stable built output unexpectedly contains channel marker") : pass("stable built output has no channel marker");
-  /TEST VERSION|EXPERIMENTAL VERSION/.test(built) ? fail("stable built output contains non-stable identity") : pass("stable built output has no non-stable identity");
+  /build-channel-marker/.test(built) ? fail("stable built app output unexpectedly contains channel marker") : pass("stable built app output has no channel marker");
+  /TEST VERSION|EXPERIMENTAL VERSION/.test(built) ? fail("stable built app output contains non-stable identity") : pass("stable built app output has no non-stable identity");
 }
 
 const capPath = path.join(root, "capacitor.config.json");
