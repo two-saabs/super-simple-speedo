@@ -62,4 +62,4 @@ writeOutputFile("index.html", html);
 let sw = readRequiredFile("service-worker.js"); sw = replaceAllRequired(sw, "__APP_VERSION__", appVersion, "service-worker.js"); writeOutputFile("service-worker.js", sw);
 for (const filename of ["manifest.webmanifest", "_headers", "privacy.html"]) { const src = path.join(rootDir, filename); if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outputDir, filename)); }
 for (const dir of ["audio", "icons", "brand"]) { const src = path.join(rootDir, dir); if (fs.existsSync(src)) fs.cpSync(src, path.join(outputDir, dir), { recursive:true }); }
-console.log(`Built Super Simple Speedo v${appVersion} (${buildChannel}) successfully.`);
+console.log(`Built Frenano v${appVersion} (${buildChannel}) successfully.`);
