@@ -6,6 +6,7 @@ const { applyStartupRobustnessFix } = require("./build/startup-robustness-fix");
 const { applyHelpContactPrivacyFix } = require("./build/help-contact-privacy-fix");
 const { applySettingsRedesign } = require("./build/settings-redesign");
 const { applyBrandRefresh } = require("./build/brand-refresh");
+const { applySimpleStartup } = require("./build/startup-simple");
 const { applyRoadCardRefresh } = require("./build/road-card-refresh");
 const key = process.env.GEOAPIFY_API_KEY;
 if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify."); process.exit(1); }
@@ -40,6 +41,7 @@ html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFe
 html = applyHelpContactPrivacyFix(html, replaceRequiredSnippet, { appVersion, buildChannel });
 html = applySettingsRedesign(html);
 html = applyBrandRefresh(html);
+html = applySimpleStartup(html);
 html = applyRoadCardRefresh(html);
 const buildTimeZurich = zurichBuildTime();
 if (buildChannel !== "stable") {
