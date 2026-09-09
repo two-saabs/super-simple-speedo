@@ -8,10 +8,17 @@ const distDir = path.join(rootDir, "dist");
 const webAppHtml = path.join(distDir, "app", "index.html");
 const packagedHtml = path.join(distDir, "index.html");
 
+// The shared web build requires a Geoapify key to exist, but the native iOS
+// package never ships that key: build-ios rewrites all Geoapify calls to the
+// Frenano server proxy below and verifies that the temporary value is gone.
+// Use a harmless local placeholder when a developer does not have the Netlify
+// secret in their shell, so `npm run ios:sync` works on a clean Mac checkout.
+const sourceBuildKey = process.env.GEOAPIFY_API_KEY || "ios-build-placeholder-not-secret";
+
 execFileSync(process.execPath, [path.join(rootDir, "build.js")], {
   cwd: rootDir,
   stdio: "inherit",
-  env: process.env
+  env: { ...process.env, GEOAPIFY_API_KEY: sourceBuildKey }
 });
 
 if (!fs.existsSync(webAppHtml)) {
@@ -94,11 +101,7 @@ if (!html.includes('https://frenano.app/#privacy')) {
   process.exit(1);
 }
 
-const injectedKey = process.env.GEOAPIFY_API_KEY;
-if (!injectedKey) {
-  console.error("iOS build failed: GEOAPIFY_API_KEY is required to build the stable source before sanitising it.");
-  process.exit(1);
-}
+const injectedKey = sourceBuildKey;
 replaceRequired(`apiKey: ${JSON.stringify(injectedKey)},`, 'apiKey: "ios-secure-proxy",', "injected Geoapify key");
 replaceRequired(
   'const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${encodeURIComponent(coords.latitude)}&lon=${encodeURIComponent(coords.longitude)}&format=json&apiKey=${encodeURIComponent(state.apiKey)}`;',
@@ -112,7 +115,7 @@ replaceRequired(
 );
 
 if (html.includes(injectedKey)) {
-  console.error("iOS build failed: Geoapify key is still present in the packaged HTML.");
+  console.error("iOS build failed: temporary Geoapify source-build key is still present in the packaged HTML.");
   process.exit(1);
 }
 if (html.includes("navigator.geolocation")) {
