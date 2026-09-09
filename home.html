@@ -6,73 +6,53 @@
   <meta name="theme-color" content="#07131d">
   <meta name="color-scheme" content="dark">
   <title>Frenano — GPS speedometer, simply done.</title>
-  <meta name="description" content="Frenano is a clean GPS speedometer with automatic local speed-limit information where available. Free. Simple. Private. Made in Switzerland.">
+  <meta name="description" content="Frenano is a clean GPS speedometer with automatic local speed-limit information where available. Completely free. No account, subscription or advertisements. Privacy focused and made in Switzerland.">
   <link rel="icon" type="image/png" href="/images/frenano-website-icon-512.png">
   <link rel="apple-touch-icon" href="/images/frenano-website-icon-512.png">
   <style>
-    :root { color-scheme:dark; --fg:#fff; --muted:rgba(255,255,255,.76); --line:rgba(255,255,255,.18); --glass:rgba(4,15,23,.48); }
-    * { box-sizing:border-box; }
-    html { background:#07131d; }
-    body { margin:0; min-height:100svh; color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif; background:#07131d; }
-    a { color:inherit; }
-    .hero { min-height:100svh; position:relative; overflow:hidden; display:grid; align-items:center; isolation:isolate; padding:max(28px,env(safe-area-inset-top)) clamp(22px,5vw,84px) max(30px,env(safe-area-inset-bottom)); }
-    .hero::before { content:""; position:absolute; inset:0; z-index:-3; background:url('/images/frenano-hero-background.jpg') center center/cover no-repeat; transform:scale(1.01); }
-    .hero::after { content:""; position:absolute; inset:0; z-index:-2; background:linear-gradient(90deg,rgba(3,11,18,.84) 0%,rgba(3,11,18,.54) 46%,rgba(3,11,18,.12) 75%),linear-gradient(0deg,rgba(3,11,18,.42),transparent 48%); }
-    .content { width:min(690px,100%); }
-    .brand-icon { width:clamp(112px,14vw,180px); aspect-ratio:1; display:block; border-radius:24%; box-shadow:0 24px 70px rgba(0,0,0,.36); }
-    h1 { margin:22px 0 0; font-size:clamp(64px,10vw,126px); line-height:.88; letter-spacing:-.065em; font-weight:720; }
-    .tagline { margin:24px 0 0; font-size:clamp(21px,2.4vw,34px); line-height:1.18; font-weight:520; letter-spacing:-.025em; color:rgba(255,255,255,.9); }
-    .features { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:38px; max-width:620px; }
-    .feature { text-align:center; min-width:0; }
-    .feature img { width:36px; height:36px; display:block; margin:0 auto 9px; filter:brightness(0) invert(1); opacity:.95; }
-    .feature span { display:block; font-size:14px; line-height:1.15; font-weight:650; }
-    .cta-row { display:flex; flex-wrap:wrap; gap:12px; margin-top:38px; }
-    .cta { min-height:54px; display:inline-flex; align-items:center; justify-content:center; padding:0 23px; border-radius:999px; text-decoration:none; font-size:17px; font-weight:760; letter-spacing:-.01em; }
-    .cta.primary { background:#fff; color:#07131d; }
-    .cta.secondary { background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); }
-    .micro { margin-top:27px; font-size:13px; line-height:1.55; color:var(--muted); max-width:600px; }
-    .micro a { text-underline-offset:3px; }
-    @media (max-width:700px) {
-      .hero { align-items:start; text-align:center; padding-top:max(46px,calc(env(safe-area-inset-top) + 24px)); background:#07131d; }
-      .hero::before { background-position:62% center; }
-      .hero::after { background:linear-gradient(180deg,rgba(3,11,18,.28) 0%,rgba(3,11,18,.56) 44%,rgba(3,11,18,.88) 100%); }
-      .content { margin:0 auto; }
-      .brand-icon { margin:0 auto; width:min(38vw,165px); }
-      h1 { font-size:clamp(58px,19vw,92px); margin-top:18px; }
-      .tagline { margin-top:16px; font-size:clamp(20px,5.4vw,27px); }
-      .features { margin-top:30px; gap:7px; }
-      .feature img { width:31px; height:31px; }
-      .feature span { font-size:12px; }
-      .cta-row { justify-content:center; margin-top:30px; }
-      .micro { margin-left:auto; margin-right:auto; }
-    }
-    @media (max-width:390px) {
-      .features { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 12px; }
-      .feature span { font-size:13px; }
-    }
+    :root{color-scheme:dark;--bg:#07131d;--fg:#fff;--muted:rgba(255,255,255,.72);--line:rgba(255,255,255,.15);--glass:rgba(4,15,23,.52);--panel:#0d1922}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:var(--bg)}a{color:inherit}
+    .hero{min-height:100svh;position:relative;overflow:hidden;display:grid;align-items:center;isolation:isolate;padding:max(28px,env(safe-area-inset-top)) clamp(22px,5vw,84px) max(34px,env(safe-area-inset-bottom))}
+    .hero::before{content:"";position:absolute;inset:0;z-index:-3;background:url('/images/frenano-hero-background.jpg') center/cover no-repeat;transform:scale(1.01)}
+    .hero::after{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(3,11,18,.86),rgba(3,11,18,.56) 48%,rgba(3,11,18,.12) 78%),linear-gradient(0deg,rgba(3,11,18,.5),transparent 50%)}
+    .hero-content{width:min(760px,100%)}.brand-icon{width:clamp(112px,14vw,180px);aspect-ratio:1;display:block;border-radius:24%;box-shadow:0 24px 70px rgba(0,0,0,.36)}
+    h1{margin:22px 0 0;font-size:clamp(64px,10vw,126px);line-height:.88;letter-spacing:-.065em;font-weight:720}.tagline{margin:24px 0 0;font-size:clamp(21px,2.4vw,34px);line-height:1.18;font-weight:520;letter-spacing:-.025em;color:rgba(255,255,255,.92)}
+    .promises{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:38px;max-width:740px}.promise{padding:17px 16px;border:1px solid var(--line);border-radius:18px;background:rgba(4,15,23,.35);backdrop-filter:blur(10px);font-size:15px;line-height:1.25;font-weight:760}.tick{display:block;font-size:21px;margin-bottom:7px}
+    .trust{display:flex;align-items:center;gap:12px;margin-top:18px;font-size:14px;font-weight:700;color:rgba(255,255,255,.88)}.trust img{width:27px;height:27px;filter:brightness(0) invert(1);opacity:.92}.trust-sep{opacity:.35}
+    .cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}.cta{min-height:54px;display:inline-flex;align-items:center;justify-content:center;padding:0 23px;border-radius:999px;text-decoration:none;font-size:17px;font-weight:760}.cta.primary{background:#fff;color:#07131d}.cta.secondary{background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(15px)}
+    .micro{margin-top:24px;font-size:13px;line-height:1.55;color:var(--muted);max-width:650px}
+    .section{padding:88px clamp(22px,6vw,100px);border-top:1px solid var(--line)}.section-inner{width:min(1080px,100%);margin:0 auto}.eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:.13em;font-weight:800;color:#8ccff3}.section h2{font-size:clamp(36px,5vw,62px);letter-spacing:-.045em;line-height:1;margin:12px 0 22px}.lead{max-width:760px;font-size:clamp(18px,2vw,23px);line-height:1.5;color:rgba(255,255,255,.82)}
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:34px}.card{padding:26px;border-radius:22px;background:var(--panel);border:1px solid var(--line)}.card h3{margin:0 0 8px;font-size:21px}.card p{margin:0;color:var(--muted);line-height:1.55}
+    .privacy-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:start}.privacy-points{display:grid;gap:12px}.privacy-point{padding:17px 18px;border-left:3px solid #8ccff3;background:rgba(255,255,255,.035);border-radius:0 14px 14px 0}.privacy-point strong{display:block;margin-bottom:4px}.privacy-point span{color:var(--muted);line-height:1.45}
+    .contact-box{padding:32px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(140,207,243,.1),rgba(255,255,255,.025))}.contact-box p{color:var(--muted);font-size:18px;line-height:1.55}.email{font-size:clamp(21px,3vw,31px);font-weight:780;text-underline-offset:5px}
+    footer{padding:34px clamp(22px,6vw,100px);border-top:1px solid var(--line);color:var(--muted);font-size:13px}.footer-inner{width:min(1080px,100%);margin:auto;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}.footer-links{display:flex;gap:18px;flex-wrap:wrap}
+    @media(max-width:700px){.hero{align-items:start;text-align:center;padding-top:max(46px,calc(env(safe-area-inset-top) + 24px))}.hero::before{background-position:62% center}.hero::after{background:linear-gradient(180deg,rgba(3,11,18,.28),rgba(3,11,18,.58) 45%,rgba(3,11,18,.92))}.hero-content{margin:auto}.brand-icon{margin:auto;width:min(38vw,165px)}h1{font-size:clamp(58px,19vw,92px);margin-top:18px}.tagline{margin-top:16px;font-size:clamp(20px,5.4vw,27px)}.promises{grid-template-columns:1fr;margin-top:28px;gap:9px}.promise{display:flex;align-items:center;text-align:left;gap:11px;padding:13px 15px}.tick{margin:0}.trust{justify-content:center;flex-wrap:wrap}.cta-row{justify-content:center}.micro{margin-left:auto;margin-right:auto}.section{padding:64px 22px}.cards,.privacy-grid{grid-template-columns:1fr}.section h2{font-size:40px}.footer-inner{justify-content:center;text-align:center}}
   </style>
 </head>
 <body>
-  <main class="hero">
-    <section class="content" aria-labelledby="frenano-title">
-      <img class="brand-icon" src="/images/frenano-website-icon-512.png" alt="Frenano speedometer icon">
-      <h1 id="frenano-title">Frenano</h1>
-      <p class="tagline">GPS speedometer, simply done.</p>
-
-      <div class="features" aria-label="Frenano principles">
-        <div class="feature"><img src="/images/frenano-feature-free.svg" alt=""><span>Free</span></div>
-        <div class="feature"><img src="/images/frenano-feature-simple.svg" alt=""><span>Simple</span></div>
-        <div class="feature"><img src="/images/frenano-feature-private.svg" alt=""><span>Private</span></div>
-        <div class="feature"><img src="/images/frenano-feature-switzerland.svg" alt=""><span>Made in<br>Switzerland</span></div>
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <img class="brand-icon" src="/images/frenano-website-icon-512.png" alt="Frenano speedometer icon">
+        <h1>Frenano</h1>
+        <p class="tagline">GPS speedometer, simply done.</p>
+        <div class="promises" aria-label="What Frenano promises">
+          <div class="promise"><span class="tick">✓</span><span>Completely free</span></div>
+          <div class="promise"><span class="tick">✓</span><span>No account or subscription needed</span></div>
+          <div class="promise"><span class="tick">✓</span><span>No advertisements</span></div>
+        </div>
+        <div class="trust"><img src="/images/frenano-feature-private.svg" alt=""><span>Privacy focused</span><span class="trust-sep">·</span><img src="/images/frenano-feature-switzerland.svg" alt=""><span>Made in Switzerland</span></div>
+        <div class="cta-row"><a class="cta primary" href="/app/">Launch web version</a><a class="cta secondary" href="#about">What it does</a></div>
+        <p class="micro">Speed and speed-limit information can be affected by GPS accuracy, map data and local conditions. Always follow road signs and applicable traffic laws.</p>
       </div>
-
-      <div class="cta-row">
-        <a class="cta primary" href="/app/">Open Frenano</a>
-        <a class="cta secondary" href="/privacy.html">Privacy</a>
-      </div>
-
-      <p class="micro">Current speed and automatic local speed-limit information where available. No account. No subscription. No advertisements. Speed and speed-limit information can be affected by GPS accuracy, map data and local conditions. Always follow road signs and applicable traffic laws.</p>
     </section>
+
+    <section class="section" id="about"><div class="section-inner"><div class="eyebrow">Simple on purpose</div><h2>Your speed. The limit. Nothing you don’t need.</h2><p class="lead">Open Frenano and see your current speed clearly. Where available, Frenano automatically checks the local road and speed limit while keeping uncertainty visible rather than pretending the data is perfect.</p><div class="cards"><div class="card"><h3>Clear current speed</h3><p>Large, highly readable GPS-based speed display designed to be understood at a glance.</p></div><div class="card"><h3>Automatic speed limits</h3><p>Local speed-limit information where available, with the matched road and confidence shown clearly.</p></div><div class="card"><h3>Honest uncertainty</h3><p>Checking, rechecking and best-estimate states tell you when Frenano is still working something out.</p></div><div class="card"><h3>Simple warnings</h3><p>A clear visual warning when your speed is above the identified limit, without turning the app into a dashboard.</p></div></div></div></section>
+
+    <section class="section" id="privacy"><div class="section-inner privacy-grid"><div><div class="eyebrow">Privacy focused</div><h2>Your journeys are your business.</h2><p class="lead">Frenano is designed to do a small job with as little data collection as practical.</p><div class="cta-row"><a class="cta secondary" href="/privacy.html">Read full privacy policy</a></div></div><div class="privacy-points"><div class="privacy-point"><strong>No account</strong><span>There is no Frenano user account or personal journey database.</span></div><div class="privacy-point"><strong>No advertising or tracking</strong><span>We do not use your location or app data for advertising, and we do not track you across apps or websites.</span></div><div class="privacy-point"><strong>Diagnostics stay local</strong><span>Support diagnostics are kept on your device and are only shared when you choose to share them.</span></div></div></div></section>
+
+    <section class="section" id="contact"><div class="section-inner"><div class="eyebrow">Contact us</div><h2>Need help? Have feedback?</h2><div class="contact-box"><p>We’d love to hear from you. For questions, feedback or support, email us at:</p><a class="email" href="mailto:support@frenano.app">support@frenano.app</a><p>If speed or road lookup is not behaving as expected, Frenano can also create a privacy-safe diagnostic log from the app’s Help &amp; privacy section.</p></div></div></section>
   </main>
+  <footer><div class="footer-inner"><span>Frenano · Privacy focused · Made in Switzerland</span><div class="footer-links"><a href="/app/">Launch web version</a><a href="#contact">Contact</a><a href="/privacy.html">Privacy policy</a></div></div></footer>
 </body>
 </html>
