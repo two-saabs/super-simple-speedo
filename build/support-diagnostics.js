@@ -55,7 +55,7 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     const ua = supportSafeToken(navigator.userAgent || "unknown", 180)
       .replace(/\\b(?:lat|lon|lng|latitude|longitude)=[^ ;]+/gi, "");
     const header = [
-      "# Super Simple Speedo support diagnostics v1",
+      "# Frenano support diagnostics v1",
       "# privacy=sanitised; no coordinates; no road/station/line/destination; no API keys; no persistent identifiers",
       "# app_version=${appVersion}",
       "# build_channel=${buildChannel}",
@@ -93,7 +93,7 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
   async function shareSupportDiagnostics() {
     const status = $("supportDiagnosticsStatus");
     const text = sanitisedSupportDiagnosticText();
-    const filename = "super-simple-speedo-support-${appVersion}.txt";
+    const filename = "frenano-support-${appVersion}.txt";
     try {
       if (navigator.share) {
         let files = [];
@@ -102,8 +102,8 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
           if (!navigator.canShare || navigator.canShare({ files: [file] })) files = [file];
         } catch (_) {}
         await navigator.share(files.length
-          ? { title: "Super Simple Speedo diagnostics", text: "Sanitised support diagnostics", files }
-          : { title: "Super Simple Speedo diagnostics", text });
+          ? { title: "Frenano diagnostics", text: "Sanitised support diagnostics", files }
+          : { title: "Frenano diagnostics", text });
         if (status) status.textContent = "Shared from this device · nothing uploaded automatically";
         return;
       }
