@@ -83,14 +83,38 @@ fs.writeFileSync(path.join(appIconDir, "Contents.json"), `${JSON.stringify(appIc
 console.log("Prepared opaque Frenano 1024x1024 iOS app icon.");
 
 // Native launch screen stays plain black so it hands off cleanly to the Frenano in-app startup screen.
+// Keep this as a conventional Interface Builder storyboard. Xcode can reject a hand-minified
+// storyboard even when its XML is technically well-formed, so preserve the standard plugin,
+// capabilities and canvas metadata used by the last known-good App Store launch storyboard.
 const launchStoryboard = path.join(iosAppDir, "Base.lproj", "LaunchScreen.storyboard");
 fs.mkdirSync(path.dirname(launchStoryboard), { recursive:true });
 const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="FrenanoLaunchController">
-<device id="retina6_12" orientation="portrait" appearance="dark"/>
-<dependencies><deployment identifier="iOS"/><capability name="Safe area layout guides" minToolsVersion="9.0"/></dependencies>
-<scenes><scene sceneID="FrenanoLaunchScene"><objects><viewController id="FrenanoLaunchController" sceneMemberID="viewController"><view key="view" contentMode="scaleToFill" id="FrenanoLaunchView"><rect key="frame" x="0.0" y="0.0" width="393" height="852"/><autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/><viewLayoutGuide key="safeArea" id="FrenanoLaunchSafeArea"/><color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></view></viewController><placeholder placeholderIdentifier="IBFirstResponder" id="FrenanoLaunchFirstResponder" userLabel="First Responder" sceneMemberID="firstResponder"/></objects></scene></scenes>
-</document>\n`;
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23094" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="FrenanoLaunchController">
+    <device id="retina6_12" orientation="portrait" appearance="dark"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="FrenanoLaunchScene">
+            <objects>
+                <viewController id="FrenanoLaunchController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="FrenanoLaunchView">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="FrenanoLaunchSafeArea"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="FrenanoLaunchFirstResponder" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="50" y="50"/>
+        </scene>
+    </scenes>
+</document>
+`;
 fs.writeFileSync(launchStoryboard, launchStoryboardXml, "utf8");
 console.log("Configured black native launch screen to match Frenano's first frame.");
 console.log("iOS native configuration complete.");
