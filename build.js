@@ -25,8 +25,73 @@ const buildChannel = buildProfile.channel;
 if (!["stable", "test", "experimental"].includes(buildChannel) || experimentalFeatures !== (buildChannel === "experimental")) { console.error("Invalid build-profile.json"); process.exit(1); }
 fs.mkdirSync(outputDir, { recursive: true });
 
-// Marketing homepage at /
-writeOutputFile("index.html", readRequiredFile("home.html"));
+// Marketing homepage at /. Keep the real screenshot, but give it the richer
+// titanium/glass phone treatment from the original Frenano concept mock-up.
+let home = readRequiredFile("home.html");
+const phonePolish = `
+<style id="frenano-phone-polish-v2">
+  .hero-shot { perspective:1550px; overflow:visible; }
+  .iphone-frame {
+    width:min(390px,100%);
+    padding:11px;
+    border-radius:68px;
+    background:
+      linear-gradient(103deg,rgba(255,255,255,.34),transparent 10% 82%,rgba(255,255,255,.24)),
+      linear-gradient(145deg,#9ba1a8 0%,#343a41 8%,#0b0d10 26%,#020304 54%,#242a31 82%,#aab0b6 100%);
+    box-shadow:
+      0 68px 125px rgba(0,0,0,.68),
+      0 24px 48px rgba(0,0,0,.62),
+      -16px 8px 34px rgba(120,190,235,.10),
+      0 0 0 1px rgba(255,255,255,.30),
+      inset 0 0 0 1px rgba(255,255,255,.20),
+      inset 6px 0 10px rgba(255,255,255,.08),
+      inset -7px 0 12px rgba(0,0,0,.55);
+    transform:rotateY(-7deg) rotateX(1.2deg) rotateZ(.65deg) translateZ(0);
+    transform-style:preserve-3d;
+  }
+  .iphone-frame::before {
+    inset:4px;
+    border-radius:64px;
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.45);
+  }
+  .iphone-frame::after {
+    content:"";
+    position:absolute;
+    pointer-events:none;
+    z-index:4;
+    left:8px;
+    top:76px;
+    bottom:80px;
+    width:2px;
+    border-radius:99px;
+    background:linear-gradient(180deg,transparent,rgba(255,255,255,.42) 18%,rgba(255,255,255,.10) 78%,transparent);
+    opacity:.8;
+  }
+  .iphone-screen {
+    border-radius:56px;
+    border:2px solid #050607;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.055),0 0 0 1px rgba(0,0,0,.82);
+  }
+  .iphone-screen img { border-radius:54px; }
+  .dynamic-island { top:18px; width:112px; height:30px; box-shadow:0 0 0 1px rgba(255,255,255,.025); }
+  .phone-side { width:4px; background:linear-gradient(180deg,#858b91,#33383e 30%,#6c7278 75%,#2e3338); box-shadow:0 1px 1px rgba(255,255,255,.25); }
+  .phone-side.left { left:-1px; }
+  .phone-side.right { right:-1px; }
+  @media(max-width:900px) {
+    .iphone-frame { width:min(325px,80vw); transform:rotateY(-2deg) rotateZ(.25deg); }
+  }
+  @media(max-width:700px) {
+    .iphone-frame { width:min(292px,82vw); border-radius:56px; padding:9px; transform:none; }
+    .iphone-frame::before { border-radius:52px; }
+    .iphone-frame::after { display:none; }
+    .iphone-screen { border-radius:48px; }
+    .iphone-screen img { border-radius:46px; }
+  }
+</style>`;
+if (!home.includes("</head>")) throw new Error("Homepage head not found");
+home = home.replace("</head>", `${phonePolish}\n</head>`);
+writeOutputFile("index.html", home);
 
 // Actual Frenano web/PWA app at /app/
 let html = readRequiredFile("index.template.html");
