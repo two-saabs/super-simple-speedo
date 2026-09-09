@@ -12,7 +12,7 @@ if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify.
 const rootDir = __dirname;
 const outputDir = path.join(rootDir, "dist");
 function readRequiredFile(filename) { const p = path.join(rootDir, filename); if (!fs.existsSync(p)) { console.error(`Build failed: required file "${filename}" was not found.`); process.exit(1); } return fs.readFileSync(p, "utf8"); }
-function writeOutputFile(filename, contents) { fs.writeFileSync(path.join(outputDir, filename), contents, "utf8"); }
+function writeOutputFile(filename, contents) { const target = path.join(outputDir, filename); fs.mkdirSync(path.dirname(target), { recursive:true }); fs.writeFileSync(target, contents, "utf8"); }
 function replaceAllRequired(source, placeholder, value, filename) { if (!source.includes(placeholder)) { console.error(`Build failed: placeholder "${placeholder}" was not found in ${filename}.`); process.exit(1); } return source.replaceAll(placeholder, value); }
 function replaceRequiredSnippet(source, before, after, filename) { if (!source.includes(before)) { console.error(`Build failed: expected release-control snippet was not found in ${filename}.`); process.exit(1); } return source.replace(before, after); }
 function zurichBuildTime() { const parts = new Intl.DateTimeFormat("sv-SE", { timeZone:"Europe/Zurich",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,timeZoneName:"short" }).formatToParts(new Date()); const get = type => parts.find(part => part.type === type)?.value || ""; return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")} ${get("timeZoneName")}`; }
@@ -24,6 +24,11 @@ const experimentalFeatures = buildProfile.experimentalFeatures === true;
 const buildChannel = buildProfile.channel;
 if (!["stable", "test", "experimental"].includes(buildChannel) || experimentalFeatures !== (buildChannel === "experimental")) { console.error("Invalid build-profile.json"); process.exit(1); }
 fs.mkdirSync(outputDir, { recursive: true });
+
+// Marketing homepage at /
+writeOutputFile("index.html", readRequiredFile("home.html"));
+
+// Actual Frenano web/PWA app at /app/
 let html = readRequiredFile("index.template.html");
 html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.html");
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
@@ -58,8 +63,9 @@ html = replaceRequiredSnippet(html,'visualTheme: localStorage.getItem("visualThe
 html = replaceRequiredSnippet(html,'sounds: localStorage.getItem("limitSounds") === "true",','sounds: EXPERIMENTAL_FEATURES && localStorage.getItem("limitSounds") === "true",',"index.template.html");
 html = replaceRequiredSnippet(html,'warning: localStorage.getItem("overspeedWarning") !== "false",','warning: EXPERIMENTAL_FEATURES && localStorage.getItem("overspeedWarning") !== "false",',"index.template.html");
 html = replaceRequiredSnippet(html,'greetingAudio: localStorage.getItem("greetingAudio") !== "false",','greetingAudio: EXPERIMENTAL_FEATURES && localStorage.getItem("greetingAudio") !== "false",',"index.template.html");
-writeOutputFile("index.html", html);
+writeOutputFile("app/index.html", html);
+
 let sw = readRequiredFile("service-worker.js"); sw = replaceAllRequired(sw, "__APP_VERSION__", appVersion, "service-worker.js"); writeOutputFile("service-worker.js", sw);
 for (const filename of ["manifest.webmanifest", "_headers", "privacy.html"]) { const src = path.join(rootDir, filename); if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outputDir, filename)); }
-for (const dir of ["audio", "icons", "brand"]) { const src = path.join(rootDir, dir); if (fs.existsSync(src)) fs.cpSync(src, path.join(outputDir, dir), { recursive:true }); }
-console.log(`Built Frenano v${appVersion} (${buildChannel}) successfully.`);
+for (const dir of ["audio", "images"]) { const src = path.join(rootDir, dir); if (fs.existsSync(src)) fs.cpSync(src, path.join(outputDir, dir), { recursive:true }); }
+console.log(`Built Frenano v${appVersion} (${buildChannel}) successfully: homepage / and app /app/`);
