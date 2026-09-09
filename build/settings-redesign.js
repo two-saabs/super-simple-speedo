@@ -66,7 +66,7 @@ function applySettingsRedesign(html) {
     });
     const sheet = modal.querySelector('.sheet');
     if (sheet && !sheet.querySelector('.settings-redesign-note')) {
-      const note = document.createElement('div'); note.className='settings-redesign-note'; note.textContent='Super Simple Speedo · Made in Switzerland'; sheet.appendChild(note);
+      const note = document.createElement('div'); note.className='settings-redesign-note'; note.textContent='Frenano · Made in Switzerland'; sheet.appendChild(note);
     }
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', decorateSettings, { once:true }); else decorateSettings();
