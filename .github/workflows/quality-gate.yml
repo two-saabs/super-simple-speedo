@@ -79,9 +79,7 @@ jobs:
       - name: Install iOS packaging dependencies
         run: npm install --no-package-lock
 
-      - name: Build Frenano iOS package
-        env:
-          GEOAPIFY_API_KEY: test-key-not-for-production
+      - name: Build Frenano iOS package without local secret
         run: npm run build:ios
 
       - name: Verify iOS package contract
@@ -91,6 +89,7 @@ jobs:
           grep -q 'window.__SPEEDO_NATIVE_IOS__ = true' dist/index.html
           grep -q 'https://frenano.app/.netlify/functions/geoapify-proxy' dist/index.html
           grep -q 'Frenano' dist/index.html
+          ! grep -q 'ios-build-placeholder-not-secret' dist/index.html
           ! grep -q 'test-key-not-for-production' dist/index.html
           grep -q '"appName": "Frenano"' capacitor.config.json
           grep -q '"appId": "app.supersimplespeedo.ios"' capacitor.config.json
