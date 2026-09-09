@@ -4,7 +4,7 @@
   "webDir": "dist",
   "loggingBehavior": "debug",
   "ios": {
-    "contentInset": "always"
+    "contentInset": "never"
   },
   "plugins": {
     "StatusBar": {
