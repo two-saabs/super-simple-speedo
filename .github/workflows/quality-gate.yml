@@ -13,12 +13,32 @@ on:
       - "images/**"
       - "build/**"
       - "tests/**"
+      - "speed-engine.js"
       - "native-ios.js"
       - "capacitor.config.json"
       - "package.json"
       - "scripts/**"
+      - "TEST-COVERAGE.md"
       - ".github/workflows/quality-gate.yml"
   pull_request:
+    paths:
+      - "index.template.html"
+      - "home.html"
+      - "build.js"
+      - "build-ios.js"
+      - "build-profile.json"
+      - "version.json"
+      - "manifest.webmanifest"
+      - "images/**"
+      - "build/**"
+      - "tests/**"
+      - "speed-engine.js"
+      - "native-ios.js"
+      - "capacitor.config.json"
+      - "package.json"
+      - "scripts/**"
+      - "TEST-COVERAGE.md"
+      - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
 jobs:
@@ -56,6 +76,9 @@ jobs:
 
       - name: Replay speed behaviour fixtures
         run: node tests/test-speed-engine.js
+
+      - name: Measure core speed-engine coverage
+        run: node --test --experimental-test-coverage tests/test-speed-engine.js
 
       - name: Build Frenano web release
         env:
