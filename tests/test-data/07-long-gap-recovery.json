@@ -1,0 +1,43 @@
+{
+  "name": "long GPS gap resets the derived-speed baseline",
+  "description": "After a long location gap, Frenano must reset the baseline rather than derive a huge speed from stale coordinates.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 10,
+      "speedMps": 8,
+      "expect": {
+        "displayedKmh": 28.8,
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": true
+      }
+    },
+    {
+      "timestamp": 20000,
+      "latitude": 47.38690,
+      "longitude": 8.55170,
+      "accuracy": 12,
+      "expect": {
+        "derivedKmh": null,
+        "displayedKmh": 28.8,
+        "speedDecision": "RESET_BASELINE",
+        "reasonsIncludes": ["LONG_LOCATION_GAP"],
+        "driverUiActive": true
+      }
+    },
+    {
+      "timestamp": 21000,
+      "latitude": 47.38695,
+      "longitude": 8.55175,
+      "accuracy": 12,
+      "speedMps": 6,
+      "expect": {
+        "displayedKmh": 21.6,
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": true
+      }
+    }
+  ]
+}
