@@ -12,6 +12,16 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Normal native driving | ✅ | Fixture: `03-normal-native-drive.json`. |
 | Derived-speed startup | ✅ | Fixture: `04-derived-start-needs-confirmation.json`. |
 | Poor GPS accuracy | ✅ | Fixture: `05-poor-accuracy-derived-speed.json`. |
+| Driver-mode exit / deceleration | ✅ | Fixture: `06-driver-mode-exit.json`. |
+| Long GPS gap / tunnel-style recovery | ✅ | Fixture: `07-long-gap-recovery.json`. |
+| Missing native speed | ✅ | Fixture: `08-speed-unavailable.json`. |
+| Impossible absolute speed | ✅ | Fixture: `09-absolute-speed-rejection.json`. |
+| Native speed vs coordinate contradiction | ✅ | Fixture: `10-native-derived-contradiction.json`. |
+| Very short GPS sample interval | ✅ | Fixture: `11-short-sample-interval.json`. |
+| High-speed startup confirmation | ✅ | Fixture: `12-high-speed-start-confirmation.json`. |
+| Sudden derived stop confirmation | ✅ | Fixture: `13-sudden-derived-stop.json`. |
+| Derived direction reversal / GPS wobble | ✅ | Fixture: `14-derived-direction-reversal.json`. |
+| Large native speed jump confirmation | ✅ | Fixture: `15-large-native-speed-jump.json`. |
 | Diagnostics schema and persistence | ✅ | Regression contracts validate timestamps, schema versioning, event creation, storage, trimming, session markers and export behaviour. |
 | Road lookup / road freshness | ✅ contract | Regression/build contracts protect confirmed-road state, stale-road distance behaviour, candidate roads and speed-limit UI state. |
 | Geoapify proxy | ✅ contract | CI checks server-side key usage, reverse/map-matching actions and CORS contract. |
@@ -29,20 +39,11 @@ This document tracks *what* Frenano protects with automated tests. It complement
 
 ## Behaviour scenarios
 
-There are currently **5 executable GPS/speed behaviour fixtures** under `tests/test-data/`. These are the highest-value tests because they feed sequences of samples through the real speed engine and assert decisions, not just source-code text.
+There are currently **15 executable GPS/speed behaviour fixtures** under `tests/test-data/`. These feed sequences of samples through the real speed engine and assert decisions, rather than only checking that source-code text exists.
 
-Next scenarios worth adding from real field logs:
+The current suite covers stationary behaviour, normal native driving, derived-speed confirmation, poor accuracy, impossible coordinate and speed outliers, deceleration, long GPS gaps, missing speed, native/position contradictions, short sample intervals, high-speed startup, sudden derived stops, directional GPS wobble and large native speed jumps.
 
-1. GPS loss and recovery / tunnel.
-2. Start at zero then accelerate normally.
-3. Parallel-road ambiguity and road switching at a junction.
-4. Stale speed-limit confirmation after moving away from a matched road.
-5. Walking sequence.
-6. Bus stop/start sequence.
-7. Tram sequence with strong road proximity.
-8. Train sequence with weak road evidence and timetable evidence.
-9. Sudden temporary poor accuracy during an otherwise clean journey.
-10. Long-baseline transit-speed recovery.
+The next highest-value behavioural scenarios are now broader app/integration behaviours rather than gaps in the extracted core speed engine: road switching near junctions, stale speed-limit handling, walking, bus/tram/train journeys, and long-baseline public-transport recovery.
 
 ## Code coverage
 
@@ -52,17 +53,23 @@ CI runs:
 node --test --experimental-test-coverage tests/test-speed-engine.js
 ```
 
-The resulting GitHub Actions log reports statement/branch/function coverage for code exercised by the core behaviour suite. Treat this as **core-engine coverage**, not whole-app coverage: much of the product currently lives in generated/browser/native integration code that is protected by contract/build tests rather than instrumented unit tests.
+Current core-engine result after the 15-scenario suite:
+
+- `speed-engine.js` line coverage: **100.00%**
+- `speed-engine.js` branch coverage: **94.96%**
+- `speed-engine.js` function coverage: **100.00%**
+
+Treat this as **core-engine coverage**, not whole-app coverage: much of the product currently lives in generated/browser/native integration code that is protected by contract/build tests rather than instrumented unit tests.
 
 ## How to interpret the quality gate
 
 A green quality gate currently means:
 
-- the core speed fixtures pass;
+- all 15 core speed fixtures pass;
 - required product, diagnostic and privacy contracts remain present;
 - the configured release builds successfully;
 - release-channel rules remain intact;
 - the expected Frenano assets/branding/startup/settings are present in the built output;
 - platform-specific packaging checks pass where applicable.
 
-The goal is to improve both dimensions over time: **more executable behavioural scenarios** and **higher measured code coverage of extracted testable modules**.
+The next testing focus should be to extract and exercise more road-matching, transport and platform logic as executable modules while preserving these core-engine coverage levels.
