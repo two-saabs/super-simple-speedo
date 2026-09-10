@@ -1,4 +1,4 @@
-name: Super Simple Speedo quality gate
+name: Frenano experimental quality gate (legacy baseline)
 
 on:
   push:
@@ -15,6 +15,7 @@ on:
       - "*.js"
       - "test-data/**"
       - "speed-engine.js"
+      - "TEST-COVERAGE.md"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
@@ -30,6 +31,7 @@ on:
       - "*.js"
       - "test-data/**"
       - "speed-engine.js"
+      - "TEST-COVERAGE.md"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -71,6 +73,8 @@ jobs:
         run: node check-privacy.js
       - name: Replay speed behaviour fixtures
         run: node test-speed-engine.js
+      - name: Measure core speed-engine coverage
+        run: node --test --experimental-test-coverage test-speed-engine.js
       - name: Build configured release output
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
