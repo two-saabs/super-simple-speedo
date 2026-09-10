@@ -15,6 +15,7 @@ on:
       - "speed-engine.js"
       - "netlify/**"
       - "netlify.toml"
+      - "TEST-COVERAGE.md"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
@@ -30,6 +31,7 @@ on:
       - "speed-engine.js"
       - "netlify/**"
       - "netlify.toml"
+      - "TEST-COVERAGE.md"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -79,6 +81,9 @@ jobs:
 
       - name: Replay speed behaviour fixtures
         run: node tests/test-speed-engine.js
+
+      - name: Measure core speed-engine coverage
+        run: node --test --experimental-test-coverage tests/test-speed-engine.js
 
       - name: Build website and web app
         env:
