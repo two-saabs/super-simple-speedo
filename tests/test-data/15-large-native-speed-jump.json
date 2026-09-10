@@ -28,9 +28,9 @@
       }
     },
     {
-      "timestamp": 3000,
+      "timestamp": 2200,
       "latitude": 47.37690,
-      "longitude": 8.54237,
+      "longitude": 8.54206,
       "accuracy": 6,
       "speedMps": 27.2222222222,
       "expect": {
