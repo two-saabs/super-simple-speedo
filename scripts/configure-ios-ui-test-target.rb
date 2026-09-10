@@ -27,9 +27,15 @@ Dir.glob(File.join(test_dir, '*.swift')).sort.each do |source|
 end
 
 test_target.build_configurations.each do |config|
-  config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'app.supersimplespeedo.ios.uitests'
-  config.build_settings['TEST_TARGET_NAME'] = 'App'
-  config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+  settings = config.build_settings
+  settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'app.supersimplespeedo.ios.uitests'
+  settings['PRODUCT_NAME'] = '$(TARGET_NAME)'
+  settings['PRODUCT_MODULE_NAME'] = '$(TARGET_NAME:c99extidentifier)'
+  settings['SWIFT_VERSION'] = '5.0'
+  settings['TEST_TARGET_NAME'] = 'App'
+  settings['TEST_HOST'] = ''
+  settings['BUNDLE_LOADER'] = ''
+  settings['CODE_SIGNING_ALLOWED'] = 'NO'
 end
 
 project.save
