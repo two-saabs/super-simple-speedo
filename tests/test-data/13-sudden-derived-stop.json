@@ -15,7 +15,7 @@
       }
     },
     {
-      "timestamp": 2000,
+      "timestamp": 1500,
       "latitude": 47.37690,
       "longitude": 8.54170,
       "accuracy": 6,
@@ -27,7 +27,7 @@
       }
     },
     {
-      "timestamp": 3000,
+      "timestamp": 2000,
       "latitude": 47.37690,
       "longitude": 8.54170,
       "accuracy": 6,
@@ -38,7 +38,7 @@
       }
     },
     {
-      "timestamp": 4000,
+      "timestamp": 2500,
       "latitude": 47.37690,
       "longitude": 8.54170,
       "accuracy": 6,
