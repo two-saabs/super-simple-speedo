@@ -13,6 +13,7 @@ on:
       - "images/**"
       - "build/**"
       - "tests/**"
+      - "ios-tests/**"
       - "speed-engine.js"
       - "native-ios.js"
       - "capacitor.config.json"
@@ -32,6 +33,7 @@ on:
       - "images/**"
       - "build/**"
       - "tests/**"
+      - "ios-tests/**"
       - "speed-engine.js"
       - "native-ios.js"
       - "capacitor.config.json"
@@ -121,3 +123,14 @@ jobs:
           ! grep -q 'test-key-not-for-production' dist/index.html
           grep -q '"appName": "Frenano"' capacitor.config.json
           grep -q '"appId": "app.supersimplespeedo.ios"' capacitor.config.json
+
+      - name: Verify native iOS UI regression suite
+        run: |
+          test -f ios-tests/FrenanoUITests.swift
+          grep -q 'testNativeStartupSkipsLetsGoAndShowsCoreSpeedometer' ios-tests/FrenanoUITests.swift
+          grep -q 'testSettingsExposeNativeLocationManagement' ios-tests/FrenanoUITests.swift
+          grep -q 'testAboutShowsAppStoreVersion' ios-tests/FrenanoUITests.swift
+          grep -q 'testPortraitLandscapePortraitKeepsCoreUIAvailable' ios-tests/FrenanoUITests.swift
+          grep -q 'Allow While Using App' ios-tests/FrenanoUITests.swift
+          grep -q 'Manage in iPhone Settings' ios-tests/FrenanoUITests.swift
+          ! grep -q 'testLaunchScreenShowsPrimaryAction' ios-tests/FrenanoUITests.swift
