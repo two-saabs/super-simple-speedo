@@ -1,0 +1,44 @@
+{
+  "name": "large native speed jump requires a second consistent sample",
+  "description": "A sudden but physically plausible jump in native speed is held once and then accepted when a second sample agrees and coordinate movement supports it.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 6,
+      "speedMps": 5.5555555556,
+      "expect": {
+        "displayedKmhApprox": {"value": 20, "tolerance": 0.01},
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": true
+      }
+    },
+    {
+      "timestamp": 2000,
+      "latitude": 47.37690,
+      "longitude": 8.54200,
+      "accuracy": 6,
+      "speedMps": 27.7777777778,
+      "expect": {
+        "rawKmhApprox": {"value": 100, "tolerance": 0.01},
+        "displayedKmhApprox": {"value": 20, "tolerance": 0.01},
+        "speedDecision": "HELD",
+        "reasonsIncludes": ["LARGE_SPEED_JUMP", "AWAITING_CONFIRMATION"]
+      }
+    },
+    {
+      "timestamp": 3000,
+      "latitude": 47.37690,
+      "longitude": 8.54237,
+      "accuracy": 6,
+      "speedMps": 27.2222222222,
+      "expect": {
+        "rawKmhApprox": {"value": 98, "tolerance": 0.01},
+        "displayedKmhApprox": {"value": 98, "tolerance": 0.01},
+        "speedDecision": "ACCEPTED_CONFIRMED",
+        "driverUiActive": true
+      }
+    }
+  ]
+}
