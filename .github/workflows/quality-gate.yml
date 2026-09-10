@@ -13,6 +13,7 @@ on:
       - "build/**"
       - "tests/**"
       - "speed-engine.js"
+      - "netlify/**"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
@@ -26,6 +27,7 @@ on:
       - "build/**"
       - "tests/**"
       - "speed-engine.js"
+      - "netlify/**"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -58,6 +60,14 @@ jobs:
           ].forEach(checkPng);
           if (!fs.existsSync('images/frenano-hero-background.jpg')) throw new Error('Hero background missing');
           NODE
+
+      - name: Verify native lookup proxy contract
+        run: |
+          test -f netlify/functions/geoapify-proxy.js
+          grep -q 'process.env.GEOAPIFY_API_KEY' netlify/functions/geoapify-proxy.js
+          grep -q 'action === "reverse"' netlify/functions/geoapify-proxy.js
+          grep -q 'action === "mapmatching"' netlify/functions/geoapify-proxy.js
+          grep -q 'Access-Control-Allow-Origin' netlify/functions/geoapify-proxy.js
 
       - name: Check product and diagnostic contracts
         run: node tests/check-regressions.js index.template.html
