@@ -1,0 +1,32 @@
+{
+  "name": "native speed contradicted by position movement is held",
+  "description": "A high native speed with almost no coordinate movement and good accuracy is treated as contradictory and rejected from the display.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 5,
+      "speedMps": 0,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": false
+      }
+    },
+    {
+      "timestamp": 3000,
+      "latitude": 47.37691,
+      "longitude": 8.54171,
+      "accuracy": 5,
+      "speedMps": 27.7777777778,
+      "expect": {
+        "rawKmhApprox": {"value": 100, "tolerance": 0.01},
+        "displayedKmh": 0,
+        "speedDecision": "REJECTED",
+        "reasonsIncludes": ["MOVEMENT_CONTRADICTION"],
+        "driverUiActive": false
+      }
+    }
+  ]
+}
