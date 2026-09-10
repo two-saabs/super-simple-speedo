@@ -1,0 +1,31 @@
+{
+  "name": "very short GPS interval is diagnosed without destabilising speed",
+  "description": "A GPS update arriving within 350 ms should record the short-interval reason while a sane native speed remains usable.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 6,
+      "speedMps": 5.5555555556,
+      "expect": {
+        "displayedKmhApprox": {"value": 20, "tolerance": 0.01},
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": true
+      }
+    },
+    {
+      "timestamp": 1200,
+      "latitude": 47.37691,
+      "longitude": 8.54171,
+      "accuracy": 6,
+      "speedMps": 5.5555555556,
+      "expect": {
+        "displayedKmhApprox": {"value": 20, "tolerance": 0.01},
+        "speedDecision": "ACCEPTED",
+        "reasonsIncludes": ["ELAPSED_TIME_TOO_SHORT"],
+        "driverUiActive": true
+      }
+    }
+  ]
+}
