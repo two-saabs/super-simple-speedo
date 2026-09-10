@@ -1,0 +1,52 @@
+{
+  "name": "sudden derived stop is held until repeatedly confirmed",
+  "description": "If native speed disappears and coordinates suddenly imply zero while driving, Frenano should hold the previous speed until repeated derived samples confirm the stop.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 6,
+      "speedMps": 15,
+      "expect": {
+        "displayedKmhApprox": {"value": 54, "tolerance": 0.01},
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": true
+      }
+    },
+    {
+      "timestamp": 2000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 6,
+      "expect": {
+        "displayedKmhApprox": {"value": 54, "tolerance": 0.01},
+        "speedDecision": "HELD",
+        "reasonsIncludes": ["STOP_UNCONFIRMED", "AWAITING_CONFIRMATION"],
+        "driverUiActive": true
+      }
+    },
+    {
+      "timestamp": 3000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 6,
+      "expect": {
+        "displayedKmhApprox": {"value": 54, "tolerance": 0.01},
+        "speedDecision": "HELD",
+        "reasonsIncludes": ["STOP_UNCONFIRMED", "AWAITING_CONFIRMATION"]
+      }
+    },
+    {
+      "timestamp": 4000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 6,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "ACCEPTED_CONFIRMED",
+        "driverUiActive": false
+      }
+    }
+  ]
+}
