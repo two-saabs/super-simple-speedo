@@ -13,6 +13,9 @@ on:
       - "build/**"
       - "tests/**"
       - "speed-engine.js"
+      - "netlify/**"
+      - "netlify.toml"
+      - "TEST-COVERAGE.md"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
@@ -26,6 +29,9 @@ on:
       - "build/**"
       - "tests/**"
       - "speed-engine.js"
+      - "netlify/**"
+      - "netlify.toml"
+      - "TEST-COVERAGE.md"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -57,6 +63,14 @@ jobs:
           ].forEach(checkPng);
           NODE
 
+      - name: Verify native lookup proxy contract
+        run: |
+          test -f netlify/functions/geoapify-proxy.js
+          grep -q 'process.env.GEOAPIFY_API_KEY' netlify/functions/geoapify-proxy.js
+          grep -q 'action === "reverse"' netlify/functions/geoapify-proxy.js
+          grep -q 'action === "mapmatching"' netlify/functions/geoapify-proxy.js
+          grep -q 'Access-Control-Allow-Origin' netlify/functions/geoapify-proxy.js
+
       - name: Check product and diagnostic contracts
         run: node tests/check-regressions.js index.template.html
 
@@ -65,6 +79,9 @@ jobs:
 
       - name: Replay speed behaviour fixtures
         run: node tests/test-speed-engine.js
+
+      - name: Measure core speed-engine coverage
+        run: node --test --experimental-test-coverage tests/test-speed-engine.js
 
       - name: Build configured Frenano output
         env:
