@@ -1,0 +1,88 @@
+name: Frenano iOS simulator UI tests
+
+on:
+  push:
+    branches:
+      - frenano-ios-ci-spike
+      - frenano-ios-test
+    paths:
+      - "ios-tests/**"
+      - "scripts/configure-ios-ui-test-target.rb"
+      - "scripts/install-ios-tests.js"
+      - "scripts/configure-ios.js"
+      - "build-ios.js"
+      - "native-ios.js"
+      - "index.template.html"
+      - "speed-engine.js"
+      - "capacitor.config.json"
+      - "package.json"
+      - ".github/workflows/ios-simulator-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  ui-tests:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install JavaScript dependencies
+        run: npm install --no-package-lock
+
+      - name: Generate native iOS project
+        run: npm run ios:init
+
+      - name: Install UI test sources
+        run: npm run ios:tests:install
+
+      - name: Install Xcode project helper
+        run: gem install xcodeproj --no-document
+
+      - name: Configure UI test target and shared scheme
+        run: ruby scripts/configure-ios-ui-test-target.rb
+
+      - name: Inspect generated schemes and simulators
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -list
+          xcrun simctl list devices available
+
+      - name: Choose and boot an iPhone simulator
+        id: simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          UDID=$(xcrun simctl list devices available -j | ruby -rjson -e '
+            data=JSON.parse(STDIN.read)
+            devices=data.fetch("devices").values.flatten
+            phone=devices.find { |d| d["name"].start_with?("iPhone") && d["isAvailable"] != false }
+            abort "No available iPhone simulator" unless phone
+            puts phone.fetch("udid")
+          ')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Run Frenano UI tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project ios/App/App.xcodeproj \
+            -scheme Frenano-CI \
+            -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.udid }}" \
+            -resultBundlePath "$RUNNER_TEMP/FrenanoUITests.xcresult" \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee "$RUNNER_TEMP/xcodebuild-ui-tests.log"
+
+      - name: Upload XCTest diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frenano-ios-ui-test-results
+          path: |
+            ${{ runner.temp }}/FrenanoUITests.xcresult
+            ${{ runner.temp }}/xcodebuild-ui-tests.log
+          if-no-files-found: warn
+          retention-days: 14
