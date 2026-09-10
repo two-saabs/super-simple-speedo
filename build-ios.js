@@ -74,7 +74,7 @@ esbuild.buildSync({
 
 replaceRequired(
   "<head>",
-  `<head>\n  <script>window.__SPEEDO_NATIVE_IOS__ = true;</script>\n  <script src="./native-ios.bundle.js"></script>\n  <style>#installCard,#iosInstallModal,#fullscreenButton{display:none!important}</style>`,
+  `<head>\n  <script>window.__SPEEDO_NATIVE_IOS__ = true;</script>\n  <script src="./native-ios.bundle.js"></script>\n  <style>#installCard,#iosInstallModal,#fullscreenButton{display:none!important}</style>\n  <style id="native-ios-autostart-v1">#letsDriveButton{display:none!important}</style>\n  <script id="native-ios-autostart-script">\n    // Native iOS needs no browser gesture before starting location. Keep the\n    // Frenano brand visible briefly, then use the existing start path so all\n    // normal GPS/session setup stays in one place. The web/PWA keeps its button.\n    window.addEventListener("load", () => {\n      window.setTimeout(() => {\n        const startButton = document.getElementById("letsDriveButton");\n        if (startButton && !startButton.disabled) startButton.click();\n      }, 900);\n    });\n  </script>`,
   "document head"
 );
 
@@ -126,9 +126,14 @@ if (/Super Simple Speedo/i.test(html)) {
   console.error("iOS build failed: visible legacy Super Simple Speedo branding remains in packaged HTML.");
   process.exit(1);
 }
+if (!html.includes('id="native-ios-autostart-v1"') || !html.includes('id="native-ios-autostart-script"')) {
+  console.error("iOS build failed: native automatic startup was not packaged.");
+  process.exit(1);
+}
 
 fs.writeFileSync(packagedHtml, html, "utf8");
 console.log(`Prepared Frenano ${appStoreVersion} (build ${appVersion}) for the iOS App Store shell.`);
 console.log("Native location permission handling is enabled.");
+console.log("Native iOS startup auto-connects after a short Frenano brand moment; the web/PWA keeps Let’s go!.");
 console.log("Privacy and support links point to frenano.app.");
 console.log("Geoapify calls use the secure Frenano server proxy; no Geoapify API key is packaged in iOS.");
