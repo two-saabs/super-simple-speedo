@@ -1,0 +1,40 @@
+{
+  "name": "reversing derived movement does not confirm a false start",
+  "description": "GPS wobble can create two similar derived speeds in opposite directions. Frenano must reject the directional inconsistency instead of treating it as confirmation.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 5,
+      "speedMps": 0,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "ACCEPTED"
+      }
+    },
+    {
+      "timestamp": 2000,
+      "latitude": 47.37690,
+      "longitude": 8.54185,
+      "accuracy": 5,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "HELD",
+        "reasonsIncludes": ["START_FROM_STATIONARY_UNCONFIRMED", "AWAITING_CONFIRMATION"]
+      }
+    },
+    {
+      "timestamp": 3000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 5,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "HELD",
+        "reasonsIncludes": ["START_FROM_STATIONARY_UNCONFIRMED", "INCONSISTENT_DIRECTION", "AWAITING_CONFIRMATION"],
+        "driverUiActive": false
+      }
+    }
+  ]
+}
