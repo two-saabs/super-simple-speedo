@@ -1,0 +1,20 @@
+{
+  "name": "impossible absolute native speed is rejected",
+  "description": "A native speed above Frenano's display ceiling must be rejected and must not enter driver mode.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 6,
+      "speedMps": 100,
+      "expect": {
+        "rawKmh": 360,
+        "displayedKmh": 0,
+        "speedDecision": "REJECTED",
+        "reasonsIncludes": ["ABSOLUTE_SPEED_LIMIT"],
+        "driverUiActive": false
+      }
+    }
+  ]
+}
