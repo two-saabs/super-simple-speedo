@@ -75,6 +75,8 @@ jobs:
           grep -q 'Frenano' dist/app/index.html
           grep -q 'support@frenano.app' dist/app/index.html
           grep -q 'https://frenano.app/#privacy' dist/app/index.html
+          grep -q 'id="letsDriveButton"' dist/app/index.html
+          grep -q 'simple-startup-v1' dist/app/index.html
 
       - name: Install iOS packaging dependencies
         run: npm install --no-package-lock
@@ -89,6 +91,9 @@ jobs:
           grep -q 'window.__SPEEDO_NATIVE_IOS__ = true' dist/index.html
           grep -q 'https://frenano.app/.netlify/functions/geoapify-proxy' dist/index.html
           grep -q 'Frenano' dist/index.html
+          grep -q 'id="native-ios-autostart-v1"' dist/index.html
+          grep -q 'id="native-ios-autostart-script"' dist/index.html
+          grep -q '#letsDriveButton{display:none!important}' dist/index.html
           ! grep -q 'ios-build-placeholder-not-secret' dist/index.html
           ! grep -q 'test-key-not-for-production' dist/index.html
           grep -q '"appName": "Frenano"' capacitor.config.json
