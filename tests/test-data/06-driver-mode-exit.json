@@ -1,0 +1,30 @@
+{
+  "name": "driver mode exits after slowing to walking speed",
+  "description": "A normal native drive enters driver mode, then a sustained low native speed exits it cleanly.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 8,
+      "speedMps": 5,
+      "expect": {
+        "displayedKmh": 18,
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": true
+      }
+    },
+    {
+      "timestamp": 3000,
+      "latitude": 47.37700,
+      "longitude": 8.54180,
+      "accuracy": 8,
+      "speedMps": 1,
+      "expect": {
+        "displayedKmh": 3.6,
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": false
+      }
+    }
+  ]
+}
