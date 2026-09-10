@@ -1,0 +1,21 @@
+{
+  "name": "missing native speed is reported without inventing movement",
+  "description": "A first GPS sample without a usable native speed has no derived baseline and must remain at zero.",
+  "samples": [
+    {
+      "timestamp": 1000,
+      "latitude": 47.37690,
+      "longitude": 8.54170,
+      "accuracy": 9,
+      "expect": {
+        "rawKmh": null,
+        "derivedKmh": null,
+        "displayedKmh": 0,
+        "speedSource": "NONE",
+        "speedDecision": "NO_SPEED",
+        "reasonsIncludes": ["SPEED_NOT_AVAILABLE"],
+        "driverUiActive": false
+      }
+    }
+  ]
+}
