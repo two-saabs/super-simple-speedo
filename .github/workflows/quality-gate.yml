@@ -14,6 +14,7 @@ on:
       - "tests/**"
       - "speed-engine.js"
       - "netlify/**"
+      - "netlify.toml"
       - ".github/workflows/quality-gate.yml"
   pull_request:
     paths:
@@ -28,6 +29,7 @@ on:
       - "tests/**"
       - "speed-engine.js"
       - "netlify/**"
+      - "netlify.toml"
       - ".github/workflows/quality-gate.yml"
   workflow_dispatch:
 
@@ -81,7 +83,7 @@ jobs:
       - name: Build website and web app
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
-        run: node build.js
+        run: node build.js && node build/apply-startup-web.js
 
       - name: Check release-channel contracts
         run: node tests/check-channel-contract.js
@@ -107,3 +109,8 @@ jobs:
           grep -q 'data-settings-section="audio" aria-hidden="true"' dist/app/index.html
           grep -q 'support@frenano.app' dist/app/index.html
           grep -q 'Experimental transport API disabled in stable build' dist/app/index.html
+          grep -q 'frenano-startup-logo-512.png' dist/app/index.html
+          grep -q 'simple-startup-v1' dist/app/index.html
+          grep -q 'id="letsDriveButton"' dist/app/index.html
+          grep -q '#launchSatelliteTrack,' dist/app/index.html
+          grep -q '#launchChecklist,' dist/app/index.html
