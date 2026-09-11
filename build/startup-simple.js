@@ -36,7 +36,7 @@ function applySimpleStartup(html) {
 
     <button class="launch-action location-enable-button" id="letsDriveButton" type="button">I’m OK with that</button>
 
-    <div class="location-intro-values">Completely free · No account or subscription needed · No advertisements · Private · Made in Switzerland</div>
+    <div class="location-intro-values"><span>Completely free · No account or subscription needed</span><br><span>No advertisements · Private · Made in Switzerland</span></div>
     <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
     <div class="launch-progress" aria-hidden="true"><span id="launchProgress"></span></div>
     <div class="launch-checklist hidden" id="launchChecklist" aria-hidden="true">
@@ -52,7 +52,9 @@ function applySimpleStartup(html) {
 
 <div class="frenano-ready-splash" id="frenanoReadySplash" aria-hidden="true">
   <div class="frenano-ready-core">
-    <img class="frenano-ready-logo" src="/images/frenano-startup-logo-512.png?v=20260911-frenano-ready-v1" alt="Frenano">
+    <img class="frenano-ready-logo" src="/images/frenano-startup-logo-512.png?v=20260911-frenano-ready-v2" alt="Frenano">
+    <div class="frenano-ready-name">Frenano</div>
+    <div class="frenano-ready-tagline">GPS speedometer, simply done.</div>
     <button class="launch-action frenano-ready-button" id="frenanoReadyButton" type="button">Let’s go!</button>
   </div>
 </div>
@@ -87,13 +89,16 @@ function applySimpleStartup(html) {
   .location-intro-reason span { display:block; margin-top:3px; font-size:14px; line-height:1.34; font-weight:510; color:rgba(255,255,255,.68); }
   .location-enable-button { width:100%; margin:22px 0 0; min-height:56px; background:linear-gradient(180deg,#279cff,#0b82ee); color:#fff; box-shadow:0 10px 28px rgba(0,92,200,.28); }
   .location-intro-values { margin-top:auto; max-width:410px; padding-top:18px; font-size:10px; line-height:1.55; font-weight:650; letter-spacing:.055em; color:rgba(255,255,255,.52); }
+  .location-intro-values span { white-space:nowrap; }
   #launchSatelliteTrack, #launchChecklist, #launchDisclaimer, #launchStatus, #launchProgress { display:none !important; }
 
   .frenano-ready-splash { position:fixed; inset:0; z-index:110; display:grid; place-items:center; background:#000; opacity:0; visibility:hidden; transition:opacity .28s ease,visibility .28s ease; color:#fff; }
   .frenano-ready-splash.show { opacity:1; visibility:visible; }
-  .frenano-ready-core { width:min(78vw,360px); display:grid; justify-items:center; gap:38px; }
+  .frenano-ready-core { width:min(78vw,360px); display:grid; justify-items:center; gap:0; text-align:center; }
   .frenano-ready-logo { width:112px; height:112px; border-radius:28px; object-fit:cover; box-shadow:0 18px 54px rgba(0,0,0,.45); }
-  .frenano-ready-button { width:min(310px,100%); margin:0; background:#fff; color:#000; }
+  .frenano-ready-name { margin-top:18px; font-size:32px; line-height:1; font-weight:900; letter-spacing:-.04em; }
+  .frenano-ready-tagline { margin-top:10px; font-size:15px; line-height:1.3; font-weight:620; color:rgba(255,255,255,.62); }
+  .frenano-ready-button { width:min(310px,100%); margin:30px 0 0; background:#fff; color:#000; }
   body.native-ios .frenano-ready-button { display:none; }
 
   #settingsModal .sheet { position:relative; }
