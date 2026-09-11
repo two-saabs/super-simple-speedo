@@ -34,6 +34,7 @@ function applySettingsPolish(html, { appVersion }) {
   const APP_VERSION = ${JSON.stringify(appVersion)};
   let permissionStatus = 'unknown';
   let permissionObject = null;
+  let gpsSucceeded = false;
 
   function setPermissionStatus(status) {
     permissionStatus = status || 'unknown';
@@ -48,15 +49,17 @@ function applySettingsPolish(html, { appVersion }) {
     else label.textContent = native ? 'Checking…' : 'Check browser settings';
   }
 
-  function markFromGeolocationError(error) { if (Number(error?.code) === 1) setPermissionStatus('denied'); }
+  function markFromGeolocationError(error) {
+    if (Number(error?.code) === 1) { gpsSucceeded = false; setPermissionStatus('denied'); }
+  }
 
   function wrapWebGeolocation() {
     if (window.__SPEEDO_NATIVE_IOS__ || !navigator.geolocation || navigator.geolocation.__frenanoWrapped) return;
     const geo = navigator.geolocation;
     const originalWatch = geo.watchPosition?.bind(geo);
     const originalGet = geo.getCurrentPosition?.bind(geo);
-    if (originalWatch) geo.watchPosition = (success,error,options) => originalWatch(position => { setPermissionStatus('granted'); success?.(position); }, err => { markFromGeolocationError(err); error?.(err); }, options);
-    if (originalGet) geo.getCurrentPosition = (success,error,options) => originalGet(position => { setPermissionStatus('granted'); success?.(position); }, err => { markFromGeolocationError(err); error?.(err); }, options);
+    if (originalWatch) geo.watchPosition = (success,error,options) => originalWatch(position => { gpsSucceeded = true; setPermissionStatus('granted'); success?.(position); }, err => { markFromGeolocationError(err); error?.(err); }, options);
+    if (originalGet) geo.getCurrentPosition = (success,error,options) => originalGet(position => { gpsSucceeded = true; setPermissionStatus('granted'); success?.(position); }, err => { markFromGeolocationError(err); error?.(err); }, options);
     try { Object.defineProperty(geo, '__frenanoWrapped', { value:true }); } catch (_) { geo.__frenanoWrapped = true; }
   }
 
@@ -66,12 +69,16 @@ function applySettingsPolish(html, { appVersion }) {
       catch (_) { setPermissionStatus('unknown'); }
       return;
     }
+    if (gpsSucceeded) { setPermissionStatus('granted'); return; }
     if (!navigator.permissions?.query) { setPermissionStatus(permissionStatus === 'granted' ? 'granted' : 'unknown'); return; }
     try {
       permissionObject = permissionObject || await navigator.permissions.query({ name:'geolocation' });
       setPermissionStatus(permissionObject.state);
       if (!permissionObject.__frenanoWired) {
-        permissionObject.addEventListener?.('change', () => setPermissionStatus(permissionObject.state));
+        permissionObject.addEventListener?.('change', () => {
+          if (permissionObject.state === 'denied') gpsSucceeded = false;
+          setPermissionStatus(gpsSucceeded ? 'granted' : permissionObject.state);
+        });
         permissionObject.__frenanoWired = true;
       }
     } catch (_) { setPermissionStatus(permissionStatus === 'granted' ? 'granted' : 'unknown'); }
