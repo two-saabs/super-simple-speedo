@@ -96,6 +96,11 @@ function applySimpleStartup(html) {
   .frenano-ready-button { width:min(310px,100%); margin:0; background:#fff; color:#000; }
   body.native-ios .frenano-ready-button { display:none; }
 
+  #settingsModal .sheet { position:relative; }
+  #settingsModal h2 { padding-right:86px; }
+  #settingsModal .settings-top-close { position:absolute; top:18px; right:18px; z-index:4; min-width:66px; min-height:38px; padding:0 14px; border:1px solid var(--soft-border); border-radius:12px; background:var(--soft); color:var(--fg); font-size:13px; font-weight:780; cursor:pointer; }
+  #settingsModal .settings-top-close:active { transform:scale(.97); }
+
   @media (max-height:760px) {
     .location-intro-core { padding-top:max(46px,calc(env(safe-area-inset-top) + 34px)); }
     .location-intro-logo { width:62px; height:62px; border-radius:16px; }
@@ -162,6 +167,26 @@ function applySimpleStartup(html) {
     check();
   }
 
+  function installSettingsClose() {
+    const modal = document.getElementById('settingsModal');
+    const sheet = modal?.querySelector('.sheet');
+    if (!modal || !sheet || sheet.querySelector('.settings-top-close')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'settings-top-close';
+    button.textContent = 'Close';
+    button.setAttribute('aria-label','Close settings');
+    button.addEventListener('click', () => {
+      const existing = document.getElementById('closeSettings');
+      if (existing) existing.click();
+      else {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden','true');
+      }
+    });
+    sheet.prepend(button);
+  }
+
   window.__frenanoLocationIntroAccepted = () => {
     try { localStorage.setItem(KEY,'1'); } catch (_) {}
     window.__frenanoLocationActionDone = true;
@@ -173,6 +198,7 @@ function applySimpleStartup(html) {
     hideReady();
   });
 
+  installSettingsClose();
   let seen = false;
   try { seen = localStorage.getItem(KEY) === '1'; } catch (_) {}
   if (seen) {
