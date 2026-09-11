@@ -88,7 +88,7 @@ jobs:
       - name: Build website and web app
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
-        run: node build.js && node build/apply-startup-web.js
+        run: node build.js
 
       - name: Check release-channel contracts
         run: node tests/check-channel-contract.js
