@@ -2,12 +2,9 @@
 
 function applySettingsPolish(html, { appVersion }) {
   const css = `
-<style id="settings-polish-v1">
+<style id="settings-polish-v2">
   #settingsModal [data-settings-section="about"] { display:none !important; }
-  #settingsModal .settings-section:not(.hidden-element) {
-    margin:0 0 14px; padding:16px; border:1px solid var(--soft-border); border-radius:18px;
-    background:rgba(127,127,127,.07);
-  }
+  #settingsModal .settings-section:not(.hidden-element) { margin:0 0 14px; padding:16px; border:1px solid var(--soft-border); border-radius:18px; background:rgba(127,127,127,.07); }
   #settingsModal .settings-section:not(.hidden-element) + .settings-section:not(.hidden-element) { margin-top:14px; }
   #settingsModal .settings-section-header { padding-bottom:12px !important; }
   #settingsModal .settings-section-title { font-size:19px !important; }
@@ -17,8 +14,8 @@ function applySettingsPolish(html, { appVersion }) {
   #settingsModal .settings-footer .version { display:block; margin-bottom:2px; }
   #settingsModal .location-permission-setting { padding-top:0 !important; }
   #settingsModal .location-permission-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; }
-  #settingsModal .location-permission-status { display:flex; align-items:center; gap:7px; margin-top:6px; font-size:13px; font-weight:720; opacity:.72; }
-  #settingsModal .location-permission-dot { width:8px; height:8px; border-radius:50%; background:#8e8e93; flex:0 0 8px; }
+  #settingsModal .location-permission-status { display:flex; align-items:flex-start; gap:7px; margin-top:6px; font-size:13px; line-height:1.35; font-weight:720; opacity:.76; }
+  #settingsModal .location-permission-dot { width:8px; height:8px; margin-top:5px; border-radius:50%; background:#8e8e93; flex:0 0 8px; }
   #settingsModal .location-permission-status.granted .location-permission-dot { background:#34c759; }
   #settingsModal .location-permission-status.denied .location-permission-dot { background:#ff9f0a; }
   #settingsModal .location-permission-action { min-width:96px; min-height:40px; padding:0 13px; border:0; border-radius:12px; background:var(--accent-soft); color:var(--fg); font-size:13px; font-weight:780; }
@@ -29,12 +26,19 @@ function applySettingsPolish(html, { appVersion }) {
 </style>`;
 
   const js = `
-<script id="settings-polish-v1-script">
+<script id="settings-polish-v2-script">
 (() => {
   const APP_VERSION = ${JSON.stringify(appVersion)};
   let permissionStatus = 'unknown';
   let permissionObject = null;
   let gpsSucceeded = false;
+
+  function updatePermissionAction() {
+    const button = document.getElementById('locationPermissionAction');
+    if (!button) return;
+    if (!window.__SPEEDO_NATIVE_IOS__) { button.textContent = 'How to change'; return; }
+    button.textContent = permissionStatus === 'denied' ? 'Open Settings' : 'Manage';
+  }
 
   function setPermissionStatus(status) {
     permissionStatus = status || 'unknown';
@@ -42,11 +46,18 @@ function applySettingsPolish(html, { appVersion }) {
     const label = document.getElementById('locationPermissionLabel');
     if (!row || !label) return;
     row.classList.remove('granted','denied');
-    const native = !!window.__SPEEDO_NATIVE_IOS__;
-    if (permissionStatus === 'granted') { row.classList.add('granted'); label.textContent = 'Allowed'; }
-    else if (permissionStatus === 'denied') { row.classList.add('denied'); label.textContent = 'Not allowed'; }
-    else if (permissionStatus === 'prompt' || permissionStatus === 'prompt-with-rationale') label.textContent = native ? 'Ask next time' : 'Not yet requested';
-    else label.textContent = native ? 'Checking…' : 'Check browser settings';
+    if (permissionStatus === 'granted') {
+      row.classList.add('granted');
+      label.textContent = 'On — Frenano can use your location';
+    } else if (permissionStatus === 'denied') {
+      row.classList.add('denied');
+      label.textContent = 'Off in Settings';
+    } else if (permissionStatus === 'prompt' || permissionStatus === 'prompt-with-rationale') {
+      label.textContent = 'Off — location is needed to measure your speed';
+    } else {
+      label.textContent = window.__SPEEDO_NATIVE_IOS__ ? 'Checking location…' : 'Check browser location settings';
+    }
+    updatePermissionAction();
   }
 
   function markFromGeolocationError(error) {
@@ -94,14 +105,18 @@ function applySettingsPolish(html, { appVersion }) {
   function installLocationSetting() {
     const privacy = document.querySelector('#settingsModal [data-settings-section="privacy"]');
     const body = privacy?.querySelector('.settings-section-body');
-    if (!body || document.getElementById('locationPermissionSetting')) return;
-    document.getElementById('nativeLocationPermissionSetting')?.remove();
+    if (!body) return;
+
+    // Remove both older location UI variants before installing the single source of truth.
+    body.querySelectorAll('.location-setting, #nativeLocationPermissionSetting, #locationPermissionSetting').forEach(node => node.remove());
+
     const native = !!window.__SPEEDO_NATIVE_IOS__;
     const setting = document.createElement('div');
     setting.className = 'setting location-permission-setting';
     setting.id = 'locationPermissionSetting';
-    setting.innerHTML = '<div class="location-permission-row"><div><div class="setting-title" style="font-size:19px;">Location access</div><div class="location-permission-status" id="locationPermissionStatus"><span class="location-permission-dot"></span><span id="locationPermissionLabel">Checking…</span></div></div><button class="location-permission-action" id="locationPermissionAction" type="button">' + (native ? 'Manage' : 'How to change') + '</button></div><div class="location-permission-help" id="locationPermissionHelp">' + (native ? 'Location permission is controlled by iPhone Settings.' : locationHelpText()) + '</div>';
+    setting.innerHTML = '<div class="location-permission-row"><div><div class="setting-title" style="font-size:19px;">Location</div><div class="location-permission-status" id="locationPermissionStatus"><span class="location-permission-dot"></span><span id="locationPermissionLabel">Checking location…</span></div></div><button class="location-permission-action" id="locationPermissionAction" type="button">' + (native ? 'Manage' : 'How to change') + '</button></div><div class="location-permission-help" id="locationPermissionHelp">' + (native ? 'Location permission is controlled by iPhone Settings.' : locationHelpText()) + '</div>';
     body.prepend(setting);
+
     document.getElementById('locationPermissionAction')?.addEventListener('click', async () => {
       if (native) { await window.__SPEEDO_NATIVE_PERMISSIONS__?.openSettings?.(); return; }
       document.getElementById('locationPermissionHelp')?.classList.toggle('show');
@@ -109,10 +124,27 @@ function applySettingsPolish(html, { appVersion }) {
     refreshPermissionStatus();
   }
 
+  function simplifyHelpCopy(modal) {
+    modal.querySelectorAll('.setting-title').forEach(title => {
+      const text = title.textContent.trim();
+      if (text === 'Need help?') title.textContent = 'Feedback?';
+      if (title.textContent.trim() === 'Feedback?') {
+        const note = title.parentElement?.querySelector('.setting-note');
+        if (note) note.textContent = 'Questions, ideas or suggestions are always welcome.';
+      }
+      if (text === 'Something not working?') {
+        const note = title.parentElement?.querySelector('.setting-note');
+        if (note) note.textContent = 'Share a privacy-safe diagnostic log to help us understand what happened.';
+      }
+    });
+    const diagnostics = modal.querySelector('#supportDiagnosticsStatus');
+    if (diagnostics) diagnostics.textContent = 'Nothing is uploaded automatically.';
+  }
+
   function polishSettings() {
     const modal = document.getElementById('settingsModal');
     if (!modal) return;
-    modal.querySelectorAll('.setting-title').forEach(title => { if (title.textContent.trim() === 'Need help?') title.textContent = 'Feedback?'; });
+    simplifyHelpCopy(modal);
     modal.querySelector('[data-settings-section="about"]')?.setAttribute('aria-hidden','true');
     installLocationSetting();
     const sheet = modal.querySelector('.sheet');
