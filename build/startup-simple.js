@@ -64,14 +64,15 @@ function applySimpleStartup(html) {
     color:#fff;
     background:#06182a url('/images/frenano-hero-background.jpg') center bottom/cover no-repeat;
     -webkit-overflow-scrolling:touch;
-    opacity:0;
-    visibility:hidden;
+    opacity:1;
+    visibility:visible;
     transition:opacity .30s ease,visibility .30s ease;
   }
   .frenano-location-intro.intro-visible { opacity:1; visibility:visible; }
   .frenano-location-intro.hide { opacity:0; visibility:hidden; }
   .location-intro-shade { position:fixed; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(2,12,23,.80) 0%,rgba(4,20,36,.80) 48%,rgba(3,11,20,.40) 76%,rgba(0,0,0,.25) 100%); transition:opacity .35s ease; }
-  .location-intro-core { position:relative; z-index:1; width:min(86vw,430px); min-height:100svh; margin:0 auto; padding:max(58px,calc(env(safe-area-inset-top) + 44px)) 0 max(24px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .location-intro-core { position:relative; z-index:1; width:min(86vw,430px); min-height:100svh; margin:0 auto; padding:max(58px,calc(env(safe-area-inset-top) + 44px)) 0 max(24px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:center; text-align:center; opacity:0; transition:opacity .28s ease; }
+  .frenano-location-intro.intro-visible .location-intro-core { opacity:1; }
   .location-intro-brand { display:grid; justify-items:center; gap:4px; transition:transform .42s ease,opacity .30s ease; }
   .location-intro-logo { width:76px; height:76px; object-fit:cover; border-radius:19px; box-shadow:0 16px 44px rgba(0,0,0,.32); }
   .location-intro-name { margin-top:7px; font-size:30px; line-height:1; font-weight:900; letter-spacing:-.04em; }
@@ -132,7 +133,7 @@ function applySimpleStartup(html) {
     .frenano-location-intro.returning .location-intro-logo { width:96px; height:96px; border-radius:24px; }
   }
   @media (prefers-reduced-motion:reduce) {
-    .frenano-location-intro,.location-intro-brand,.location-intro-detail,.location-enable-button,.location-intro-values,.location-intro-shade { transition:none; }
+    .frenano-location-intro,.location-intro-core,.location-intro-brand,.location-intro-detail,.location-enable-button,.location-intro-values,.location-intro-shade { transition:none; }
   }
 </style>`;
 
