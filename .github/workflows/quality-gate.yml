@@ -102,15 +102,14 @@ jobs:
 
       - name: Verify first-run aware startup contract
         run: |
-          grep -q 'simple-startup-v3' dist/app/index.html
-          grep -q 'frenano-startup-flow-v4' dist/app/index.html
+          grep -q 'simple-startup-v4' dist/app/index.html
+          grep -q 'frenano-startup-flow-v5' dist/app/index.html
           grep -q 'frenano-location-intro' dist/app/index.html
-          grep -q 'I’m OK with that' dist/app/index.html
-          grep -q 'id="frenanoReadyButton"' dist/app/index.html
-          grep -q 'frenano-ready-name">Frenano<' dist/app/index.html
-          grep -q 'frenano-ready-tagline">GPS speedometer, simply done.<' dist/app/index.html
+          grep -q 'data-flow="v5-smooth"' dist/app/index.html
+          grep -q 'classList.add('\''departing'\'')' dist/app/index.html
           grep -q '>Let’s go!<' dist/app/index.html
           grep -q 'frenanoLocationIntroSeenV1' dist/app/index.html
+          grep -q 'returning-native' dist/app/index.html
           grep -q 'Completely free · No account or subscription needed' dist/app/index.html
           grep -q 'No advertisements · Private · Made in Switzerland' dist/app/index.html
           grep -q 'settings-top-close' dist/app/index.html
