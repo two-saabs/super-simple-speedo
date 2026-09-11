@@ -51,7 +51,7 @@ function applySimpleStartup(html) {
   html = html.slice(0, launchStart) + launchMarkup + html.slice(appStart);
 
   const css = `
-<style id="simple-startup-v6" data-flow="logo-first">
+<style id="simple-startup-v4" data-flow="v5-smooth">
   .frenano-location-intro {
     place-items:center;
     overflow:hidden;
@@ -69,7 +69,6 @@ function applySimpleStartup(html) {
   .location-intro-name { margin-top:16px; font-size:32px; line-height:1; font-weight:900; letter-spacing:-.04em; }
   .location-intro-tagline { margin-top:8px; font-size:15px; line-height:1.3; font-weight:620; color:rgba(255,255,255,.65); }
 
-  /* Critical anti-flick rule: before startup state is resolved, ONLY the brand exists visually. */
   .location-intro-detail,.location-enable-button,.location-intro-values { display:none; }
 
   .frenano-location-intro.first-run { place-items:stretch; overflow:auto; -webkit-overflow-scrolling:touch; }
@@ -124,7 +123,7 @@ function applySimpleStartup(html) {
 </style>`;
 
   const js = `
-<script id="frenano-startup-flow-v6">
+<script id="frenano-startup-flow-v5">
 (() => {
   const KEY = 'frenanoLocationIntroSeenV1';
   const native = !!window.__SPEEDO_NATIVE_IOS__;
@@ -169,8 +168,6 @@ function applySimpleStartup(html) {
   try { seen = localStorage.getItem(KEY) === '1'; } catch (_) {}
   if (sourceButton) sourceButton.textContent = 'Let’s go!';
 
-  // Resolve state synchronously. Until this point CSS only permits the logo/brand to render,
-  // so a returning user can never get a one-frame flash of first-run location content.
   if (seen) {
     launch?.classList.add('returning');
     if (native) launch?.classList.add('returning-native');
