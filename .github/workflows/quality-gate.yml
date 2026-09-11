@@ -102,13 +102,13 @@ jobs:
 
       - name: Verify simplified startup contract
         run: |
-          grep -q 'simple-startup-v1' dist/app/index.html
+          grep -q 'simple-startup-v2' dist/app/index.html
           grep -q '#launchSatelliteTrack' dist/app/index.html
           grep -q '#launchChecklist' dist/app/index.html
           grep -q 'display:none !important' dist/app/index.html
           grep -q 'frenanoLaunchFloat' dist/app/index.html
           grep -q 'launchScreen.classList.add("hide")' dist/app/index.html
-          grep -q 'button.textContent = "Let’s go!"' dist/app/index.html
+          grep -q '>Enable Location<' dist/app/index.html
 
       - name: Verify road freshness behaviour
         run: |
