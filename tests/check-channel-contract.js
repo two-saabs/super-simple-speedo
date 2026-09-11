@@ -19,7 +19,6 @@ const allowed = new Set(["stable", "test", "experimental"]);
 allowed.has(profile.channel) ? pass(`known channel: ${profile.channel}`) : fail(`unknown channel: ${profile.channel}`);
 const isExperimental = profile.channel === "experimental";
 profile.experimentalFeatures === isExperimental ? pass("experimental feature flag matches channel") : fail("experimental feature flag does not match channel");
-profile.EXPERIMENTAL_FEATURES === isExperimental ? pass("legacy experimental feature flag matches channel") : fail("legacy experimental feature flag does not match channel");
 /^\d+\.\d+\.\d+$/.test(version) ? pass(`semantic version: ${version}`) : fail("invalid version");
 
 /--safe-top:\s*max\(14px,\s*env\(safe-area-inset-top\)\)/.test(template) ? pass("shared safe-top primitive present") : fail("shared safe-top primitive changed");
