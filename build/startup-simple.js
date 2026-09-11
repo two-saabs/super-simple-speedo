@@ -17,24 +17,26 @@ function applySimpleStartup(html) {
   <div class="location-intro-shade" aria-hidden="true"></div>
   <div class="location-intro-core">
     <div class="location-intro-brand" aria-label="Frenano">
-      <img class="location-intro-logo" src="/images/frenano-startup-logo-512.png?v=20260911-frenano-location-v4" alt="">
+      <img class="location-intro-logo" src="/images/frenano-startup-logo-512.png?v=20260911-frenano-location-v5" alt="">
       <div class="location-intro-name">Frenano</div>
       <div class="location-intro-tagline">GPS speedometer, simply done.</div>
     </div>
 
-    <div class="location-intro-pin" aria-hidden="true">
-      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2.4 3.4 10.1c-.9.8-.4 2.3.8 2.5l5.1.8 1.1 6c.2 1.2 1.8 1.5 2.5.5l8.1-14.7c.7-1.3-.7-2.7-2-2.1L12 6.4V2.4Z"/></svg>
+    <div class="location-intro-detail">
+      <div class="location-intro-pin" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2.4 3.4 10.1c-.9.8-.4 2.3.8 2.5l5.1.8 1.1 6c.2 1.2 1.8 1.5 2.5.5l8.1-14.7c.7-1.3-.7-2.7-2-2.1L12 6.4V2.4Z"/></svg>
+      </div>
+
+      <h1>Location access<br>is needed</h1>
+      <p class="location-intro-lead">Frenano uses your device’s GPS to calculate your speed and, where available, identify the road and speed limit.</p>
+
+      <div class="location-intro-reasons">
+        <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌁</div><div><strong>Accurate speed</strong><span>Calculated from GPS in real time.</span></div></div>
+        <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌾</div><div><strong>Privacy focused</strong><span>No tracking, ads or location history.</span></div></div>
+      </div>
     </div>
 
-    <h1>Location access<br>is needed</h1>
-    <p class="location-intro-lead">Frenano uses your device’s GPS to calculate your speed and, where available, identify the road and speed limit.</p>
-
-    <div class="location-intro-reasons">
-      <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌁</div><div><strong>Accurate speed</strong><span>Calculated from GPS in real time.</span></div></div>
-      <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌾</div><div><strong>Privacy focused</strong><span>No tracking, ads or location history.</span></div></div>
-    </div>
-
-    <button class="launch-action location-enable-button" id="letsDriveButton" type="button">I’m OK with that</button>
+    <button class="launch-action location-enable-button" id="letsDriveButton" type="button">Let’s go!</button>
 
     <div class="location-intro-values"><span>Completely free · No account or subscription needed</span><br><span>No advertisements · Private · Made in Switzerland</span></div>
     <div class="launch-status" id="launchStatus" aria-hidden="true"></div>
@@ -50,34 +52,31 @@ function applySimpleStartup(html) {
   </div>
 </div>
 
-<div class="frenano-ready-splash" id="frenanoReadySplash" aria-hidden="true">
-  <div class="frenano-ready-core">
-    <img class="frenano-ready-logo" src="/images/frenano-startup-logo-512.png?v=20260911-frenano-ready-v2" alt="Frenano">
-    <div class="frenano-ready-name">Frenano</div>
-    <div class="frenano-ready-tagline">GPS speedometer, simply done.</div>
-    <button class="launch-action frenano-ready-button" id="frenanoReadyButton" type="button">Let’s go!</button>
-  </div>
-</div>
-
 `;
 
   html = html.slice(0, launchStart) + launchMarkup + html.slice(appStart);
 
   const css = `
-<style id="simple-startup-v3" data-flow="v4">
+<style id="simple-startup-v4" data-flow="v5-smooth">
   .frenano-location-intro {
     place-items:stretch;
     overflow:auto;
     color:#fff;
     background:#06182a url('/images/frenano-hero-background.jpg') center bottom/cover no-repeat;
     -webkit-overflow-scrolling:touch;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .30s ease,visibility .30s ease;
   }
-  .location-intro-shade { position:fixed; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(2,12,23,.80) 0%,rgba(4,20,36,.80) 48%,rgba(3,11,20,.40) 76%,rgba(0,0,0,.25) 100%); }
+  .frenano-location-intro.intro-visible { opacity:1; visibility:visible; }
+  .frenano-location-intro.hide { opacity:0; visibility:hidden; }
+  .location-intro-shade { position:fixed; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(2,12,23,.80) 0%,rgba(4,20,36,.80) 48%,rgba(3,11,20,.40) 76%,rgba(0,0,0,.25) 100%); transition:opacity .35s ease; }
   .location-intro-core { position:relative; z-index:1; width:min(86vw,430px); min-height:100svh; margin:0 auto; padding:max(58px,calc(env(safe-area-inset-top) + 44px)) 0 max(24px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; align-items:center; text-align:center; }
-  .location-intro-brand { display:grid; justify-items:center; gap:4px; }
+  .location-intro-brand { display:grid; justify-items:center; gap:4px; transition:transform .42s ease,opacity .30s ease; }
   .location-intro-logo { width:76px; height:76px; object-fit:cover; border-radius:19px; box-shadow:0 16px 44px rgba(0,0,0,.32); }
   .location-intro-name { margin-top:7px; font-size:30px; line-height:1; font-weight:900; letter-spacing:-.04em; }
   .location-intro-tagline { margin-top:5px; font-size:14px; line-height:1.3; font-weight:620; color:rgba(255,255,255,.65); }
+  .location-intro-detail { width:100%; display:flex; flex-direction:column; align-items:center; transition:opacity .28s ease,transform .34s ease; }
   .location-intro-pin { width:80px; height:80px; margin:18px auto 7px; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(48,145,255,.24); box-shadow:0 0 0 18px rgba(48,145,255,.055); background:rgba(15,91,160,.10); }
   .location-intro-pin svg { width:43px; height:43px; fill:#1f8fff; transform:rotate(-8deg); filter:drop-shadow(0 0 15px rgba(31,143,255,.35)); }
   .location-intro-core h1 { margin:11px 0 0; font-size:clamp(34px,9.2vw,45px); line-height:1.04; letter-spacing:-.045em; font-weight:900; }
@@ -87,19 +86,27 @@ function applySimpleStartup(html) {
   .location-intro-icon { width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:rgba(14,73,124,.46); color:#1f8fff; font-size:25px; font-weight:900; line-height:1; border:1px solid rgba(94,166,227,.10); }
   .location-intro-reason strong { display:block; font-size:17px; line-height:1.2; font-weight:820; }
   .location-intro-reason span { display:block; margin-top:3px; font-size:14px; line-height:1.34; font-weight:510; color:rgba(255,255,255,.68); }
-  .location-enable-button { width:100%; margin:22px 0 0; min-height:56px; background:linear-gradient(180deg,#279cff,#0b82ee); color:#fff; box-shadow:0 10px 28px rgba(0,92,200,.28); }
-  .location-intro-values { margin-top:auto; max-width:410px; padding-top:18px; font-size:10px; line-height:1.55; font-weight:650; letter-spacing:.055em; color:rgba(255,255,255,.52); }
+  .location-enable-button { width:100%; margin:22px 0 0; min-height:56px; background:linear-gradient(180deg,#279cff,#0b82ee); color:#fff; box-shadow:0 10px 28px rgba(0,92,200,.28); transition:opacity .24s ease,transform .24s ease; }
+  .location-intro-values { margin-top:auto; max-width:410px; padding-top:18px; font-size:10px; line-height:1.55; font-weight:650; letter-spacing:.055em; color:rgba(255,255,255,.52); transition:opacity .24s ease; }
   .location-intro-values span { white-space:nowrap; }
   #launchSatelliteTrack, #launchChecklist, #launchDisclaimer, #launchStatus, #launchProgress { display:none !important; }
 
-  .frenano-ready-splash { position:fixed; inset:0; z-index:110; display:grid; place-items:center; background:#000; opacity:0; visibility:hidden; transition:opacity .28s ease,visibility .28s ease; color:#fff; }
-  .frenano-ready-splash.show { opacity:1; visibility:visible; }
-  .frenano-ready-core { width:min(78vw,360px); display:grid; justify-items:center; gap:0; text-align:center; }
-  .frenano-ready-logo { width:112px; height:112px; border-radius:28px; object-fit:cover; box-shadow:0 18px 54px rgba(0,0,0,.45); }
-  .frenano-ready-name { margin-top:18px; font-size:32px; line-height:1; font-weight:900; letter-spacing:-.04em; }
-  .frenano-ready-tagline { margin-top:10px; font-size:15px; line-height:1.3; font-weight:620; color:rgba(255,255,255,.62); }
-  .frenano-ready-button { width:min(310px,100%); margin:30px 0 0; background:#fff; color:#000; }
-  body.native-ios .frenano-ready-button { display:none; }
+  /* Returning web visits still need a deliberate tap so the browser can keep the screen awake. */
+  .frenano-location-intro.returning .location-intro-detail,
+  .frenano-location-intro.returning .location-intro-values { display:none; }
+  .frenano-location-intro.returning .location-intro-core { justify-content:center; padding-top:max(24px,env(safe-area-inset-top)); padding-bottom:max(24px,env(safe-area-inset-bottom)); }
+  .frenano-location-intro.returning .location-intro-logo { width:112px; height:112px; border-radius:28px; }
+  .frenano-location-intro.returning .location-intro-name { margin-top:18px; font-size:32px; }
+  .frenano-location-intro.returning .location-intro-tagline { margin-top:10px; font-size:15px; }
+  .frenano-location-intro.returning .location-enable-button { width:min(310px,100%); margin-top:30px; background:#fff; color:#000; box-shadow:none; }
+  .frenano-location-intro.returning.returning-native .location-enable-button { display:none; }
+
+  /* One restrained transition: content disappears, brand stays as the visual anchor, then the overlay itself fades away. */
+  .frenano-location-intro.departing .location-intro-detail { opacity:0; transform:translateY(-8px); }
+  .frenano-location-intro.departing .location-enable-button { opacity:0; transform:scale(.985); pointer-events:none; }
+  .frenano-location-intro.departing .location-intro-values { opacity:0; }
+  .frenano-location-intro.departing .location-intro-brand { transform:translateY(3px) scale(1.015); }
+  .frenano-location-intro.departing .location-intro-shade { opacity:.88; }
 
   #settingsModal .sheet { position:relative; }
   #settingsModal h2 { padding-right:86px; }
@@ -122,54 +129,35 @@ function applySimpleStartup(html) {
     .location-intro-reason span { font-size:12px; }
     .location-enable-button { margin-top:14px; min-height:50px; }
     .location-intro-values { padding-top:9px; font-size:9px; }
+    .frenano-location-intro.returning .location-intro-logo { width:96px; height:96px; border-radius:24px; }
   }
-  @media (prefers-reduced-motion:reduce) { .launch-screen,.frenano-ready-splash { transition:none; } }
+  @media (prefers-reduced-motion:reduce) {
+    .frenano-location-intro,.location-intro-brand,.location-intro-detail,.location-enable-button,.location-intro-values,.location-intro-shade { transition:none; }
+  }
 </style>`;
 
   const js = `
-<script id="frenano-startup-flow-v4">
+<script id="frenano-startup-flow-v5">
 (() => {
   const KEY = 'frenanoLocationIntroSeenV1';
   const native = !!window.__SPEEDO_NATIVE_IOS__;
   if (native) document.body.classList.add('native-ios');
   const launch = document.getElementById('launchScreen');
-  const ready = document.getElementById('frenanoReadySplash');
   const sourceButton = document.getElementById('letsDriveButton');
-  const readyButton = document.getElementById('frenanoReadyButton');
-  let nativeHideScheduled = false;
+  let exitTimer = 0;
   window.__frenanoLocationActionDone = false;
 
   function hideLaunch() {
     launch?.classList.add('hide');
+    launch?.classList.remove('intro-visible');
     launch?.setAttribute('aria-hidden','true');
   }
-  function hideReady() {
-    ready?.classList.remove('show');
-    ready?.setAttribute('aria-hidden','true');
-  }
-  function showReady() {
-    hideLaunch();
-    ready?.classList.add('show');
-    ready?.setAttribute('aria-hidden','false');
-    if (native) waitForNativePermissionThenFinish();
-  }
-  function waitForNativePermissionThenFinish() {
-    if (nativeHideScheduled) return;
-    nativeHideScheduled = true;
-    let tries = 0;
-    const check = async () => {
-      tries += 1;
-      let status = 'unknown';
-      try { status = await window.__SPEEDO_NATIVE_PERMISSIONS__?.refresh?.() || 'unknown'; } catch (_) {}
-      const settled = status === 'granted' || status === 'denied';
-      const bridgeMissing = !window.__SPEEDO_NATIVE_PERMISSIONS__ && tries >= 10;
-      if (settled || bridgeMissing || tries >= 140) {
-        window.setTimeout(hideReady, 1500);
-        return;
-      }
-      window.setTimeout(check, 150);
-    };
-    check();
+
+  function beginExit() {
+    if (!launch || launch.classList.contains('departing')) return;
+    launch.classList.add('departing');
+    window.clearTimeout(exitTimer);
+    exitTimer = window.setTimeout(hideLaunch, 520);
   }
 
   function installSettingsClose() {
@@ -195,23 +183,30 @@ function applySimpleStartup(html) {
   window.__frenanoLocationIntroAccepted = () => {
     try { localStorage.setItem(KEY,'1'); } catch (_) {}
     window.__frenanoLocationActionDone = true;
-    showReady();
+    beginExit();
   };
 
-  readyButton?.addEventListener('click', () => {
-    if (!window.__frenanoLocationActionDone && sourceButton && !sourceButton.disabled) sourceButton.click();
-    hideReady();
-  });
-
   installSettingsClose();
+
   let seen = false;
   try { seen = localStorage.getItem(KEY) === '1'; } catch (_) {}
+
+  if (sourceButton) sourceButton.textContent = 'Let’s go!';
+
   if (seen) {
-    showReady();
-    if (native && sourceButton && !sourceButton.disabled) window.setTimeout(() => sourceButton.click(), 0);
+    launch?.classList.add('returning');
+    if (native) launch?.classList.add('returning-native');
+    launch?.setAttribute('aria-hidden','false');
+    requestAnimationFrame(() => launch?.classList.add('intro-visible'));
+
+    // Native iOS can start without another confirmation. Web deliberately keeps
+    // the single Let’s go! tap so the existing start handler can request wake lock.
+    if (native && sourceButton && !sourceButton.disabled) {
+      window.setTimeout(() => sourceButton.click(), 90);
+    }
   } else {
     launch?.setAttribute('aria-hidden','false');
-    if (sourceButton) sourceButton.textContent = native ? 'Continue' : 'I’m OK with that';
+    requestAnimationFrame(() => launch?.classList.add('intro-visible'));
   }
 })();
 </script>`;
