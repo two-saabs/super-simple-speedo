@@ -122,8 +122,11 @@ jobs:
           grep -q 'frenano-location-intro' dist/app/index.html
           grep -q 'I’m OK with that' dist/app/index.html
           grep -q 'id="frenanoReadyButton"' dist/app/index.html
+          grep -q 'frenano-ready-name">Frenano<' dist/app/index.html
+          grep -q 'frenano-ready-tagline">GPS speedometer, simply done.<' dist/app/index.html
           grep -q '>Let’s go!<' dist/app/index.html
           grep -q 'frenanoLocationIntroSeenV1' dist/app/index.html
-          grep -q 'Completely free · No account or subscription needed · No advertisements · Private · Made in Switzerland' dist/app/index.html
+          grep -q 'Completely free · No account or subscription needed' dist/app/index.html
+          grep -q 'No advertisements · Private · Made in Switzerland' dist/app/index.html
           grep -q 'settings-top-close' dist/app/index.html
           ! grep -q 'TEST VERSION' dist/app/index.html
