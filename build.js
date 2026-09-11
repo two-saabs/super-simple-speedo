@@ -28,7 +28,16 @@ if (!["stable", "test", "experimental"].includes(buildChannel) || experimentalFe
 fs.mkdirSync(outputDir, { recursive: true });
 
 // Marketing homepage at /
-writeOutputFile("index.html", readRequiredFile("home.html"));
+// Reserve the screenshot cards' geometry before their images download. This prevents
+// Safari from shifting #privacy after it has already scrolled to the anchor.
+let home = readRequiredFile("home.html");
+home = replaceRequiredSnippet(
+  home,
+  '.shot img{width:100%;display:block;border-radius:17px}',
+  '.shot img{width:100%;aspect-ratio:9/19.5;object-fit:cover;display:block;border-radius:17px}',
+  "home.html"
+);
+writeOutputFile("index.html", home);
 
 // Actual Frenano web/PWA app at /app/
 let html = readRequiredFile("index.template.html");
