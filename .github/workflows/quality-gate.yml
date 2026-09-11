@@ -118,9 +118,12 @@ jobs:
           grep -q 'Experimental transport API disabled in stable build' dist/app/index.html
           grep -q 'frenano-startup-logo-512.png' dist/app/index.html
           grep -q 'simple-startup-v3' dist/app/index.html
-          grep -q '#launchSatelliteTrack' dist/app/index.html
-          grep -q '#launchChecklist' dist/app/index.html
+          grep -q 'frenano-startup-flow-v4' dist/app/index.html
           grep -q 'frenano-location-intro' dist/app/index.html
-          grep -q 'launchScreen.classList.add("hide")' dist/app/index.html
+          grep -q 'I’m OK with that' dist/app/index.html
+          grep -q 'id="frenanoReadyButton"' dist/app/index.html
           grep -q '>Let’s go!<' dist/app/index.html
+          grep -q 'frenanoLocationIntroSeenV1' dist/app/index.html
+          grep -q 'Completely free · No account or subscription needed · No advertisements · Private · Made in Switzerland' dist/app/index.html
+          grep -q 'settings-top-close' dist/app/index.html
           ! grep -q 'TEST VERSION' dist/app/index.html
