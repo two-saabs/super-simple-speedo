@@ -11,8 +11,6 @@ const packagedHtml = path.join(distDir, "index.html");
 // The shared web build requires a Geoapify key to exist, but the native iOS
 // package never ships that key: build-ios rewrites all Geoapify calls to the
 // Frenano server proxy below and verifies that the temporary value is gone.
-// Use a harmless local placeholder when a developer does not have the Netlify
-// secret in their shell, so `npm run ios:sync` works on a clean Mac checkout.
 const sourceBuildKey = process.env.GEOAPIFY_API_KEY || "ios-build-placeholder-not-secret";
 
 execFileSync(process.execPath, [path.join(rootDir, "build.js")], {
@@ -50,8 +48,6 @@ function replaceRequired(before, after, label) {
   html = html.replace(before, after);
 }
 
-// Native package uses the Frenano web app, not the marketing homepage.
-// Preserve App Store version 1.0 while retaining the internal app build number.
 if (!html.includes('id="appBuildTime"')) {
   const versionNeedle = `Version ${appVersion}`;
   if (!html.includes(versionNeedle)) {
@@ -74,7 +70,7 @@ esbuild.buildSync({
 
 replaceRequired(
   "<head>",
-  `<head>\n  <script>window.__SPEEDO_NATIVE_IOS__ = true;</script>\n  <script src="./native-ios.bundle.js"></script>\n  <style>#installCard,#iosInstallModal,#fullscreenButton{display:none!important}</style>\n  <style id="native-ios-autostart-v1">#letsDriveButton{display:none!important}</style>\n  <script id="native-ios-autostart-script">\n    // Native iOS needs no browser gesture before starting location. Keep the\n    // Frenano brand visible briefly, then use the existing start path so all\n    // normal GPS/session setup stays in one place. The web/PWA keeps its button.\n    window.addEventListener("load", () => {\n      window.setTimeout(() => {\n        const startButton = document.getElementById("letsDriveButton");\n        if (startButton && !startButton.disabled) startButton.click();\n      }, 900);\n    });\n  </script>`,
+  `<head>\n  <script>window.__SPEEDO_NATIVE_IOS__ = true;</script>\n  <script src="./native-ios.bundle.js"></script>\n  <style>#installCard,#iosInstallModal,#fullscreenButton{display:none!important}</style>\n  <style id="native-ios-startup-v2">.frenano-ready-button{display:none!important}</style>\n  <script id="native-ios-startup-script">\n    // Startup flow v4 owns first-run explanation and subsequent auto-start.\n    // Native iOS deliberately has no second Let’s go button.\n  </script>`,
   "document head"
 );
 
@@ -126,14 +122,14 @@ if (/Super Simple Speedo/i.test(html)) {
   console.error("iOS build failed: visible legacy Super Simple Speedo branding remains in packaged HTML.");
   process.exit(1);
 }
-if (!html.includes('id="native-ios-autostart-v1"') || !html.includes('id="native-ios-autostart-script"')) {
-  console.error("iOS build failed: native automatic startup was not packaged.");
+if (!html.includes('id="native-ios-startup-v2"') || !html.includes('id="native-ios-startup-script"')) {
+  console.error("iOS build failed: native first-run aware startup was not packaged.");
   process.exit(1);
 }
 
 fs.writeFileSync(packagedHtml, html, "utf8");
 console.log(`Prepared Frenano ${appStoreVersion} (build ${appVersion}) for the iOS App Store shell.`);
 console.log("Native location permission handling is enabled.");
-console.log("Native iOS startup auto-connects after a short Frenano brand moment; the web/PWA keeps Let’s go!.");
+console.log("Native iOS shows the location explanation once, then uses a 1.5-second brand splash on later launches.");
 console.log("Privacy and support links point to frenano.app.");
 console.log("Geoapify calls use the secure Frenano server proxy; no Geoapify API key is packaged in iOS.");

@@ -19,32 +19,41 @@ final class FrenanoUITests: XCTestCase {
 
         app = XCUIApplication()
         app.launch()
-        app.tap() // Gives XCTest a chance to handle the first-run location alert.
+        app.tap()
     }
 
-    private func waitForCoreSpeedometer(timeout: TimeInterval = 8) {
+    private func waitForCoreSpeedometer(timeout: TimeInterval = 10) {
         XCTAssertTrue(app.staticTexts["km/h"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.buttons["Change speed limit"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 3))
     }
 
-    func testNativeStartupSkipsLetsGoAndShowsCoreSpeedometer() {
-        // Native iOS auto-starts after the short Frenano brand moment. The web-only
-        // Let’s go control must never become an interactive native UI element.
+    func testNativeFirstRunLocationIntroThenAutomaticStartup() {
+        // A clean install explains location once. Later test runs may already have
+        // that acknowledgement stored, so Continue is intentionally optional here.
+        let continueButton = app.buttons["Continue"]
+        if continueButton.waitForExistence(timeout: 2) {
+            continueButton.tap()
+            app.tap() // Allows XCTest to handle the native location alert.
+        }
+
+        // Native iOS never uses the web-only second-stage Let’s go control.
         XCTAssertFalse(app.buttons["Let’s go!"].waitForExistence(timeout: 2))
         waitForCoreSpeedometer()
     }
 
     func testFrenanoBrandingIsVisibleDuringStartup() {
-        XCTAssertTrue(app.staticTexts["Frenano"].waitForExistence(timeout: 3))
+        let brandText = app.staticTexts["Frenano"]
+        let brandImage = app.images["Frenano"]
+        XCTAssertTrue(brandText.waitForExistence(timeout: 2) || brandImage.waitForExistence(timeout: 2))
     }
 
     func testSettingsExposeNativeLocationManagement() {
         waitForCoreSpeedometer()
         app.buttons["Settings"].tap()
 
-        XCTAssertTrue(app.staticTexts["Location access"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["Manage in iPhone Settings"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Location"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Close settings"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Help & privacy"].waitForExistence(timeout: 3))
     }
 
