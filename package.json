@@ -8,7 +8,8 @@
     "build:ios": "node build-ios.js",
     "quality": "node tests/check-regressions.js && node tests/check-privacy.js",
     "ios:init": "npm run build:ios && npx cap add ios && npx cap sync ios && node scripts/configure-ios.js",
-    "ios:sync": "npm run build:ios && npx cap sync ios && node scripts/configure-ios.js",
+    "ios:sync": "node scripts/ios-sync.js",
+    "ios:sync:verbose": "npm run build:ios && npx cap sync ios && node scripts/configure-ios.js",
     "ios:open": "npx cap open ios",
     "ios:tests:install": "node scripts/install-ios-tests.js"
   },
