@@ -107,7 +107,6 @@ function applySettingsPolish(html, { appVersion }) {
     const body = privacy?.querySelector('.settings-section-body');
     if (!body) return;
 
-    // Remove both older location UI variants before installing the single source of truth.
     body.querySelectorAll('.location-setting, #nativeLocationPermissionSetting, #locationPermissionSetting').forEach(node => node.remove());
 
     const native = !!window.__SPEEDO_NATIVE_IOS__;
@@ -129,8 +128,11 @@ function applySettingsPolish(html, { appVersion }) {
       const text = title.textContent.trim();
       if (text === 'Need help?') title.textContent = 'Feedback?';
       if (title.textContent.trim() === 'Feedback?') {
-        const note = title.parentElement?.querySelector('.setting-note');
-        if (note) note.textContent = 'Questions, ideas or suggestions are always welcome.';
+        const setting = title.parentElement;
+        const note = setting?.querySelector('.setting-note');
+        const emailLink = setting?.querySelector('a[href^="mailto:support@frenano.app"]');
+        if (note) note.innerHTML = 'Questions, ideas or suggestions are always welcome — <a href="mailto:support@frenano.app" style="color:inherit;text-decoration:underline;font-weight:700;">support@frenano.app</a>';
+        emailLink?.remove();
       }
       if (text === 'Something not working?') {
         const note = title.parentElement?.querySelector('.setting-note');
