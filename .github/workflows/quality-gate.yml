@@ -104,7 +104,7 @@ jobs:
           grep -q 'dark-settings.png' dist/index.html
           grep -q 'iphone-frame' dist/index.html
 
-      - name: Verify built app remains healthy
+      - name: Verify approved app contract
         run: |
           test -f dist/app/index.html
           grep -q 'Frenano — GPS speedometer, simply done.' dist/app/index.html
@@ -113,9 +113,14 @@ jobs:
           grep -q 'Appearance & Display' dist/app/index.html
           grep -q 'data-settings-section="audio" aria-hidden="true"' dist/app/index.html
           grep -q 'support@frenano.app' dist/app/index.html
+          grep -q 'Share diagnostic log' dist/app/index.html
+          grep -q 'Nothing is uploaded automatically' dist/app/index.html
           grep -q 'Experimental transport API disabled in stable build' dist/app/index.html
           grep -q 'frenano-startup-logo-512.png' dist/app/index.html
-          grep -q 'simple-startup-v1' dist/app/index.html
-          grep -q 'id="letsDriveButton"' dist/app/index.html
-          grep -q '#launchSatelliteTrack,' dist/app/index.html
-          grep -q '#launchChecklist,' dist/app/index.html
+          grep -q 'simple-startup-v3' dist/app/index.html
+          grep -q '#launchSatelliteTrack' dist/app/index.html
+          grep -q '#launchChecklist' dist/app/index.html
+          grep -q 'frenano-location-intro' dist/app/index.html
+          grep -q 'launchScreen.classList.add("hide")' dist/app/index.html
+          grep -q '>Let’s go!<' dist/app/index.html
+          ! grep -q 'TEST VERSION' dist/app/index.html
