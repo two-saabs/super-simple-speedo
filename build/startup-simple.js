@@ -27,12 +27,15 @@ function applySimpleStartup(html) {
     </div>
 
     <h1>Location access<br>is needed</h1>
-    <p class="location-intro-lead">Frenano uses your device’s GPS to calculate your speed and, where available, identify the road and speed limit.</p>
+    <p class="location-intro-lead">Frenano is developed with<br>privacy and simplicity at its core.</p>
 
     <div class="location-intro-reasons">
       <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌁</div><div><strong>Accurate speed</strong><span>Calculated from GPS in real time.</span></div></div>
       <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌾</div><div><strong>Privacy focused</strong><span>No tracking, ads or location history.</span></div></div>
     </div>
+
+    <p class="location-intro-permission">Frenano uses your location to calculate your speed<br>and, where available, show the local speed limit.</p>
+    <p class="location-intro-guidance">When asked, allow location access for the best experience.<br><strong>“Allow While Using App”</strong> on iPhone.</p>
 
     <button class="launch-action location-enable-button" id="letsDriveButton" type="button">I’m OK with that</button>
 
@@ -87,6 +90,9 @@ function applySimpleStartup(html) {
   .location-intro-icon { width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:rgba(14,73,124,.46); color:#1f8fff; font-size:25px; font-weight:900; line-height:1; border:1px solid rgba(94,166,227,.10); }
   .location-intro-reason strong { display:block; font-size:17px; line-height:1.2; font-weight:820; }
   .location-intro-reason span { display:block; margin-top:3px; font-size:14px; line-height:1.34; font-weight:510; color:rgba(255,255,255,.68); }
+  .location-intro-permission { width:100%; margin:18px 0 0; padding:12px 14px; border-radius:14px; background:rgba(4,18,32,.38); border:1px solid rgba(255,255,255,.11); font-size:13px; line-height:1.4; color:rgba(255,255,255,.75); }
+  .location-intro-guidance { width:100%; margin:9px 0 0; font-size:12px; line-height:1.4; color:rgba(255,255,255,.70); }
+  .location-intro-guidance strong { color:#fff; font-weight:800; }
   .location-enable-button { width:100%; margin:22px 0 0; min-height:56px; background:linear-gradient(180deg,#279cff,#0b82ee); color:#fff; box-shadow:0 10px 28px rgba(0,92,200,.28); }
   .location-intro-values { margin-top:auto; max-width:410px; padding-top:18px; font-size:10px; line-height:1.55; font-weight:650; letter-spacing:.055em; color:rgba(255,255,255,.52); }
   .location-intro-values span { white-space:nowrap; }
@@ -120,6 +126,8 @@ function applySimpleStartup(html) {
     .location-intro-icon { width:42px; height:42px; font-size:22px; }
     .location-intro-reason strong { font-size:15px; }
     .location-intro-reason span { font-size:12px; }
+    .location-intro-permission { margin-top:10px; padding:9px 11px; font-size:11px; }
+    .location-intro-guidance { margin-top:6px; font-size:10px; }
     .location-enable-button { margin-top:14px; min-height:50px; }
     .location-intro-values { padding-top:9px; font-size:9px; }
   }
