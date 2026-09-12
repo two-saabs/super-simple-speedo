@@ -13,7 +13,7 @@ function applySimpleStartup(html) {
   <div class="location-intro-shade" aria-hidden="true"></div>
   <div class="location-intro-core">
     <div class="location-intro-brand" aria-label="Frenano">
-      <img class="location-intro-logo" src="/images/frenano-startup-logo-512.png?v=20260911-frenano-location-v6" alt="">
+      <img class="location-intro-logo" src="/images/frenano-startup-logo-512.png?v=20260912-frenano-smooth-v1" alt="">
       <div class="location-intro-name">Frenano</div>
       <div class="location-intro-tagline">GPS speedometer, simply done.</div>
     </div>
@@ -50,8 +50,21 @@ function applySimpleStartup(html) {
 
   html = html.slice(0, launchStart) + launchMarkup + html.slice(appStart);
 
+  // Decide which startup surface should exist before the browser gets a chance
+  // to paint the body. This prevents a returning visit from briefly rendering
+  // the first-run location explanation and then jumping to the compact splash.
+  const earlyState = `
+<script id="frenano-startup-state-v1">
+(() => {
+  const KEY = 'frenanoLocationIntroSeenV1';
+  let seen = false;
+  try { seen = localStorage.getItem(KEY) === '1'; } catch (_) {}
+  document.documentElement.classList.add(seen ? 'frenano-returning' : 'frenano-first-run');
+})();
+</script>`;
+
   const css = `
-<style id="simple-startup-v4" data-flow="v5-smooth">
+<style id="simple-startup-v5" data-flow="v6-paint-stable">
   .frenano-location-intro {
     place-items:center;
     overflow:hidden;
@@ -71,14 +84,14 @@ function applySimpleStartup(html) {
 
   .location-intro-detail,.location-enable-button,.location-intro-values { display:none; }
 
-  .frenano-location-intro.first-run { place-items:stretch; overflow:auto; -webkit-overflow-scrolling:touch; }
-  .frenano-location-intro.first-run .location-intro-core { justify-content:flex-start; padding:max(58px,calc(env(safe-area-inset-top) + 44px)) 0 max(24px,env(safe-area-inset-bottom)); }
-  .frenano-location-intro.first-run .location-intro-logo { width:76px; height:76px; border-radius:19px; }
-  .frenano-location-intro.first-run .location-intro-name { margin-top:7px; font-size:30px; }
-  .frenano-location-intro.first-run .location-intro-tagline { margin-top:5px; font-size:14px; }
-  .frenano-location-intro.first-run .location-intro-detail { width:100%; display:flex; flex-direction:column; align-items:center; animation:frenanoReveal .24s ease both; }
-  .frenano-location-intro.first-run .location-enable-button { display:block; width:100%; margin:22px 0 0; min-height:56px; background:linear-gradient(180deg,#279cff,#0b82ee); color:#fff; box-shadow:0 10px 28px rgba(0,92,200,.28); animation:frenanoReveal .24s ease both; }
-  .frenano-location-intro.first-run .location-intro-values { display:block; margin-top:auto; max-width:410px; padding-top:18px; font-size:10px; line-height:1.55; font-weight:650; letter-spacing:.055em; color:rgba(255,255,255,.52); animation:frenanoReveal .24s ease both; }
+  html.frenano-first-run .frenano-location-intro { place-items:stretch; overflow:auto; -webkit-overflow-scrolling:touch; }
+  html.frenano-first-run .frenano-location-intro .location-intro-core { justify-content:flex-start; padding:max(58px,calc(env(safe-area-inset-top) + 44px)) 0 max(24px,env(safe-area-inset-bottom)); }
+  html.frenano-first-run .frenano-location-intro .location-intro-logo { width:76px; height:76px; border-radius:19px; }
+  html.frenano-first-run .frenano-location-intro .location-intro-name { margin-top:7px; font-size:30px; }
+  html.frenano-first-run .frenano-location-intro .location-intro-tagline { margin-top:5px; font-size:14px; }
+  html.frenano-first-run .frenano-location-intro .location-intro-detail { width:100%; display:flex; flex-direction:column; align-items:center; animation:frenanoReveal .24s ease both; }
+  html.frenano-first-run .frenano-location-intro .location-enable-button { display:block; width:100%; margin:22px 0 0; min-height:56px; background:linear-gradient(180deg,#279cff,#0b82ee); color:#fff; box-shadow:0 10px 28px rgba(0,92,200,.28); animation:frenanoReveal .24s ease both; }
+  html.frenano-first-run .frenano-location-intro .location-intro-values { display:block; margin-top:auto; max-width:410px; padding-top:18px; font-size:10px; line-height:1.55; font-weight:650; letter-spacing:.055em; color:rgba(255,255,255,.52); animation:frenanoReveal .24s ease both; }
   .location-intro-values span { white-space:nowrap; }
   .location-intro-pin { width:80px; height:80px; margin:18px auto 7px; border-radius:50%; display:grid; place-items:center; border:1px solid rgba(48,145,255,.24); box-shadow:0 0 0 18px rgba(48,145,255,.055); background:rgba(15,91,160,.10); }
   .location-intro-pin svg { width:43px; height:43px; fill:#1f8fff; transform:rotate(-8deg); filter:drop-shadow(0 0 15px rgba(31,143,255,.35)); }
@@ -90,8 +103,9 @@ function applySimpleStartup(html) {
   .location-intro-reason strong { display:block; font-size:17px; line-height:1.2; font-weight:820; }
   .location-intro-reason span { display:block; margin-top:3px; font-size:14px; line-height:1.34; font-weight:510; color:rgba(255,255,255,.68); }
 
-  .frenano-location-intro.returning .location-enable-button { display:block; width:min(310px,100%); margin-top:30px; min-height:56px; background:#fff; color:#000; box-shadow:none; }
-  .frenano-location-intro.returning.returning-native .location-enable-button { display:none; }
+  html.frenano-returning .frenano-location-intro .location-enable-button { display:block; width:min(310px,100%); margin-top:30px; min-height:56px; background:#fff; color:#000; box-shadow:none; }
+  body.native-ios html.frenano-returning .frenano-location-intro .location-enable-button { display:none; }
+  .frenano-location-intro.returning-native .location-enable-button { display:none !important; }
   .frenano-location-intro.departing .location-intro-detail,.frenano-location-intro.departing .location-enable-button,.frenano-location-intro.departing .location-intro-values { opacity:0; pointer-events:none; }
   .frenano-location-intro.departing .location-intro-brand { transform:scale(1.015); }
 
@@ -103,10 +117,10 @@ function applySimpleStartup(html) {
   #settingsModal .settings-top-close { position:absolute; top:18px; right:18px; z-index:4; min-width:66px; min-height:38px; padding:0 14px; border:1px solid var(--soft-border); border-radius:12px; background:var(--soft); color:var(--fg); font-size:13px; font-weight:780; cursor:pointer; }
 
   @media (max-height:760px) {
-    .frenano-location-intro.first-run .location-intro-core { padding-top:max(46px,calc(env(safe-area-inset-top) + 34px)); }
-    .frenano-location-intro.first-run .location-intro-logo { width:62px; height:62px; border-radius:16px; }
-    .frenano-location-intro.first-run .location-intro-name { font-size:26px; }
-    .frenano-location-intro.first-run .location-intro-tagline { font-size:12px; }
+    html.frenano-first-run .frenano-location-intro .location-intro-core { padding-top:max(46px,calc(env(safe-area-inset-top) + 34px)); }
+    html.frenano-first-run .frenano-location-intro .location-intro-logo { width:62px; height:62px; border-radius:16px; }
+    html.frenano-first-run .frenano-location-intro .location-intro-name { font-size:26px; }
+    html.frenano-first-run .frenano-location-intro .location-intro-tagline { font-size:12px; }
     .location-intro-pin { width:64px; height:64px; margin-top:13px; box-shadow:0 0 0 14px rgba(48,145,255,.05); }
     .location-intro-pin svg { width:35px; height:35px; }
     .location-intro-core h1 { margin-top:8px; font-size:32px; }
@@ -116,14 +130,14 @@ function applySimpleStartup(html) {
     .location-intro-icon { width:42px; height:42px; font-size:22px; }
     .location-intro-reason strong { font-size:15px; }
     .location-intro-reason span { font-size:12px; }
-    .frenano-location-intro.first-run .location-enable-button { margin-top:14px; min-height:50px; }
-    .frenano-location-intro.first-run .location-intro-values { padding-top:9px; font-size:9px; }
+    html.frenano-first-run .frenano-location-intro .location-enable-button { margin-top:14px; min-height:50px; }
+    html.frenano-first-run .frenano-location-intro .location-intro-values { padding-top:9px; font-size:9px; }
   }
-  @media (prefers-reduced-motion:reduce) { .frenano-location-intro,.location-intro-brand { transition:none; } .frenano-location-intro.first-run .location-intro-detail,.frenano-location-intro.first-run .location-enable-button,.frenano-location-intro.first-run .location-intro-values { animation:none; } }
+  @media (prefers-reduced-motion:reduce) { .frenano-location-intro,.location-intro-brand { transition:none; } html.frenano-first-run .frenano-location-intro .location-intro-detail,html.frenano-first-run .frenano-location-intro .location-enable-button,html.frenano-first-run .frenano-location-intro .location-intro-values { animation:none; } }
 </style>`;
 
   const js = `
-<script id="frenano-startup-flow-v5">
+<script id="frenano-startup-flow-v6">
 (() => {
   const KEY = 'frenanoLocationIntroSeenV1';
   const native = !!window.__SPEEDO_NATIVE_IOS__;
@@ -158,29 +172,31 @@ function applySimpleStartup(html) {
 
   window.__frenanoLocationIntroAccepted = () => {
     try { localStorage.setItem(KEY,'1'); } catch (_) {}
+    document.documentElement.classList.remove('frenano-first-run');
+    document.documentElement.classList.add('frenano-returning');
     window.__frenanoLocationActionDone = true;
     beginExit();
   };
 
   installSettingsClose();
-
-  let seen = false;
-  try { seen = localStorage.getItem(KEY) === '1'; } catch (_) {}
   if (sourceButton) sourceButton.textContent = 'Let’s go!';
 
+  const seen = document.documentElement.classList.contains('frenano-returning');
   if (seen) {
-    launch?.classList.add('returning');
-    if (native) launch?.classList.add('returning-native');
-    if (native && sourceButton && !sourceButton.disabled) window.setTimeout(() => sourceButton.click(), 140);
-  } else {
-    launch?.classList.add('first-run');
+    if (native) {
+      launch?.classList.add('returning-native');
+      if (sourceButton && !sourceButton.disabled) window.setTimeout(() => sourceButton.click(), 140);
+    }
   }
 })();
 </script>`;
 
   if (!html.includes('</head>') || !html.includes('</body>')) throw new Error('Simple startup: document closing tags not found');
-  const preload = '<link rel="preload" as="image" href="/images/frenano-hero-background-web.webp" type="image/webp">';
-  html = html.replace('</head>', `${preload}\n${css}\n</head>`);
+  const preload = [
+    '<link rel="preload" as="image" href="/images/frenano-hero-background-web.webp" type="image/webp">',
+    '<link rel="preload" as="image" href="/images/frenano-startup-logo-512.png">'
+  ].join('\n');
+  html = html.replace('</head>', `${earlyState}\n${preload}\n${css}\n</head>`);
   html = html.replace('</body>', `${js}\n</body>`);
   return html;
 }
