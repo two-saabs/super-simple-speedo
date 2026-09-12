@@ -81,12 +81,10 @@ const appIconContents = { images:[{ filename:"AppIcon-1024.png", idiom:"universa
 fs.writeFileSync(path.join(appIconDir, "Contents.json"), `${JSON.stringify(appIconContents, null, 2)}\n`, "utf8");
 console.log("Prepared opaque Frenano 1024x1024 iOS app icon.");
 
-// Make cold-start time feel intentional by matching the native launch screen to the
-// in-app Frenano startup view. The WebView can take noticeably longer on a true cold
-// launch, so never expose a featureless black frame while WebKit is starting.
+// Keep the native cold-start screen deliberately simple. Its purpose is to bridge
+// the short period before WKWebView can paint, not to duplicate the app's branding.
 const assetsDir = path.join(iosAppDir, "Assets.xcassets");
 const launchBackgroundSource = path.join(rootDir, "images", "frenano-hero-background.jpg");
-const launchLogoSource = path.join(rootDir, "images", "frenano-startup-logo-512.png");
 function writeLaunchImageSet(name, sourcePath, filename) {
   if (!fs.existsSync(sourcePath)) throw new Error(`Launch asset source not found: ${sourcePath}`);
   const dir = path.join(assetsDir, `${name}.imageset`);
@@ -99,7 +97,6 @@ function writeLaunchImageSet(name, sourcePath, filename) {
   fs.writeFileSync(path.join(dir, "Contents.json"), `${JSON.stringify(contents, null, 2)}\n`, "utf8");
 }
 writeLaunchImageSet("FrenanoLaunchBackground", launchBackgroundSource, "frenano-hero-background.jpg");
-writeLaunchImageSet("FrenanoLaunchLogo", launchLogoSource, "frenano-startup-logo-512.png");
 
 const launchStoryboard = path.join(iosAppDir, "Base.lproj", "LaunchScreen.storyboard");
 fs.mkdirSync(path.dirname(launchStoryboard), { recursive:true });
@@ -123,19 +120,9 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchShade">
                                 <color key="backgroundColor" red="0.015" green="0.071" blue="0.125" alpha="0.72" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" image="FrenanoLaunchLogo" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchLogoView">
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="108" id="FrenanoLaunchLogoWidth"/>
-                                    <constraint firstAttribute="height" constant="108" id="FrenanoLaunchLogoHeight"/>
-                                </constraints>
-                            </imageView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Frenano" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchName">
-                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="32"/>
-                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="GPS speedometer, simply done." textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchTagline">
-                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="15"/>
-                                <color key="textColor" white="1" alpha="0.65" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Setting you up…" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchMessage">
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="18"/>
+                                <color key="textColor" white="1" alpha="0.82" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="FrenanoLaunchSafeArea"/>
@@ -149,12 +136,8 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
                             <constraint firstItem="FrenanoLaunchShade" firstAttribute="leading" secondItem="FrenanoLaunchView" secondAttribute="leading" id="ShadeLead"/>
                             <constraint firstAttribute="trailing" secondItem="FrenanoLaunchShade" secondAttribute="trailing" id="ShadeTrail"/>
                             <constraint firstAttribute="bottom" secondItem="FrenanoLaunchShade" secondAttribute="bottom" id="ShadeBottom"/>
-                            <constraint firstItem="FrenanoLaunchLogoView" firstAttribute="centerX" secondItem="FrenanoLaunchView" secondAttribute="centerX" id="LogoCenterX"/>
-                            <constraint firstItem="FrenanoLaunchLogoView" firstAttribute="centerY" secondItem="FrenanoLaunchView" secondAttribute="centerY" constant="-65" id="LogoCenterY"/>
-                            <constraint firstItem="FrenanoLaunchName" firstAttribute="top" secondItem="FrenanoLaunchLogoView" secondAttribute="bottom" constant="16" id="NameTop"/>
-                            <constraint firstItem="FrenanoLaunchName" firstAttribute="centerX" secondItem="FrenanoLaunchView" secondAttribute="centerX" id="NameCenterX"/>
-                            <constraint firstItem="FrenanoLaunchTagline" firstAttribute="top" secondItem="FrenanoLaunchName" secondAttribute="bottom" constant="8" id="TagTop"/>
-                            <constraint firstItem="FrenanoLaunchTagline" firstAttribute="centerX" secondItem="FrenanoLaunchView" secondAttribute="centerX" id="TagCenterX"/>
+                            <constraint firstItem="FrenanoLaunchMessage" firstAttribute="centerX" secondItem="FrenanoLaunchView" secondAttribute="centerX" id="MessageCenterX"/>
+                            <constraint firstItem="FrenanoLaunchMessage" firstAttribute="centerY" secondItem="FrenanoLaunchView" secondAttribute="centerY" id="MessageCenterY"/>
                         </constraints>
                     </view>
                 </viewController>
@@ -165,16 +148,14 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
     </scenes>
     <resources>
         <image name="FrenanoLaunchBackground" width="1200" height="800"/>
-        <image name="FrenanoLaunchLogo" width="512" height="512"/>
     </resources>
 </document>
 `;
 fs.writeFileSync(launchStoryboard, launchStoryboardXml, "utf8");
-console.log("Configured branded native launch screen to bridge cold WebView startup.");
+console.log("Configured minimal native launch screen for cold WebView startup.");
 
-// Add native cold-start instrumentation plus a branded underlay behind WKWebView.
-// The underlay is visible only while WebKit has not painted its first opaque frame,
-// preventing the system/default black WebView surface from appearing on cold starts.
+// Add cold-start instrumentation plus a minimal underlay behind WKWebView. The native
+// timing markers let us separate app launch, bridge availability and actual JS startup.
 const appDelegatePath = path.join(iosAppDir, "AppDelegate.swift");
 if (fs.existsSync(appDelegatePath)) {
   let swift = fs.readFileSync(appDelegatePath, "utf8");
@@ -194,8 +175,18 @@ if (fs.existsSync(appDelegatePath)) {
         let frenanoBlue = UIColor(red: 0.024, green: 0.094, blue: 0.165, alpha: 1.0)
         window?.backgroundColor = frenanoBlue
         DispatchQueue.main.async { [weak self] in
+            let bridgeDispatchMs = Int(Date().timeIntervalSince1970 * 1000)
+            print("[FRENANO_COLD_START] native_bridge_dispatch epoch_ms=\\(bridgeDispatchMs)")
+
             guard let self = self,
-                  let bridge = self.window?.rootViewController as? CAPBridgeViewController else { return }
+                  let bridge = self.window?.rootViewController as? CAPBridgeViewController else {
+                let bridgeMissingMs = Int(Date().timeIntervalSince1970 * 1000)
+                print("[FRENANO_COLD_START] native_bridge_missing epoch_ms=\\(bridgeMissingMs)")
+                return
+            }
+
+            let bridgeReadyMs = Int(Date().timeIntervalSince1970 * 1000)
+            print("[FRENANO_COLD_START] native_bridge_ready epoch_ms=\\(bridgeReadyMs)")
 
             bridge.view.backgroundColor = frenanoBlue
             bridge.webView?.isOpaque = false
@@ -222,47 +213,36 @@ if (fs.existsSync(appDelegatePath)) {
             shade.autoresizingMask = [.flexibleWidth, .flexibleHeight]
             underlay.addSubview(shade)
 
-            let logo = UIImageView(image: UIImage(named: "FrenanoLaunchLogo"))
-            logo.contentMode = .scaleAspectFill
-            logo.clipsToBounds = true
-            logo.layer.cornerRadius = 24
-            logo.translatesAutoresizingMaskIntoConstraints = false
-            underlay.addSubview(logo)
+            let spinner = UIActivityIndicatorView(style: .medium)
+            spinner.color = UIColor.white.withAlphaComponent(0.72)
+            spinner.translatesAutoresizingMaskIntoConstraints = false
+            spinner.startAnimating()
+            underlay.addSubview(spinner)
 
-            let name = UILabel()
-            name.text = "Frenano"
-            name.textColor = .white
-            name.font = .systemFont(ofSize: 32, weight: .heavy)
-            name.textAlignment = .center
-            name.translatesAutoresizingMaskIntoConstraints = false
-            underlay.addSubview(name)
-
-            let tagline = UILabel()
-            tagline.text = "GPS speedometer, simply done."
-            tagline.textColor = UIColor.white.withAlphaComponent(0.65)
-            tagline.font = .systemFont(ofSize: 15, weight: .semibold)
-            tagline.textAlignment = .center
-            tagline.translatesAutoresizingMaskIntoConstraints = false
-            underlay.addSubview(tagline)
+            let message = UILabel()
+            message.text = "Setting you up…"
+            message.textColor = UIColor.white.withAlphaComponent(0.82)
+            message.font = .systemFont(ofSize: 18, weight: .semibold)
+            message.textAlignment = .center
+            message.translatesAutoresizingMaskIntoConstraints = false
+            underlay.addSubview(message)
 
             NSLayoutConstraint.activate([
-                logo.widthAnchor.constraint(equalToConstant: 108),
-                logo.heightAnchor.constraint(equalToConstant: 108),
-                logo.centerXAnchor.constraint(equalTo: underlay.centerXAnchor),
-                logo.centerYAnchor.constraint(equalTo: underlay.centerYAnchor, constant: -65),
-                name.topAnchor.constraint(equalTo: logo.bottomAnchor, constant: 16),
-                name.centerXAnchor.constraint(equalTo: underlay.centerXAnchor),
-                tagline.topAnchor.constraint(equalTo: name.bottomAnchor, constant: 8),
-                tagline.centerXAnchor.constraint(equalTo: underlay.centerXAnchor)
+                spinner.centerXAnchor.constraint(equalTo: underlay.centerXAnchor),
+                spinner.centerYAnchor.constraint(equalTo: underlay.centerYAnchor, constant: -22),
+                message.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: 14),
+                message.centerXAnchor.constraint(equalTo: underlay.centerXAnchor)
             ])
 
             bridge.view.insertSubview(underlay, at: 0)
+            let underlayReadyMs = Int(Date().timeIntervalSince1970 * 1000)
+            print("[FRENANO_COLD_START] native_underlay_ready epoch_ms=\\(underlayReadyMs)")
         }
         // FRENANO_WEBVIEW_BRIDGE_END`;
 
   swift = swift.replace(match[1], injection);
   fs.writeFileSync(appDelegatePath, swift, "utf8");
-  console.log("Configured native cold-start timing and branded WebView underlay.");
+  console.log("Configured native cold-start timing and minimal WebView underlay.");
 }
 
 console.log("iOS native configuration complete.");
