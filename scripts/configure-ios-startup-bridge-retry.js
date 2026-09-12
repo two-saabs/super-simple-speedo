@@ -65,6 +65,32 @@ const replacement = `        // FRENANO_WEBVIEW_BRIDGE_BEGIN
             return startup
         }
 
+        func findFrenanoBridge(_ controller: UIViewController?) -> CAPBridgeViewController? {
+            guard let controller = controller else { return nil }
+            if let bridge = controller as? CAPBridgeViewController { return bridge }
+
+            if let presented = controller.presentedViewController,
+               let bridge = findFrenanoBridge(presented) {
+                return bridge
+            }
+
+            if let navigation = controller as? UINavigationController,
+               let bridge = findFrenanoBridge(navigation.visibleViewController) {
+                return bridge
+            }
+
+            if let tab = controller as? UITabBarController,
+               let bridge = findFrenanoBridge(tab.selectedViewController) {
+                return bridge
+            }
+
+            for child in controller.children {
+                if let bridge = findFrenanoBridge(child) { return bridge }
+            }
+
+            return nil
+        }
+
         // Put the Frenano setup view directly on the native window immediately.
         // This bridges the period before Capacitor has even created its bridge controller.
         if let launchWindow = window, launchWindow.viewWithTag(734900) == nil {
@@ -81,9 +107,14 @@ const replacement = `        // FRENANO_WEBVIEW_BRIDGE_BEGIN
             let attemptMs = Int(Date().timeIntervalSince1970 * 1000)
             if attempt == 0 {
                 print("[FRENANO_COLD_START] native_bridge_dispatch epoch_ms=\\(attemptMs)")
+                if let root = self.window?.rootViewController {
+                    print("[FRENANO_COLD_START] native_root_controller class=\\(String(describing: type(of: root)))")
+                } else {
+                    print("[FRENANO_COLD_START] native_root_controller class=nil")
+                }
             }
 
-            guard let bridge = self.window?.rootViewController as? CAPBridgeViewController else {
+            guard let bridge = findFrenanoBridge(self.window?.rootViewController) else {
                 let elapsed = Date().timeIntervalSince(bridgeRetryStartedAt)
                 if elapsed < bridgeRetryTimeout {
                     if attempt == 0 || attempt % 20 == 0 {
@@ -128,9 +159,9 @@ swift = swift.replace(blockPattern, replacement);
 fs.writeFileSync(appDelegatePath, swift, "utf8");
 
 const configured = fs.readFileSync(appDelegatePath, "utf8");
-if (!configured.includes("native_window_cover_ready") || !configured.includes("native_bridge_wait") || !configured.includes("native_bridge_timeout")) {
-  console.error("iOS startup bridge configuration failed: retry bridge was not installed correctly.");
+if (!configured.includes("findFrenanoBridge") || !configured.includes("native_root_controller") || !configured.includes("native_bridge_ready")) {
+  console.error("iOS startup bridge configuration failed: recursive bridge discovery was not installed correctly.");
   process.exit(1);
 }
 
-console.log("Configured resilient iOS startup cover and Capacitor bridge retry.");
+console.log("Configured recursive iOS Capacitor bridge discovery and startup cover.");
