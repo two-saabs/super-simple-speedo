@@ -63,8 +63,8 @@ console.log("✓ Configured native iOS");
 run("Configure iOS keep-awake", "node", ["scripts/configure-ios-keep-awake.js"]);
 console.log("✓ Configured native keep-awake");
 
-run("Configure resilient startup bridge", "node", ["scripts/configure-ios-startup-bridge-retry.js"]);
-console.log("✓ Configured resilient startup bridge");
+run("Clean startup diagnostics", "node", ["scripts/configure-ios-startup-bridge-retry.js"]);
+console.log("✓ Removed experimental startup bridge polling");
 
 console.log("✓ App icon and launch screen ready");
 console.log("\niOS sync complete ✓\n");
