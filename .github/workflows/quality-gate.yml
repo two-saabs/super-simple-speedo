@@ -107,8 +107,8 @@ jobs:
           grep -q '>Let’s go!<' dist/app/index.html
           grep -q 'frenanoLocationIntroSeenV1' dist/app/index.html
           grep -q 'returning-native' dist/app/index.html
-          grep -q 'Completely free · No account or subscription needed' dist/app/index.html
-          grep -q 'No advertisements · Private · Made in Switzerland' dist/app/index.html
+          grep -q 'Completely free · No accounts or subscriptions' dist/app/index.html
+          grep -q 'No advertising · Private · Made in Switzerland' dist/app/index.html
 
       - name: Install iOS packaging dependencies
         run: npm install --no-package-lock
