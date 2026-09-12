@@ -72,20 +72,12 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
 
     for (const item of source) {
       if (!item || typeof item !== "object") continue;
-
-      // Native iOS deliberately uses UIApplication's idle-timer override instead
-      // of the Web Wake Lock API. Suppress misleading web rejections there while
-      // retaining WAKE_LOCK events on the web where they are diagnostically useful.
       if (capabilities.nativeIos && item.event === "WAKE_LOCK") continue;
-
-      // A single GPS callback can fan out through startup bookkeeping. Keep the
-      // first marker and suppress only near-identical repeats from the same moment.
       if (item.event === "STARTUP_GPS_FIRST_CALLBACK") {
         const timeMs = Date.parse(item.timeUtc || "");
         if (Number.isFinite(timeMs) && timeMs - lastStartupGpsFirstCallbackAt < 3000) continue;
         if (Number.isFinite(timeMs)) lastStartupGpsFirstCallbackAt = timeMs;
       }
-
       result.push(item);
     }
 
@@ -108,10 +100,10 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     const ua = supportSafeToken(navigator.userAgent || "unknown", 180)
       .replace(/\\b(?:lat|lon|lng|latitude|longitude)=[^ ;]+/gi, "");
     const capabilitySummary = [
-      `native_ios=${capabilities.nativeIos ? 1 : 0}`,
-      `native_location=${capabilities.nativeLocation ? 1 : 0}`,
-      `native_keep_awake=${capabilities.nativeKeepAwake ? 1 : 0}`,
-      `web_wake_lock=${capabilities.webWakeLock ? 1 : 0}`
+      "native_ios=" + (capabilities.nativeIos ? 1 : 0),
+      "native_location=" + (capabilities.nativeLocation ? 1 : 0),
+      "native_keep_awake=" + (capabilities.nativeKeepAwake ? 1 : 0),
+      "web_wake_lock=" + (capabilities.webWakeLock ? 1 : 0)
     ].join(";");
     const header = [
       "# Frenano support diagnostics v2",
@@ -193,8 +185,6 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     'sanitised support report code insertion'
   );
 
-  // IndexedDB transaction errors can occasionally arrive with tx.error === null.
-  // Diagnostics are best-effort, so ignore null failures but keep real errors visible.
   html = replaceRequired(
     html,
     '  async function archiveDiagnosticEntry(entry) {\n    const db = await openDiagnosticArchive();',
