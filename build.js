@@ -110,7 +110,6 @@ html = applySettingsRedesign(html);
 html = applySettingsPolish(html, { appVersion });
 html = applyBrandRefresh(html);
 html = applySimpleStartup(html);
-html = replaceRequiredSnippet(html, "/images/frenano-hero-background.jpg", "/images/frenano-hero-background-web.webp", "generated web app");
 html = applyRoadCardRefresh(html);
 const buildTimeZurich = zurichBuildTime();
 if (buildChannel !== "stable") {
