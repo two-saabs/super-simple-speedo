@@ -104,7 +104,6 @@ function applySimpleStartup(html) {
   .location-intro-reason span { display:block; margin-top:3px; font-size:14px; line-height:1.34; font-weight:510; color:rgba(255,255,255,.68); }
 
   html.frenano-returning .frenano-location-intro .location-enable-button { display:block; width:min(310px,100%); margin-top:30px; min-height:56px; background:#fff; color:#000; box-shadow:none; }
-  body.native-ios html.frenano-returning .frenano-location-intro .location-enable-button { display:none; }
   .frenano-location-intro.returning-native .location-enable-button { display:none !important; }
   .frenano-location-intro.departing .location-intro-detail,.frenano-location-intro.departing .location-enable-button,.frenano-location-intro.departing .location-intro-values { opacity:0; pointer-events:none; }
   .frenano-location-intro.departing .location-intro-brand { transform:scale(1.015); }
@@ -172,8 +171,6 @@ function applySimpleStartup(html) {
 
   window.__frenanoLocationIntroAccepted = () => {
     try { localStorage.setItem(KEY,'1'); } catch (_) {}
-    document.documentElement.classList.remove('frenano-first-run');
-    document.documentElement.classList.add('frenano-returning');
     window.__frenanoLocationActionDone = true;
     beginExit();
   };
@@ -182,11 +179,9 @@ function applySimpleStartup(html) {
   if (sourceButton) sourceButton.textContent = 'Let’s go!';
 
   const seen = document.documentElement.classList.contains('frenano-returning');
-  if (seen) {
-    if (native) {
-      launch?.classList.add('returning-native');
-      if (sourceButton && !sourceButton.disabled) window.setTimeout(() => sourceButton.click(), 140);
-    }
+  if (seen && native) {
+    launch?.classList.add('returning-native');
+    if (sourceButton && !sourceButton.disabled) window.setTimeout(() => sourceButton.click(), 140);
   }
 })();
 </script>`;
