@@ -128,11 +128,6 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
                                     <constraint firstAttribute="width" constant="108" id="FrenanoLaunchLogoWidth"/>
                                     <constraint firstAttribute="height" constant="108" id="FrenanoLaunchLogoHeight"/>
                                 </constraints>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <real key="value" value="24"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Frenano" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchName">
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="32"/>
