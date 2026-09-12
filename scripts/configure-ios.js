@@ -54,7 +54,6 @@ const privacyManifestXml = `<?xml version="1.0" encoding="UTF-8"?>
 fs.writeFileSync(privacyManifest, privacyManifestXml, "utf8");
 console.log("Configured app privacy manifest: precise location for app functionality; no tracking or identity linking.");
 
-// Keep the App Store icon synced to the approved Frenano 1024px production asset.
 const sourceIcon = path.join(rootDir, "images", "frenano-app-icon-1024.png");
 const appIconDir = path.join(iosAppDir, "Assets.xcassets", "AppIcon.appiconset");
 const appIcon = path.join(appIconDir, "AppIcon-1024.png");
@@ -178,15 +177,17 @@ console.log("Configured branded native launch screen to bridge cold WebView star
 const appDelegatePath = path.join(iosAppDir, "AppDelegate.swift");
 if (fs.existsSync(appDelegatePath)) {
   let swift = fs.readFileSync(appDelegatePath, "utf8");
-  const marker = "FRENANO_COLD_START native_app_launch";
-  if (!swift.includes(marker)) {
-    const didFinishPattern = /(func application\(\s*_ application: UIApplication,\s*didFinishLaunchingWithOptions[\s\S]*?\) -> Bool \{)/;
-    const match = swift.match(didFinishPattern);
-    if (!match) throw new Error("didFinishLaunchingWithOptions could not be found for cold-start instrumentation");
-    const injection = `${match[1]}\n        let frenanoLaunchMs = Int(Date().timeIntervalSince1970 * 1000)\n        print("[FRENANO_COLD_START] native_app_launch epoch_ms=\\(frenanoLaunchMs)")`;
-    swift = swift.replace(match[1], injection);
-    fs.writeFileSync(appDelegatePath, swift, "utf8");
-  }
+
+  // Make this step safe to run repeatedly. Older versions of this configurator could
+  // append the same two timing lines on every sync; remove all generated copies first.
+  swift = swift.replace(/^\s*let frenanoLaunchMs = Int\(Date\(\)\.timeIntervalSince1970 \* 1000\)\s*\n\s*print\("\[FRENANO_COLD_START\] native_app_launch epoch_ms=\\\(frenanoLaunchMs\)"\)\s*\n/gm, "");
+
+  const didFinishPattern = /(func application\(\s*_ application: UIApplication,\s*didFinishLaunchingWithOptions[\s\S]*?\) -> Bool \{)/;
+  const match = swift.match(didFinishPattern);
+  if (!match) throw new Error("didFinishLaunchingWithOptions could not be found for cold-start instrumentation");
+  const injection = `${match[1]}\n        let frenanoLaunchMs = Int(Date().timeIntervalSince1970 * 1000)\n        print("[FRENANO_COLD_START] native_app_launch epoch_ms=\\(frenanoLaunchMs)")`;
+  swift = swift.replace(match[1], injection);
+  fs.writeFileSync(appDelegatePath, swift, "utf8");
   console.log("Configured native cold-start timestamp instrumentation.");
 }
 
