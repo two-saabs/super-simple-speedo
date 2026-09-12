@@ -9,7 +9,7 @@ function applyHelpContactPrivacyFix(html, replaceRequiredSnippet, { appVersion, 
   );
 
   const privacyLink = '<div style="margin-top:10px;"><a href="/privacy.html" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">Privacy Policy</a></div>';
-  const publicPrivacyUrl = 'https://frenano.app/#privacy';
+  const publicPrivacyUrl = 'https://frenano.app/privacy.html';
   const subject = encodeURIComponent(`Frenano support — v${appVersion} (${buildChannel})`);
   const body = encodeURIComponent(`Tell us what happened:\n\nApp version: v${appVersion}\nBuild: ${buildChannel}\n`);
 
