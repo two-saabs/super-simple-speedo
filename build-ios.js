@@ -92,7 +92,7 @@ replaceRequired(
   "native location permission settings block"
 );
 
-if (!html.includes('https://frenano.app/#privacy')) {
+if (!html.includes('https://frenano.app/privacy.html')) {
   console.error("iOS build failed: Frenano privacy link was not found.");
   process.exit(1);
 }
