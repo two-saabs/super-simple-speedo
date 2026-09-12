@@ -82,6 +82,12 @@ jobs:
       - name: Measure core speed-engine coverage
         run: node --test --experimental-test-coverage tests/test-speed-engine.js
 
+      - name: Verify critical iOS keep-awake regression contract
+        run: |
+          node --test tests/test-ios-keep-awake.js
+          grep -q 'configure-ios-keep-awake.js' scripts/ios-sync.js
+          grep -q 'configure-ios-keep-awake.js' package.json
+
       - name: Build Frenano web release
         env:
           GEOAPIFY_API_KEY: test-key-not-for-production
