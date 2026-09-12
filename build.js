@@ -30,6 +30,7 @@ fs.mkdirSync(outputDir, { recursive: true });
 // Marketing homepage at /. Keep the real screenshot, but give it the richer
 // titanium/glass phone treatment from the original Frenano concept mock-up.
 let home = readRequiredFile("home.html");
+home = replaceRequiredSnippet(home, "url('/images/frenano-hero-background.jpg')", "url('/images/frenano-hero-background-web-full.webp')", "home.html");
 const phonePolish = `
 <style id="frenano-phone-polish-v2">
   .hero-shot { perspective:1550px; overflow:visible; }
@@ -109,6 +110,7 @@ html = applySettingsRedesign(html);
 html = applySettingsPolish(html, { appVersion });
 html = applyBrandRefresh(html);
 html = applySimpleStartup(html);
+html = replaceRequiredSnippet(html, "/images/frenano-hero-background.jpg", "/images/frenano-hero-background-web.webp", "generated web app");
 html = applyRoadCardRefresh(html);
 const buildTimeZurich = zurichBuildTime();
 if (buildChannel !== "stable") {
