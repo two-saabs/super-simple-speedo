@@ -107,8 +107,9 @@ jobs:
           grep -q '>Let’s go!<' dist/app/index.html
           grep -q 'frenanoLocationIntroSeenV1' dist/app/index.html
           grep -q 'returning-native' dist/app/index.html
-          grep -q 'Completely free · No account or subscription needed' dist/app/index.html
-          grep -q 'No advertisements · Private · Made in Switzerland' dist/app/index.html
+          grep -q 'Simple.<br>Private.<br>Swiss.' dist/app/index.html
+          grep -q 'Completely free · No accounts or subscriptions' dist/app/index.html
+          grep -q 'No advertising · Private · Made in Switzerland' dist/app/index.html
           grep -q 'settings-top-close' dist/app/index.html
 
       - name: Install iOS packaging dependencies
@@ -129,6 +130,7 @@ jobs:
           grep -q 'frenano-startup-flow-v5' dist/index.html
           grep -q 'returning-native' dist/index.html
           grep -q '>Let’s go!<' dist/index.html
+          grep -q 'Simple.<br>Private.<br>Swiss.' dist/index.html
           ! grep -q 'ios-build-placeholder-not-secret' dist/index.html
           ! grep -q 'test-key-not-for-production' dist/index.html
           grep -q '"appName": "Frenano"' capacitor.config.json
