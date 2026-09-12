@@ -12,7 +12,7 @@ const watches = new Map();
 async function configureNativeStatusBar() {
   try {
     await StatusBar.show();
-    await StatusBar.setOverlaysWebView({ overlay: false });
+    await StatusBar.setOverlaysWebView({ overlay: true });
     await StatusBar.setStyle({ style: Style.Dark });
     const info = await StatusBar.getInfo();
     console.log('[FRENANO_STATUSBAR]', JSON.stringify(info));
