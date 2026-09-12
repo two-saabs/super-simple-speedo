@@ -59,5 +59,9 @@ console.log("✓ Synced Capacitor");
 
 run("Configure native iOS", "node", ["scripts/configure-ios.js"]);
 console.log("✓ Configured native iOS");
+
+run("Configure iOS keep-awake", "node", ["scripts/configure-ios-keep-awake.js"]);
+console.log("✓ Configured native keep-awake");
+
 console.log("✓ App icon and launch screen ready");
 console.log("\niOS sync complete ✓\n");
