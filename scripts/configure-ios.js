@@ -128,6 +128,11 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
                                     <constraint firstAttribute="width" constant="108" id="FrenanoLaunchLogoWidth"/>
                                     <constraint firstAttribute="height" constant="108" id="FrenanoLaunchLogoHeight"/>
                                 </constraints>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <real key="value" value="24"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Frenano" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchName">
                                 <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="32"/>
@@ -172,23 +177,97 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
 fs.writeFileSync(launchStoryboard, launchStoryboardXml, "utf8");
 console.log("Configured branded native launch screen to bridge cold WebView startup.");
 
-// Add one native timestamp at the earliest app lifecycle boundary we control. It uses
-// Unix epoch milliseconds so the JS Date.now() markers can be compared directly.
+// Add native cold-start instrumentation plus a branded underlay behind WKWebView.
+// The underlay is visible only while WebKit has not painted its first opaque frame,
+// preventing the system/default black WebView surface from appearing on cold starts.
 const appDelegatePath = path.join(iosAppDir, "AppDelegate.swift");
 if (fs.existsSync(appDelegatePath)) {
   let swift = fs.readFileSync(appDelegatePath, "utf8");
 
-  // Make this step safe to run repeatedly. Older versions of this configurator could
-  // append the same two timing lines on every sync; remove all generated copies first.
   swift = swift.replace(/^\s*let frenanoLaunchMs = Int\(Date\(\)\.timeIntervalSince1970 \* 1000\)\s*\n\s*print\("\[FRENANO_COLD_START\] native_app_launch epoch_ms=\\\(frenanoLaunchMs\)"\)\s*\n/gm, "");
+  swift = swift.replace(/\n\s*\/\/ FRENANO_WEBVIEW_BRIDGE_BEGIN[\s\S]*?\/\/ FRENANO_WEBVIEW_BRIDGE_END\s*\n/g, "\n");
 
   const didFinishPattern = /(func application\(\s*_ application: UIApplication,\s*didFinishLaunchingWithOptions[\s\S]*?\) -> Bool \{)/;
   const match = swift.match(didFinishPattern);
   if (!match) throw new Error("didFinishLaunchingWithOptions could not be found for cold-start instrumentation");
-  const injection = `${match[1]}\n        let frenanoLaunchMs = Int(Date().timeIntervalSince1970 * 1000)\n        print("[FRENANO_COLD_START] native_app_launch epoch_ms=\\(frenanoLaunchMs)")`;
+
+  const injection = `${match[1]}
+        let frenanoLaunchMs = Int(Date().timeIntervalSince1970 * 1000)
+        print("[FRENANO_COLD_START] native_app_launch epoch_ms=\\(frenanoLaunchMs)")
+
+        // FRENANO_WEBVIEW_BRIDGE_BEGIN
+        let frenanoBlue = UIColor(red: 0.024, green: 0.094, blue: 0.165, alpha: 1.0)
+        window?.backgroundColor = frenanoBlue
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self,
+                  let bridge = self.window?.rootViewController as? CAPBridgeViewController else { return }
+
+            bridge.view.backgroundColor = frenanoBlue
+            bridge.webView?.isOpaque = false
+            bridge.webView?.backgroundColor = .clear
+            bridge.webView?.scrollView.backgroundColor = .clear
+
+            guard bridge.view.viewWithTag(734901) == nil else { return }
+            let underlay = UIView(frame: bridge.view.bounds)
+            underlay.tag = 734901
+            underlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            underlay.backgroundColor = frenanoBlue
+
+            if let bgImage = UIImage(named: "FrenanoLaunchBackground") {
+                let bg = UIImageView(frame: underlay.bounds)
+                bg.image = bgImage
+                bg.contentMode = .scaleAspectFill
+                bg.clipsToBounds = true
+                bg.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                underlay.addSubview(bg)
+            }
+
+            let shade = UIView(frame: underlay.bounds)
+            shade.backgroundColor = UIColor(red: 0.015, green: 0.071, blue: 0.125, alpha: 0.72)
+            shade.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            underlay.addSubview(shade)
+
+            let logo = UIImageView(image: UIImage(named: "FrenanoLaunchLogo"))
+            logo.contentMode = .scaleAspectFill
+            logo.clipsToBounds = true
+            logo.layer.cornerRadius = 24
+            logo.translatesAutoresizingMaskIntoConstraints = false
+            underlay.addSubview(logo)
+
+            let name = UILabel()
+            name.text = "Frenano"
+            name.textColor = .white
+            name.font = .systemFont(ofSize: 32, weight: .heavy)
+            name.textAlignment = .center
+            name.translatesAutoresizingMaskIntoConstraints = false
+            underlay.addSubview(name)
+
+            let tagline = UILabel()
+            tagline.text = "GPS speedometer, simply done."
+            tagline.textColor = UIColor.white.withAlphaComponent(0.65)
+            tagline.font = .systemFont(ofSize: 15, weight: .semibold)
+            tagline.textAlignment = .center
+            tagline.translatesAutoresizingMaskIntoConstraints = false
+            underlay.addSubview(tagline)
+
+            NSLayoutConstraint.activate([
+                logo.widthAnchor.constraint(equalToConstant: 108),
+                logo.heightAnchor.constraint(equalToConstant: 108),
+                logo.centerXAnchor.constraint(equalTo: underlay.centerXAnchor),
+                logo.centerYAnchor.constraint(equalTo: underlay.centerYAnchor, constant: -65),
+                name.topAnchor.constraint(equalTo: logo.bottomAnchor, constant: 16),
+                name.centerXAnchor.constraint(equalTo: underlay.centerXAnchor),
+                tagline.topAnchor.constraint(equalTo: name.bottomAnchor, constant: 8),
+                tagline.centerXAnchor.constraint(equalTo: underlay.centerXAnchor)
+            ])
+
+            bridge.view.insertSubview(underlay, at: 0)
+        }
+        // FRENANO_WEBVIEW_BRIDGE_END`;
+
   swift = swift.replace(match[1], injection);
   fs.writeFileSync(appDelegatePath, swift, "utf8");
-  console.log("Configured native cold-start timestamp instrumentation.");
+  console.log("Configured native cold-start timing and branded WebView underlay.");
 }
 
 console.log("iOS native configuration complete.");
