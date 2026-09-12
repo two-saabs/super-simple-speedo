@@ -105,7 +105,7 @@ jobs:
           grep -q 'Launch web version' dist/index.html
           grep -q 'Frenano' dist/app/index.html
           grep -q 'support@frenano.app' dist/app/index.html
-          grep -q 'https://frenano.app/#privacy' dist/app/index.html
+          grep -q 'https://frenano.app/privacy.html' dist/app/index.html
           grep -q 'id="letsDriveButton"' dist/app/index.html
           grep -q 'simple-startup-v4' dist/app/index.html
           grep -q 'frenano-startup-flow-v5' dist/app/index.html
