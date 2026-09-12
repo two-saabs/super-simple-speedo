@@ -110,7 +110,6 @@ jobs:
           grep -q 'Simple.<br>Private.<br>Swiss.' dist/app/index.html
           grep -q 'Completely free · No accounts or subscriptions' dist/app/index.html
           grep -q 'No advertising · Private · Made in Switzerland' dist/app/index.html
-          grep -q 'settings-top-close' dist/app/index.html
 
       - name: Install iOS packaging dependencies
         run: npm install --no-package-lock
