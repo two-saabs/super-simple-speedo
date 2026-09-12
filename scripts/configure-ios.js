@@ -82,10 +82,26 @@ const appIconContents = { images:[{ filename:"AppIcon-1024.png", idiom:"universa
 fs.writeFileSync(path.join(appIconDir, "Contents.json"), `${JSON.stringify(appIconContents, null, 2)}\n`, "utf8");
 console.log("Prepared opaque Frenano 1024x1024 iOS app icon.");
 
-// Native launch screen stays plain black so it hands off cleanly to the Frenano in-app startup screen.
-// Keep this as a conventional Interface Builder storyboard. Xcode can reject a hand-minified
-// storyboard even when its XML is technically well-formed, so preserve the standard plugin,
-// capabilities and canvas metadata used by the last known-good App Store launch storyboard.
+// Make cold-start time feel intentional by matching the native launch screen to the
+// in-app Frenano startup view. The WebView can take noticeably longer on a true cold
+// launch, so never expose a featureless black frame while WebKit is starting.
+const assetsDir = path.join(iosAppDir, "Assets.xcassets");
+const launchBackgroundSource = path.join(rootDir, "images", "frenano-hero-background.jpg");
+const launchLogoSource = path.join(rootDir, "images", "frenano-startup-logo-512.png");
+function writeLaunchImageSet(name, sourcePath, filename) {
+  if (!fs.existsSync(sourcePath)) throw new Error(`Launch asset source not found: ${sourcePath}`);
+  const dir = path.join(assetsDir, `${name}.imageset`);
+  fs.mkdirSync(dir, { recursive:true });
+  fs.copyFileSync(sourcePath, path.join(dir, filename));
+  const contents = {
+    images:[{ filename, idiom:"universal", scale:"1x" }, { idiom:"universal", scale:"2x" }, { idiom:"universal", scale:"3x" }],
+    info:{ author:"xcode", version:1 }
+  };
+  fs.writeFileSync(path.join(dir, "Contents.json"), `${JSON.stringify(contents, null, 2)}\n`, "utf8");
+}
+writeLaunchImageSet("FrenanoLaunchBackground", launchBackgroundSource, "frenano-hero-background.jpg");
+writeLaunchImageSet("FrenanoLaunchLogo", launchLogoSource, "frenano-startup-logo-512.png");
+
 const launchStoryboard = path.join(iosAppDir, "Base.lproj", "LaunchScreen.storyboard");
 fs.mkdirSync(path.dirname(launchStoryboard), { recursive:true });
 const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -95,7 +111,6 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23084"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
-        <capability name="System colors in document resources" minToolsVersion="11.0"/>
     </dependencies>
     <scenes>
         <scene sceneID="FrenanoLaunchScene">
@@ -104,8 +119,44 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
                     <view key="view" contentMode="scaleToFill" id="FrenanoLaunchView">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" image="FrenanoLaunchBackground" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchBackgroundView"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchShade">
+                                <color key="backgroundColor" red="0.015" green="0.071" blue="0.125" alpha="0.72" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" image="FrenanoLaunchLogo" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchLogoView">
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="108" id="FrenanoLaunchLogoWidth"/>
+                                    <constraint firstAttribute="height" constant="108" id="FrenanoLaunchLogoHeight"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Frenano" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchName">
+                                <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="32"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="GPS speedometer, simply done." textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="FrenanoLaunchTagline">
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="15"/>
+                                <color key="textColor" white="1" alpha="0.65" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </label>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="FrenanoLaunchSafeArea"/>
-                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <color key="backgroundColor" red="0.024" green="0.094" blue="0.165" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="FrenanoLaunchBackgroundView" firstAttribute="top" secondItem="FrenanoLaunchView" secondAttribute="top" id="BgTop"/>
+                            <constraint firstItem="FrenanoLaunchBackgroundView" firstAttribute="leading" secondItem="FrenanoLaunchView" secondAttribute="leading" id="BgLead"/>
+                            <constraint firstAttribute="trailing" secondItem="FrenanoLaunchBackgroundView" secondAttribute="trailing" id="BgTrail"/>
+                            <constraint firstAttribute="bottom" secondItem="FrenanoLaunchBackgroundView" secondAttribute="bottom" id="BgBottom"/>
+                            <constraint firstItem="FrenanoLaunchShade" firstAttribute="top" secondItem="FrenanoLaunchView" secondAttribute="top" id="ShadeTop"/>
+                            <constraint firstItem="FrenanoLaunchShade" firstAttribute="leading" secondItem="FrenanoLaunchView" secondAttribute="leading" id="ShadeLead"/>
+                            <constraint firstAttribute="trailing" secondItem="FrenanoLaunchShade" secondAttribute="trailing" id="ShadeTrail"/>
+                            <constraint firstAttribute="bottom" secondItem="FrenanoLaunchShade" secondAttribute="bottom" id="ShadeBottom"/>
+                            <constraint firstItem="FrenanoLaunchLogoView" firstAttribute="centerX" secondItem="FrenanoLaunchView" secondAttribute="centerX" id="LogoCenterX"/>
+                            <constraint firstItem="FrenanoLaunchLogoView" firstAttribute="centerY" secondItem="FrenanoLaunchView" secondAttribute="centerY" constant="-65" id="LogoCenterY"/>
+                            <constraint firstItem="FrenanoLaunchName" firstAttribute="top" secondItem="FrenanoLaunchLogoView" secondAttribute="bottom" constant="16" id="NameTop"/>
+                            <constraint firstItem="FrenanoLaunchName" firstAttribute="centerX" secondItem="FrenanoLaunchView" secondAttribute="centerX" id="NameCenterX"/>
+                            <constraint firstItem="FrenanoLaunchTagline" firstAttribute="top" secondItem="FrenanoLaunchName" secondAttribute="bottom" constant="8" id="TagTop"/>
+                            <constraint firstItem="FrenanoLaunchTagline" firstAttribute="centerX" secondItem="FrenanoLaunchView" secondAttribute="centerX" id="TagCenterX"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="FrenanoLaunchFirstResponder" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -113,8 +164,30 @@ const launchStoryboardXml = `<?xml version="1.0" encoding="UTF-8"?>
             <point key="canvasLocation" x="50" y="50"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="FrenanoLaunchBackground" width="1200" height="800"/>
+        <image name="FrenanoLaunchLogo" width="512" height="512"/>
+    </resources>
 </document>
 `;
 fs.writeFileSync(launchStoryboard, launchStoryboardXml, "utf8");
-console.log("Configured black native launch screen to match Frenano's first frame.");
+console.log("Configured branded native launch screen to bridge cold WebView startup.");
+
+// Add one native timestamp at the earliest app lifecycle boundary we control. It uses
+// Unix epoch milliseconds so the JS Date.now() markers can be compared directly.
+const appDelegatePath = path.join(iosAppDir, "AppDelegate.swift");
+if (fs.existsSync(appDelegatePath)) {
+  let swift = fs.readFileSync(appDelegatePath, "utf8");
+  const marker = "FRENANO_COLD_START native_app_launch";
+  if (!swift.includes(marker)) {
+    const didFinishPattern = /(func application\(\s*_ application: UIApplication,\s*didFinishLaunchingWithOptions[\s\S]*?\) -> Bool \{)/;
+    const match = swift.match(didFinishPattern);
+    if (!match) throw new Error("didFinishLaunchingWithOptions could not be found for cold-start instrumentation");
+    const injection = `${match[1]}\n        let frenanoLaunchMs = Int(Date().timeIntervalSince1970 * 1000)\n        print("[FRENANO_COLD_START] native_app_launch epoch_ms=\\(frenanoLaunchMs)")`;
+    swift = swift.replace(match[1], injection);
+    fs.writeFileSync(appDelegatePath, swift, "utf8");
+  }
+  console.log("Configured native cold-start timestamp instrumentation.");
+}
+
 console.log("iOS native configuration complete.");
