@@ -2,6 +2,10 @@ import { Geolocation } from '@capacitor/geolocation';
 import { AppLauncher } from '@capacitor/app-launcher';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
+const frenanoJsModuleEpochMs = Date.now();
+const frenanoJsModulePerfMs = performance.now();
+console.log('[FRENANO_COLD_START]', JSON.stringify({ stage:'js_module_start', epoch_ms:frenanoJsModuleEpochMs, perf_ms:Math.round(frenanoJsModulePerfMs) }));
+
 let nextWatchId = 1;
 const watches = new Map();
 
@@ -78,6 +82,14 @@ function scheduleLayoutDiagnostic(reason) {
   setTimeout(() => logLayoutDiagnostic(`${reason}:250ms`), 250);
   setTimeout(() => logLayoutDiagnostic(`${reason}:1000ms`), 1000);
 }
+function logColdStartStage(stage) {
+  console.log('[FRENANO_COLD_START]', JSON.stringify({
+    stage,
+    epoch_ms:Date.now(),
+    perf_ms:Math.round(performance.now()),
+    since_js_module_ms:Math.round(performance.now() - frenanoJsModulePerfMs)
+  }));
+}
 
 window.__SPEEDO_NATIVE_GEOLOCATION__ = {
   watchPosition(success, error, options = {}) {
@@ -121,6 +133,8 @@ window.__SPEEDO_NATIVE_PERMISSIONS__ = {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
+  logColdStartStage('dom_content_loaded');
+  requestAnimationFrame(() => logColdStartStage('first_animation_frame'));
   configureNativeStatusBar();
   document.getElementById('manageLocationPermission')?.addEventListener('click', () => window.__SPEEDO_NATIVE_PERMISSIONS__.openSettings());
   document.getElementById('settingsButton')?.addEventListener('click', () => setTimeout(refreshPermissionUi, 0));
@@ -131,3 +145,5 @@ window.addEventListener('DOMContentLoaded', () => {
   refreshPermissionUi();
   setTimeout(() => logLayoutDiagnostic('startup'), 500);
 });
+
+window.addEventListener('load', () => logColdStartStage('window_load'));
