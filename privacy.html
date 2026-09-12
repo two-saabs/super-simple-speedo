@@ -3,43 +3,64 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="dark light">
+  <meta name="color-scheme" content="dark">
   <title>Privacy Policy — Frenano</title>
+  <link rel="icon" type="image/png" href="/images/frenano-website-icon-512.png">
   <style>
-    :root { color-scheme: dark; background:#000; color:#fff; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif; }
-    body { margin:0; background:#000; color:#fff; }
-    main { max-width:760px; margin:0 auto; padding:48px 22px 72px; line-height:1.55; }
-    h1 { font-size:2rem; margin:0 0 6px; }
-    h2 { font-size:1.15rem; margin-top:32px; }
-    p, li { color:#ddd; }
-    .muted { color:#999; }
-    a { color:#fff; }
+    :root { color-scheme:dark; --bg:#07131d; --panel:#0d1922; --fg:#fff; --muted:rgba(255,255,255,.72); --line:rgba(255,255,255,.14); --accent:#8ccff3; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); }
+    a { color:inherit; }
+    header { position:sticky; top:0; z-index:10; backdrop-filter:blur(18px); background:rgba(7,19,29,.86); border-bottom:1px solid var(--line); }
+    .nav { max-width:960px; margin:0 auto; padding:14px 22px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { display:flex; align-items:center; gap:11px; text-decoration:none; font-weight:760; letter-spacing:-.02em; }
+    .brand img { width:34px; height:34px; border-radius:9px; }
+    .back { text-decoration:none; font-size:14px; font-weight:700; color:rgba(255,255,255,.88); }
+    main { max-width:760px; margin:0 auto; padding:54px 22px 80px; line-height:1.6; }
+    .eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.12em; font-size:12px; font-weight:800; }
+    h1 { font-size:clamp(2.2rem,7vw,4.2rem); line-height:.98; letter-spacing:-.045em; margin:12px 0 10px; }
+    h2 { font-size:1.22rem; margin-top:34px; }
+    p, li { color:var(--muted); }
+    .muted { color:rgba(255,255,255,.54); }
+    .intro { font-size:1.08rem; }
+    .policy-box { margin-top:28px; padding:22px; border:1px solid var(--line); border-radius:20px; background:var(--panel); }
+    footer { max-width:760px; margin:0 auto; padding:0 22px 44px; color:rgba(255,255,255,.5); font-size:13px; }
+    @media(max-width:560px){ .nav{padding:12px 16px}.back{font-size:13px} main{padding-top:40px} }
   </style>
 </head>
 <body>
+<header>
+  <div class="nav">
+    <a class="brand" href="/"><img src="/images/frenano-website-icon-512.png" alt=""><span>Frenano</span></a>
+    <a class="back" href="/">← Back to Frenano</a>
+  </div>
+</header>
 <main>
-  <h1>Frenano Privacy Policy</h1>
-  <p class="muted">Effective: 29 August 2026</p>
-  <p>Frenano is designed to do a small job with as little data collection as practical. It has no user accounts, no advertising, and no user tracking.</p>
-  <h2>Location</h2>
-  <p>Frenano uses your device’s precise location while you are using the app to calculate your current speed and to provide automatic road and speed-limit information. iOS controls permission to access location, and you can change that permission at any time in iPhone Settings.</p>
-  <p>Speed calculation is performed on the device. When automatic road or speed-limit lookup is used, location coordinates are transmitted securely from the app to a server function operated for Frenano and then to Geoapify, our mapping/location service provider, so that the road or speed limit can be identified.</p>
-  <h2>What we do not do</h2>
-  <ul><li>We do not require or maintain a Frenano user account.</li><li>We do not use location or other app data for advertising or marketing.</li><li>We do not track you across apps, websites, or services.</li><li>We do not sell personal data.</li><li>We do not enable Netlify Web Analytics or Real User Monitoring for the service.</li></ul>
-  <h2>Service providers and operational data</h2>
-  <p>Frenano uses Netlify to host the service and its secure server function. Like other hosting providers, Netlify may process technical request information such as IP addresses, request URLs, timestamps, and other operational metadata for delivery, security, reliability, and troubleshooting.</p>
-  <p>Geoapify processes API requests used for road and speed-limit lookup. According to Geoapify’s published privacy information, API request information may include request data, headers, IP address, and timestamps. Geoapify states that successful-request data is generally retained for no longer than 24 hours to generate aggregated usage statistics, although longer retention may apply in exceptional cases such as suspicious or fraudulent activity.</p>
-  <h2>Diagnostics</h2>
-  <p>Diagnostic information used by Frenano is kept locally on the device and is not uploaded automatically. If you choose to share a diagnostic log, sharing is initiated by you. The shareable diagnostic format is designed to exclude precise coordinates, road and station names, public-transport destinations and line identifiers, API keys, and persistent identifiers.</p>
-  <h2>Retention and deletion</h2>
-  <p>Frenano does not maintain an application database of your journeys or location history. Local diagnostic history is short-lived and is designed to be retained for no more than one day. You can remove locally held app data by deleting the app.</p>
-  <p>Operational data processed by service providers is subject to their own limited retention practices as described above and in their privacy documentation.</p>
-  <h2>Your choices</h2>
-  <p>You can stop Frenano from accessing your location at any time by changing its Location permission in iPhone Settings. Automatic road and speed-limit lookup requires location and network access; core features that depend on location will not work when location permission is disabled.</p>
-  <p>Because Frenano has no user account or application database containing a personal journey history, there is normally no account or stored journey record for us to delete. If you have a privacy question or believe information relating to you has been retained unexpectedly, please contact us using the support/contact method provided with Frenano.</p>
-  <h2>Changes to this policy</h2>
-  <p>If Frenano’s data practices change, this policy and the app’s App Store privacy information will be updated accordingly.</p>
-  <p class="muted">Frenano</p>
+  <div class="eyebrow">Privacy focused</div>
+  <h1>Privacy Policy</h1>
+  <p class="muted">Effective 29 August 2026</p>
+  <p class="intro">Frenano is designed to do a small job with as little data collection as practical. It has no user accounts, no advertising, and no user tracking.</p>
+  <div class="policy-box">
+    <h2>Location</h2>
+    <p>Frenano uses your device’s precise location while you are using the app to calculate your current speed and to provide automatic road and speed-limit information. iOS controls permission to access location, and you can change that permission at any time in iPhone Settings.</p>
+    <p>Speed calculation is performed on the device. When automatic road or speed-limit lookup is used, location coordinates are transmitted securely from the app to a server function operated for Frenano and then to Geoapify, our mapping/location service provider, so that the road or speed limit can be identified.</p>
+    <h2>What we do not do</h2>
+    <ul><li>We do not require or maintain a Frenano user account.</li><li>We do not use location or other app data for advertising or marketing.</li><li>We do not track you across apps, websites, or services.</li><li>We do not sell personal data.</li><li>We do not enable Netlify Web Analytics or Real User Monitoring for the service.</li></ul>
+    <h2>Service providers and operational data</h2>
+    <p>Frenano uses Netlify to host the service and its secure server function. Like other hosting providers, Netlify may process technical request information such as IP addresses, request URLs, timestamps, and other operational metadata for delivery, security, reliability, and troubleshooting.</p>
+    <p>Geoapify processes API requests used for road and speed-limit lookup. According to Geoapify’s published privacy information, API request information may include request data, headers, IP address, and timestamps. Geoapify states that successful-request data is generally retained for no longer than 24 hours to generate aggregated usage statistics, although longer retention may apply in exceptional cases such as suspicious or fraudulent activity.</p>
+    <h2>Diagnostics</h2>
+    <p>Diagnostic information used by Frenano is kept locally on the device and is not uploaded automatically. If you choose to share a diagnostic log, sharing is initiated by you. The shareable diagnostic format is designed to exclude precise coordinates, road and station names, public-transport destinations and line identifiers, API keys, and persistent identifiers.</p>
+    <h2>Retention and deletion</h2>
+    <p>Frenano does not maintain an application database of your journeys or location history. Local diagnostic history is short-lived and is designed to be retained for no more than one day. You can remove locally held app data by deleting the app.</p>
+    <p>Operational data processed by service providers is subject to their own limited retention practices as described above and in their privacy documentation.</p>
+    <h2>Your choices</h2>
+    <p>You can stop Frenano from accessing your location at any time by changing its Location permission in iPhone Settings. Automatic road and speed-limit lookup requires location and network access; core features that depend on location will not work when location permission is disabled.</p>
+    <p>Because Frenano has no user account or application database containing a personal journey history, there is normally no account or stored journey record for us to delete. If you have a privacy question or believe information relating to you has been retained unexpectedly, please contact us at <a href="mailto:support@frenano.app">support@frenano.app</a>.</p>
+    <h2>Changes to this policy</h2>
+    <p>If Frenano’s data practices change, this policy and the app’s App Store privacy information will be updated accordingly.</p>
+  </div>
 </main>
+<footer>Frenano · GPS speedometer, simply done.</footer>
 </body>
 </html>
