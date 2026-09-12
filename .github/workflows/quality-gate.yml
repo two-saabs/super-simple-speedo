@@ -62,7 +62,8 @@ jobs:
             'images/dark-40-unconfirmed.png',
             'images/dark-settings.png'
           ].forEach(checkPng);
-          if (!fs.existsSync('images/frenano-hero-background.jpg')) throw new Error('Hero background missing');
+          if (!fs.existsSync('images/frenano-hero-background-web-full.webp')) throw new Error('Full website hero background missing');
+          if (!fs.existsSync('images/frenano-hero-background-web.webp')) throw new Error('Web-app startup background missing');
           NODE
 
       - name: Verify native lookup proxy contract
@@ -96,7 +97,7 @@ jobs:
       - name: Verify homepage hero and screenshots
         run: |
           grep -q 'Frenano' dist/index.html
-          grep -q 'frenano-hero-background.jpg' dist/index.html
+          grep -q 'frenano-hero-background-web-full.webp' dist/index.html
           grep -q 'frenano-phone-polish-v2' dist/index.html
           grep -q 'dark-41-confirmed.png' dist/index.html
           grep -q 'light-41-confirmed.png' dist/index.html
@@ -117,6 +118,7 @@ jobs:
           grep -q 'Nothing is uploaded automatically' dist/app/index.html
           grep -q 'Experimental transport API disabled in stable build' dist/app/index.html
           grep -q 'frenano-startup-logo-512.png' dist/app/index.html
+          grep -q 'frenano-hero-background-web.webp' dist/app/index.html
           grep -q 'simple-startup-v3' dist/app/index.html
           grep -q 'frenano-startup-flow-v4' dist/app/index.html
           grep -q 'frenano-location-intro' dist/app/index.html
