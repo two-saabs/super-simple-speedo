@@ -31,6 +31,7 @@ fs.mkdirSync(outputDir, { recursive: true });
 // Reserve the screenshot cards' geometry before their images download. This prevents
 // Safari from shifting #privacy after it has already scrolled to the anchor.
 let home = readRequiredFile("home.html");
+home = replaceRequiredSnippet(home, "url('/images/frenano-hero-background.jpg')", "url('/images/frenano-hero-background-web-full.webp')", "home.html");
 home = replaceRequiredSnippet(
   home,
   '.shot img{width:100%;display:block;border-radius:17px}',
