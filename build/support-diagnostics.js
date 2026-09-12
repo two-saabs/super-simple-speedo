@@ -108,10 +108,10 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
     const ua = supportSafeToken(navigator.userAgent || "unknown", 180)
       .replace(/\\b(?:lat|lon|lng|latitude|longitude)=[^ ;]+/gi, "");
     const capabilitySummary = [
-      `native_ios=${capabilities.nativeIos ? 1 : 0}`,
-      `native_location=${capabilities.nativeLocation ? 1 : 0}`,
-      `native_keep_awake=${capabilities.nativeKeepAwake ? 1 : 0}`,
-      `web_wake_lock=${capabilities.webWakeLock ? 1 : 0}`
+      "native_ios=" + (capabilities.nativeIos ? 1 : 0),
+      "native_location=" + (capabilities.nativeLocation ? 1 : 0),
+      "native_keep_awake=" + (capabilities.nativeKeepAwake ? 1 : 0),
+      "web_wake_lock=" + (capabilities.webWakeLock ? 1 : 0)
     ].join(";");
     const header = [
       "# Frenano support diagnostics v2",
