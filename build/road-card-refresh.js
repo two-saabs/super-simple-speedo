@@ -1,3 +1,5 @@
+const { applyPositiveOnboarding } = require('./positive-onboarding');
+
 function applyRoadCardRefresh(html) {
   const interactiveBefore = `        <button id="limitButton" class="unknown" aria-label="Change speed limit">\n          <span id="limit">?</span>\n        </button>`;
   const interactiveAfter = `        <div id="limitButton" class="unknown" aria-label="Speed limit">\n          <span id="limit">?</span>\n        </div>`;
@@ -99,7 +101,8 @@ function applyRoadCardRefresh(html) {
 </style>`;
 
   if (!html.includes('</head>')) throw new Error('Road card refresh: document head not found');
-  return html.replace('</head>', `${css}\n</head>`);
+  html = html.replace('</head>', `${css}\n</head>`);
+  return applyPositiveOnboarding(html);
 }
 
 module.exports = { applyRoadCardRefresh };
