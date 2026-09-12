@@ -13,7 +13,7 @@ function applySimpleStartup(html) {
   <div class="location-intro-shade" aria-hidden="true"></div>
   <div class="location-intro-core">
     <div class="location-intro-brand" aria-label="Frenano">
-      <img class="location-intro-logo" src="/images/frenano-startup-logo-512.png?v=20260912-frenano-smooth-v1" alt="">
+      <img class="location-intro-logo" src="/images/frenano-startup-logo-512.png?v=20260912-frenano-smooth-v2" alt="">
       <div class="location-intro-name">Frenano</div>
       <div class="location-intro-tagline">GPS speedometer, simply done.</div>
     </div>
@@ -24,6 +24,7 @@ function applySimpleStartup(html) {
       </div>
       <h1>Location access<br>is needed</h1>
       <p class="location-intro-lead">Frenano uses your device’s GPS to calculate your speed and, where available, identify the road and speed limit.</p>
+      <p class="location-intro-platform" id="locationIntroPlatform">Your browser will ask for location access. You can change this later in your browser’s site settings.</p>
       <div class="location-intro-reasons">
         <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌁</div><div><strong>Accurate speed</strong><span>Calculated from GPS in real time.</span></div></div>
         <div class="location-intro-reason"><div class="location-intro-icon" aria-hidden="true">⌾</div><div><strong>Privacy focused</strong><span>No tracking, ads or location history.</span></div></div>
@@ -64,7 +65,7 @@ function applySimpleStartup(html) {
 </script>`;
 
   const css = `
-<style id="simple-startup-v5" data-flow="v6-paint-stable">
+<style id="simple-startup-v6" data-flow="v7-button-safe">
   .frenano-location-intro {
     place-items:center;
     overflow:hidden;
@@ -97,7 +98,8 @@ function applySimpleStartup(html) {
   .location-intro-pin svg { width:43px; height:43px; fill:#1f8fff; transform:rotate(-8deg); filter:drop-shadow(0 0 15px rgba(31,143,255,.35)); }
   .location-intro-core h1 { margin:11px 0 0; font-size:clamp(34px,9.2vw,45px); line-height:1.04; letter-spacing:-.045em; font-weight:900; }
   .location-intro-lead { margin:14px auto 0; max-width:390px; font-size:clamp(16px,4.4vw,18px); line-height:1.4; font-weight:520; color:rgba(255,255,255,.74); }
-  .location-intro-reasons { width:100%; margin:22px 0 0; display:grid; gap:14px; text-align:left; }
+  .location-intro-platform { margin:10px auto 0; max-width:390px; font-size:12px; line-height:1.4; font-weight:560; color:rgba(255,255,255,.56); }
+  .location-intro-reasons { width:100%; margin:18px 0 0; display:grid; gap:14px; text-align:left; }
   .location-intro-reason { display:grid; grid-template-columns:48px 1fr; gap:13px; align-items:center; }
   .location-intro-icon { width:48px; height:48px; border-radius:50%; display:grid; place-items:center; background:rgba(14,73,124,.46); color:#1f8fff; font-size:25px; font-weight:900; line-height:1; border:1px solid rgba(94,166,227,.10); }
   .location-intro-reason strong { display:block; font-size:17px; line-height:1.2; font-weight:820; }
@@ -124,7 +126,8 @@ function applySimpleStartup(html) {
     .location-intro-pin svg { width:35px; height:35px; }
     .location-intro-core h1 { margin-top:8px; font-size:32px; }
     .location-intro-lead { margin-top:10px; font-size:14px; }
-    .location-intro-reasons { margin-top:14px; gap:10px; }
+    .location-intro-platform { margin-top:7px; font-size:10px; }
+    .location-intro-reasons { margin-top:12px; gap:10px; }
     .location-intro-reason { grid-template-columns:42px 1fr; gap:11px; }
     .location-intro-icon { width:42px; height:42px; font-size:22px; }
     .location-intro-reason strong { font-size:15px; }
@@ -136,13 +139,14 @@ function applySimpleStartup(html) {
 </style>`;
 
   const js = `
-<script id="frenano-startup-flow-v6">
+<script id="frenano-startup-flow-v7">
 (() => {
   const KEY = 'frenanoLocationIntroSeenV1';
   const native = !!window.__SPEEDO_NATIVE_IOS__;
   if (native) document.body.classList.add('native-ios');
   const launch = document.getElementById('launchScreen');
   const sourceButton = document.getElementById('letsDriveButton');
+  const platformText = document.getElementById('locationIntroPlatform');
   let exitTimer = 0;
   window.__frenanoLocationActionDone = false;
 
@@ -170,13 +174,28 @@ function applySimpleStartup(html) {
   }
 
   window.__frenanoLocationIntroAccepted = () => {
+    if (window.__frenanoLocationActionDone) return;
     try { localStorage.setItem(KEY,'1'); } catch (_) {}
     window.__frenanoLocationActionDone = true;
     beginExit();
   };
 
   installSettingsClose();
-  if (sourceButton) sourceButton.textContent = 'Let’s go!';
+
+  if (platformText) {
+    platformText.textContent = native
+      ? 'iPhone will ask for location access. You can change this later in Settings.'
+      : 'Your browser will ask for location access. You can change this later in your browser’s site settings.';
+  }
+
+  if (sourceButton) {
+    // Presentation must never depend on the older GPS startup controller calling
+    // back into this layer. The existing listener still owns GPS + wake lock;
+    // this capture listener only owns the visible intro and first-run state.
+    sourceButton.disabled = false;
+    sourceButton.textContent = 'Let’s go!';
+    sourceButton.addEventListener('click', () => window.__frenanoLocationIntroAccepted?.(), { capture:true });
+  }
 
   const seen = document.documentElement.classList.contains('frenano-returning');
   if (seen && native) {
