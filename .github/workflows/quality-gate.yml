@@ -57,9 +57,10 @@ jobs:
             'images/frenano-website-icon-512.png',
             'images/frenano-startup-logo-512.png',
             'images/frenano-running-logo-256.png',
-            'images/dark-41-confirmed.png',
-            'images/light-41-confirmed.png',
-            'images/dark-40-unconfirmed.png',
+            'images/dark-best-estimate-57.png',
+            'images/dark-confirmed-56.png',
+            'images/dark-overspeed-62.png',
+            'images/light-best-estimate-39.png',
             'images/dark-settings.png'
           ].forEach(checkPng);
           if (!fs.existsSync('images/frenano-hero-background-web-full.webp')) throw new Error('Full website hero background missing');
@@ -99,9 +100,10 @@ jobs:
           grep -q 'Frenano' dist/index.html
           grep -q 'frenano-hero-background-web-full.webp' dist/index.html
           grep -q 'frenano-phone-polish-v2' dist/index.html
-          grep -q 'dark-41-confirmed.png' dist/index.html
-          grep -q 'light-41-confirmed.png' dist/index.html
-          grep -q 'dark-40-unconfirmed.png' dist/index.html
+          grep -q 'dark-best-estimate-57.png' dist/index.html
+          grep -q 'dark-confirmed-56.png' dist/index.html
+          grep -q 'dark-overspeed-62.png' dist/index.html
+          grep -q 'light-best-estimate-39.png' dist/index.html
           grep -q 'dark-settings.png' dist/index.html
           grep -q 'iphone-frame' dist/index.html
 
