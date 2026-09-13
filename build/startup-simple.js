@@ -56,7 +56,7 @@ function applySimpleStartup(html) {
     place-items:center;
     overflow:hidden;
     color:#fff;
-    background:#06182a url('/images/frenano-hero-background-web.webp') center bottom/cover no-repeat;
+    background:#06182a url('/images/frenano-startup-background.png') center center/cover no-repeat;
     opacity:1;
     visibility:visible;
     transition:opacity .28s ease,visibility .28s ease;
@@ -181,7 +181,7 @@ function applySimpleStartup(html) {
 </script>`;
 
   if (!html.includes('</head>') || !html.includes('</body>')) throw new Error('Simple startup: document closing tags not found');
-  const preload = '<link rel="preload" as="image" href="/images/frenano-hero-background-web.webp" type="image/webp">';
+  const preload = '<link rel="preload" as="image" href="/images/frenano-startup-background.png" type="image/png">';
   html = html.replace('</head>', `${preload}\n${css}\n</head>`);
   html = html.replace('</body>', `${js}\n</body>`);
   return html;
