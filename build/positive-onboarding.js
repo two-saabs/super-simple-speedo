@@ -12,17 +12,17 @@ function applyPositiveOnboarding(html) {
     html = html.replace(before, after);
   }
 
-  const css = `<style id="positive-onboarding-v2">
-  .frenano-location-intro.first-run .location-intro-detail { margin-top:18px; }
-  .frenano-location-intro.first-run .location-intro-core h1 { margin:12px 0 0; font-size:clamp(42px,11vw,54px); line-height:.96; text-align:left; align-self:flex-start; letter-spacing:-.055em; }
+  const css = `<style id="positive-onboarding-v3">
+  .frenano-location-intro.first-run .location-intro-detail { margin-top:18px; align-items:center; text-align:center; }
+  .frenano-location-intro.first-run .location-intro-core h1 { margin:12px 0 0; font-size:clamp(42px,11vw,54px); line-height:.96; text-align:center; align-self:center; letter-spacing:-.055em; }
   .swiss-mark { font-size:.58em; vertical-align:.08em; }
-  .frenano-location-intro.first-run .location-intro-lead { margin:14px 0 0; max-width:390px; text-align:left; align-self:flex-start; font-size:16px; }
-  .location-intro-promises { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 16px; margin-top:20px; text-align:left; }
+  .frenano-location-intro.first-run .location-intro-lead { margin:14px auto 0; max-width:390px; text-align:center; align-self:center; font-size:16px; }
+  .location-intro-promises { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 16px; margin-top:20px; text-align:center; }
   .location-intro-promises div { padding:10px 0; border-top:1px solid rgba(255,255,255,.16); }
   .location-intro-promises strong { display:block; font-size:14px; line-height:1.2; font-weight:820; }
   .location-intro-promises span { display:block; margin-top:3px; font-size:11px; line-height:1.3; color:rgba(255,255,255,.62); }
-  .location-intro-permission { margin:18px 0 0; padding:13px 15px; border-radius:14px; background:rgba(4,18,32,.38); border:1px solid rgba(255,255,255,.11); font-size:13px; line-height:1.4; text-align:left; color:rgba(255,255,255,.75); }
-  .location-intro-guidance { width:100%; margin:12px 0 0; font-size:12px; line-height:1.4; text-align:left; color:rgba(255,255,255,.68); }
+  .location-intro-permission { width:100%; margin:18px 0 0; padding:13px 15px; border-radius:14px; background:rgba(4,18,32,.38); border:1px solid rgba(255,255,255,.11); font-size:13px; line-height:1.4; text-align:center; color:rgba(255,255,255,.75); }
+  .location-intro-guidance { width:100%; margin:12px 0 0; font-size:12px; line-height:1.4; text-align:center; color:rgba(255,255,255,.68); }
   .location-intro-guidance strong { color:#fff; font-weight:800; }
   @media(max-height:760px){ .frenano-location-intro.first-run .location-intro-detail{margin-top:10px}.frenano-location-intro.first-run .location-intro-core h1{font-size:38px}.location-intro-promises{margin-top:12px;gap:6px 14px}.location-intro-promises div{padding:7px 0}.location-intro-permission{margin-top:10px;padding:10px 12px}.location-intro-guidance{margin-top:8px;font-size:11px}.frenano-location-intro.first-run .location-enable-button{margin-top:10px} }
   </style>`;
