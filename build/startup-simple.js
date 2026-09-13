@@ -51,7 +51,7 @@ function applySimpleStartup(html) {
   html = html.slice(0, launchStart) + launchMarkup + html.slice(appStart);
 
   const css = `
-<style id="simple-startup-v4" data-flow="v5-smooth">
+<style id="simple-startup-v5" data-flow="v6-smooth-launch">
   .frenano-location-intro {
     place-items:center;
     overflow:hidden;
@@ -62,7 +62,8 @@ function applySimpleStartup(html) {
     transition:opacity .28s ease,visibility .28s ease;
   }
   .frenano-location-intro.hide { opacity:0; visibility:hidden; pointer-events:none; }
-  .location-intro-shade { position:fixed; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(2,12,23,.80),rgba(4,20,36,.78) 50%,rgba(0,0,0,.28)); transition:opacity .28s ease; }
+  .location-intro-shade { position:fixed; inset:0; pointer-events:none; background:rgba(4,18,32,.72); transition:opacity .28s ease; }
+  .frenano-location-intro.first-run .location-intro-shade { background:linear-gradient(180deg,rgba(2,12,23,.80),rgba(4,20,36,.78) 50%,rgba(0,0,0,.28)); }
   .location-intro-core { position:relative; z-index:1; width:min(86vw,430px); min-height:100svh; margin:0 auto; padding:max(24px,env(safe-area-inset-top)) 0 max(24px,env(safe-area-inset-bottom)); display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; }
   .location-intro-brand { display:grid; justify-items:center; gap:4px; transition:transform .30s ease,opacity .24s ease; }
   .location-intro-logo { width:108px; height:108px; object-fit:cover; border-radius:27px; box-shadow:0 16px 44px rgba(0,0,0,.32); transition:width .30s ease,height .30s ease,border-radius .30s ease; }
@@ -90,6 +91,7 @@ function applySimpleStartup(html) {
   .location-intro-reason strong { display:block; font-size:17px; line-height:1.2; font-weight:820; }
   .location-intro-reason span { display:block; margin-top:3px; font-size:14px; line-height:1.34; font-weight:510; color:rgba(255,255,255,.68); }
 
+  .frenano-location-intro.returning .location-intro-tagline { display:none; }
   .frenano-location-intro.returning .location-enable-button { display:block; width:min(310px,100%); margin-top:30px; min-height:56px; background:#fff; color:#000; box-shadow:none; }
   .frenano-location-intro.returning.returning-native .location-enable-button { display:none; }
   .frenano-location-intro.departing .location-intro-detail,.frenano-location-intro.departing .location-enable-button,.frenano-location-intro.departing .location-intro-values { opacity:0; pointer-events:none; }
