@@ -60,6 +60,9 @@ console.log("✓ Synced Capacitor");
 run("Configure native iOS", "node", ["scripts/configure-ios.js"]);
 console.log("✓ Configured native iOS");
 
+run("Polish native launch", "node", ["scripts/configure-ios-launch-polish.js"]);
+console.log("✓ Polished native launch sequence");
+
 run("Configure iOS keep-awake", "node", ["scripts/configure-ios-keep-awake.js"]);
 console.log("✓ Configured native keep-awake");
 
