@@ -84,7 +84,7 @@ console.log("Prepared opaque Frenano 1024x1024 iOS app icon.");
 // Keep the native cold-start screen deliberately simple. Its purpose is to bridge
 // the short period before WKWebView can paint, not to duplicate the app's branding.
 const assetsDir = path.join(iosAppDir, "Assets.xcassets");
-const launchBackgroundSource = path.join(rootDir, "images", "frenano-hero-background.jpg");
+const launchBackgroundSource = path.join(rootDir, "images", "frenano-startup-background.png");
 function writeLaunchImageSet(name, sourcePath, filename) {
   if (!fs.existsSync(sourcePath)) throw new Error(`Launch asset source not found: ${sourcePath}`);
   const dir = path.join(assetsDir, `${name}.imageset`);
@@ -96,7 +96,7 @@ function writeLaunchImageSet(name, sourcePath, filename) {
   };
   fs.writeFileSync(path.join(dir, "Contents.json"), `${JSON.stringify(contents, null, 2)}\n`, "utf8");
 }
-writeLaunchImageSet("FrenanoLaunchBackground", launchBackgroundSource, "frenano-hero-background.jpg");
+writeLaunchImageSet("FrenanoLaunchBackground", launchBackgroundSource, "frenano-startup-background.png");
 
 const launchStoryboard = path.join(iosAppDir, "Base.lproj", "LaunchScreen.storyboard");
 fs.mkdirSync(path.dirname(launchStoryboard), { recursive:true });
