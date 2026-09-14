@@ -8,31 +8,44 @@ const iosAppDir = path.join(rootDir, 'ios', 'App', 'App');
 const assetsDir = path.join(iosAppDir, 'Assets.xcassets');
 
 const sourceBackground = path.join(rootDir, 'images', 'frenano-startup-background.png');
-const launchAssetName = 'FrenanoLaunchBackground20260914';
+const launchAssetName = 'FrenanoStartupNative';
 const launchImageSet = path.join(assetsDir, `${launchAssetName}.imageset`);
-const staleLaunchImageSet = path.join(assetsDir, 'FrenanoLaunchBackground.imageset');
-const temporaryStartupImageSet = path.join(assetsDir, 'FrenanoStartupBackground.imageset');
+const staleAssetNames = [
+  'FrenanoLaunchBackground',
+  'FrenanoLaunchBackground20260914',
+  'FrenanoStartupBackground'
+];
+
 if (!fs.existsSync(sourceBackground)) {
   throw new Error('Launch polish failed: images/frenano-startup-background.png not found');
 }
 
-// Use a brand-new native asset name so iOS cannot reuse a previously compiled/cached
-// launch image associated with FrenanoLaunchBackground.
-fs.rmSync(staleLaunchImageSet, { recursive: true, force: true });
-fs.rmSync(temporaryStartupImageSet, { recursive: true, force: true });
+// Rebuild the native launch image set from scratch using a completely independent
+// asset name. Provide explicit 1x/2x/3x entries so the launch storyboard has a valid
+// image for every device scale rather than relying on asset-catalog fallback.
+for (const name of staleAssetNames) {
+  fs.rmSync(path.join(assetsDir, `${name}.imageset`), { recursive: true, force: true });
+}
 fs.rmSync(launchImageSet, { recursive: true, force: true });
 fs.mkdirSync(launchImageSet, { recursive: true });
-const launchFilename = 'frenano-startup-background.png';
-fs.copyFileSync(sourceBackground, path.join(launchImageSet, launchFilename));
+
+const filenames = {
+  '1x': 'frenano-startup-background-1x.png',
+  '2x': 'frenano-startup-background-2x.png',
+  '3x': 'frenano-startup-background-3x.png'
+};
+for (const filename of Object.values(filenames)) {
+  fs.copyFileSync(sourceBackground, path.join(launchImageSet, filename));
+}
 fs.writeFileSync(path.join(launchImageSet, 'Contents.json'), `${JSON.stringify({
   images: [
-    { filename: launchFilename, idiom: 'universal', scale: '1x' },
-    { idiom: 'universal', scale: '2x' },
-    { idiom: 'universal', scale: '3x' }
+    { filename: filenames['1x'], idiom: 'universal', scale: '1x' },
+    { filename: filenames['2x'], idiom: 'universal', scale: '2x' },
+    { filename: filenames['3x'], idiom: 'universal', scale: '3x' }
   ],
   info: { author: 'xcode', version: 1 }
 }, null, 2)}\n`, 'utf8');
-console.log(`Launch polish: rebuilt ${launchAssetName} with the current startup image only.`);
+console.log(`Launch polish: rebuilt ${launchAssetName} with explicit 1x/2x/3x startup images.`);
 
 const storyboardPath = path.join(iosAppDir, 'Base.lproj', 'LaunchScreen.storyboard');
 if (!fs.existsSync(storyboardPath)) {
@@ -40,8 +53,7 @@ if (!fs.existsSync(storyboardPath)) {
 }
 
 let storyboard = fs.readFileSync(storyboardPath, 'utf8');
-storyboard = storyboard.replaceAll('FrenanoStartupBackground', launchAssetName);
-storyboard = storyboard.replaceAll('FrenanoLaunchBackground', launchAssetName);
+storyboard = storyboard.replace(/Frenano(?:LaunchBackground(?:20260914)?|StartupBackground)/g, launchAssetName);
 storyboard = storyboard.replace(/\n\s*<view contentMode="scaleToFill"[^>]*id="FrenanoLaunchShade">[\s\S]*?<\/view>/, '');
 storyboard = storyboard.replace(/\n\s*<label[^>]*id="FrenanoLaunchMessage">[\s\S]*?<\/label>/, '');
 storyboard = storyboard.replace(/\n\s*<constraint[^>]*(?:firstItem|secondItem)="FrenanoLaunchShade"[^>]*\/>/g, '');
@@ -52,13 +64,10 @@ console.log(`Launch polish: native cold-start screen uses ${launchAssetName} wit
 const appDelegatePath = path.join(iosAppDir, 'AppDelegate.swift');
 if (fs.existsSync(appDelegatePath)) {
   let swift = fs.readFileSync(appDelegatePath, 'utf8');
-
-  swift = swift.replaceAll('FrenanoStartupBackground', launchAssetName);
-  swift = swift.replaceAll('FrenanoLaunchBackground', launchAssetName);
+  swift = swift.replace(/Frenano(?:LaunchBackground(?:20260914)?|StartupBackground)/g, launchAssetName);
   swift = swift.replace(/\n\s*let shade = UIView\(frame: underlay\.bounds\)[\s\S]*?underlay\.addSubview\(shade\)\n/, '\n');
   swift = swift.replace(/\n\s*let spinner = UIActivityIndicatorView\(style: \.medium\)[\s\S]*?underlay\.addSubview\(message\)\n/, '\n');
   swift = swift.replace(/\n\s*NSLayoutConstraint\.activate\(\[\s*spinner\.centerXAnchor[\s\S]*?\]\)\n/, '\n');
-
   fs.writeFileSync(appDelegatePath, swift, 'utf8');
   console.log(`Launch polish: WebView underlay uses ${launchAssetName} with no shade or message.`);
 }
