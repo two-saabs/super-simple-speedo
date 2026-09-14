@@ -13,6 +13,8 @@ function applyPositiveOnboarding(html) {
   }
 
   const css = `<style id="positive-onboarding-v5">
+  .frenano-location-intro { inset:0; width:100vw; height:100vh; height:100dvh; min-height:100vh; min-height:100dvh; background-size:cover !important; background-position:center center !important; background-repeat:no-repeat !important; }
+  .frenano-location-intro .location-intro-core { min-height:100vh; min-height:100dvh; }
   .frenano-location-intro.first-run .location-intro-detail { margin-top:18px; align-items:center; text-align:center; }
   .frenano-location-intro.first-run .location-intro-core h1 { margin:12px 0 0; font-size:clamp(42px,11vw,54px); line-height:.96; text-align:center; align-self:center; letter-spacing:-.055em; }
   .swiss-mark { font-size:.58em; vertical-align:.08em; }
