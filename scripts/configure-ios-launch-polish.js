@@ -8,7 +8,8 @@ const iosAppDir = path.join(rootDir, 'ios', 'App', 'App');
 const assetsDir = path.join(iosAppDir, 'Assets.xcassets');
 
 const sourceBackground = path.join(rootDir, 'images', 'frenano-startup-background.png');
-const launchImageSet = path.join(assetsDir, 'FrenanoLaunchBackground.imageset');
+const startupAssetName = 'FrenanoStartupBackground';
+const launchImageSet = path.join(assetsDir, `${startupAssetName}.imageset`);
 if (!fs.existsSync(sourceBackground)) {
   throw new Error('Launch polish failed: images/frenano-startup-background.png not found');
 }
@@ -26,7 +27,7 @@ fs.writeFileSync(path.join(launchImageSet, 'Contents.json'), `${JSON.stringify({
   ],
   info: { author: 'xcode', version: 1 }
 }, null, 2)}\n`, 'utf8');
-console.log('Launch polish: native launch now uses the exact Frenano startup background.');
+console.log('Launch polish: prepared dedicated Frenano startup background asset.');
 
 const storyboardPath = path.join(iosAppDir, 'Base.lproj', 'LaunchScreen.storyboard');
 if (!fs.existsSync(storyboardPath)) {
@@ -34,21 +35,23 @@ if (!fs.existsSync(storyboardPath)) {
 }
 
 let storyboard = fs.readFileSync(storyboardPath, 'utf8');
+storyboard = storyboard.replaceAll('FrenanoLaunchBackground', startupAssetName);
 storyboard = storyboard.replace(/\n\s*<view contentMode="scaleToFill"[^>]*id="FrenanoLaunchShade">[\s\S]*?<\/view>/, '');
 storyboard = storyboard.replace(/\n\s*<label[^>]*id="FrenanoLaunchMessage">[\s\S]*?<\/label>/, '');
 storyboard = storyboard.replace(/\n\s*<constraint[^>]*(?:firstItem|secondItem)="FrenanoLaunchShade"[^>]*\/>/g, '');
 storyboard = storyboard.replace(/\n\s*<constraint[^>]*(?:firstItem|secondItem)="FrenanoLaunchMessage"[^>]*\/>/g, '');
 fs.writeFileSync(storyboardPath, storyboard, 'utf8');
-console.log('Launch polish: native cold-start screen is the clean road image only.');
+console.log('Launch polish: native cold-start screen now references the dedicated startup image.');
 
 const appDelegatePath = path.join(iosAppDir, 'AppDelegate.swift');
 if (fs.existsSync(appDelegatePath)) {
   let swift = fs.readFileSync(appDelegatePath, 'utf8');
 
+  swift = swift.replaceAll('FrenanoLaunchBackground', startupAssetName);
   swift = swift.replace(/\n\s*let shade = UIView\(frame: underlay\.bounds\)[\s\S]*?underlay\.addSubview\(shade\)\n/, '\n');
   swift = swift.replace(/\n\s*let spinner = UIActivityIndicatorView\(style: \.medium\)[\s\S]*?underlay\.addSubview\(message\)\n/, '\n');
   swift = swift.replace(/\n\s*NSLayoutConstraint\.activate\(\[\s*spinner\.centerXAnchor[\s\S]*?\]\)\n/, '\n');
 
   fs.writeFileSync(appDelegatePath, swift, 'utf8');
-  console.log('Launch polish: removed shade, spinner and “Setting you up…” from WebView underlay.');
+  console.log('Launch polish: WebView underlay now uses the dedicated startup image with no shade or message.');
 }
