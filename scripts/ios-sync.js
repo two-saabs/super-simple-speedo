@@ -57,6 +57,11 @@ console.log("✓ Cleared previous iOS web build output");
 run("Build iOS web assets", "npm", ["run", "build:ios"]);
 console.log("✓ Built iOS web assets");
 
+// Capacitor copies into ios/App/App/public, but stale files can survive there if a source
+// asset was deleted or renamed. Clear the native web payload first so sync is exact.
+fs.rmSync(path.join(rootDir, "ios", "App", "App", "public"), { recursive: true, force: true });
+console.log("✓ Cleared previous native iOS web payload");
+
 run("Sync Capacitor", "npx", ["cap", "sync", "ios"]);
 console.log("✓ Synced Capacitor");
 
