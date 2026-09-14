@@ -51,6 +51,9 @@ console.log("Mode:    stable");
 if (dirty) console.log("⚠ Local checkout has uncommitted changes");
 console.log("");
 
+fs.rmSync(path.join(rootDir, "dist"), { recursive: true, force: true });
+console.log("✓ Cleared previous iOS web build output");
+
 run("Build iOS web assets", "npm", ["run", "build:ios"]);
 console.log("✓ Built iOS web assets");
 
