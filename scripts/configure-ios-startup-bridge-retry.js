@@ -9,18 +9,17 @@ if (!fs.existsSync(appDelegatePath)) {
   process.exit(1);
 }
 
-let swift = fs.readFileSync(appDelegatePath, "utf8");
-
-// configure-ios.js still emits the historical bridge block so older generated
-// AppDelegate files remain compatible. Strip that experiment after each sync.
-const bridgeBlockPattern = /\n\s*\/\/ FRENANO_WEBVIEW_BRIDGE_BEGIN[\s\S]*?\/\/ FRENANO_WEBVIEW_BRIDGE_END\s*\n/g;
-swift = swift.replace(bridgeBlockPattern, "\n");
-
-fs.writeFileSync(appDelegatePath, swift, "utf8");
-
 const configured = fs.readFileSync(appDelegatePath, "utf8");
-if (configured.includes("FRENANO_WEBVIEW_BRIDGE_BEGIN") || configured.includes("native_bridge_wait") || configured.includes("native_bridge_timeout")) {
+
+// Keep the simple native WebView underlay installed by configure-ios.js. It provides
+// the startup-background safety net during the several-second gap between native app
+// launch and the first web frame. Only reject the older polling experiment.
+if (configured.includes("native_bridge_wait") || configured.includes("native_bridge_timeout")) {
   console.error("iOS startup cleanup failed: experimental bridge polling is still present.");
+  process.exit(1);
+}
+if (!configured.includes("FRENANO_WEBVIEW_BRIDGE_BEGIN") || !configured.includes("FRENANO_WEBVIEW_BRIDGE_END")) {
+  console.error("iOS startup cleanup failed: native startup underlay is missing.");
   process.exit(1);
 }
 if (!configured.includes("[FRENANO_COLD_START] native_app_launch")) {
@@ -28,4 +27,4 @@ if (!configured.includes("[FRENANO_COLD_START] native_app_launch")) {
   process.exit(1);
 }
 
-console.log("Removed experimental iOS bridge polling; retained cold-start timing only.");
+console.log("Retained simple iOS startup underlay; confirmed experimental bridge polling is absent.");
