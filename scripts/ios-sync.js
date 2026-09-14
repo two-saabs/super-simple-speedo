@@ -51,6 +51,9 @@ console.log("Mode:    stable");
 if (dirty) console.log("⚠ Local checkout has uncommitted changes");
 console.log("");
 
+fs.rmSync(path.join(rootDir, "dist"), { recursive: true, force: true });
+console.log("✓ Cleared previous iOS web build output");
+
 run("Build iOS web assets", "npm", ["run", "build:ios"]);
 console.log("✓ Built iOS web assets");
 
@@ -59,6 +62,9 @@ console.log("✓ Synced Capacitor");
 
 run("Configure native iOS", "node", ["scripts/configure-ios.js"]);
 console.log("✓ Configured native iOS");
+
+run("Polish native launch", "node", ["scripts/configure-ios-launch-polish.js"]);
+console.log("✓ Polished native launch sequence");
 
 run("Configure iOS keep-awake", "node", ["scripts/configure-ios-keep-awake.js"]);
 console.log("✓ Configured native keep-awake");
