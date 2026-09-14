@@ -6,6 +6,25 @@ const path = require('path');
 const rootDir = path.resolve(__dirname, '..');
 const iosAppDir = path.join(rootDir, 'ios', 'App', 'App');
 const assetsDir = path.join(iosAppDir, 'Assets.xcassets');
+const infoPlistPath = path.join(iosAppDir, 'Info.plist');
+
+// Explicitly tell iOS which storyboard to use for the system launch screen. This is a
+// deliberately small, reversible change and does not touch the working WebView underlay.
+if (!fs.existsSync(infoPlistPath)) {
+  throw new Error('Launch polish failed: Info.plist not found');
+}
+let plist = fs.readFileSync(infoPlistPath, 'utf8');
+const launchStoryboardKey = '<key>UILaunchStoryboardName</key>';
+const launchStoryboardEntry = `${launchStoryboardKey}\n\t<string>LaunchScreen</string>`;
+if (plist.includes(launchStoryboardKey)) {
+  plist = plist.replace(/<key>UILaunchStoryboardName<\/key>\s*<string>[^<]*<\/string>/, launchStoryboardEntry);
+} else {
+  const rootClose = plist.lastIndexOf('</dict>');
+  if (rootClose === -1) throw new Error('Launch polish failed: Info.plist root dictionary not found');
+  plist = `${plist.slice(0, rootClose)}\t${launchStoryboardEntry}\n${plist.slice(rootClose)}`;
+}
+fs.writeFileSync(infoPlistPath, plist, 'utf8');
+console.log('Launch polish: explicitly configured UILaunchStoryboardName=LaunchScreen.');
 
 const sourceBackground = path.join(rootDir, 'images', 'frenano-startup-background.png');
 const launchAssetName = 'Splash';
