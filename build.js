@@ -8,6 +8,7 @@ const { applySettingsRedesign } = require("./build/settings-redesign");
 const { applySettingsPolish } = require("./build/settings-polish");
 const { applyBrandRefresh } = require("./build/brand-refresh");
 const { applySimpleStartup } = require("./build/startup-simple");
+const { applyPositiveOnboarding } = require("./build/positive-onboarding");
 const { applyRoadCardRefresh } = require("./build/road-card-refresh");
 const key = process.env.GEOAPIFY_API_KEY;
 if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify."); process.exit(1); }
@@ -44,6 +45,7 @@ html = applySettingsRedesign(html);
 html = applySettingsPolish(html, { appVersion });
 html = applyBrandRefresh(html);
 html = applySimpleStartup(html);
+html = applyPositiveOnboarding(html);
 html = applyRoadCardRefresh(html);
 const buildTimeZurich = zurichBuildTime();
 if (buildChannel !== "stable") {
