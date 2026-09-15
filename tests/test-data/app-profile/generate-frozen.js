@@ -18,6 +18,8 @@ const speedBody = originalPosition.slice(originalPosition.indexOf("    const sam
 const driver = fn("updateDriverMode");
 if (!driver.includes("trustedSpeed <= DRIVER_MODE_EXIT_SPEED") || !driver.includes("state.lastAcceptedSpeed <= DRIVER_MODE_EXIT_SPEED")) throw Error("Expected BUILT <=6 driver behavior");
 const source = `${fn("distanceMetres")}\n${driver}\nfunction process(position) { const c = position.coords;\n${speedBody}\n}`;
+const extractedHash = crypto.createHash("sha256").update(source).digest("hex");
+if (extractedHash !== "cc318f9b4ba5a0d618bb97a482896d6e91823e7c498a36d138a8d0570b78a856") throw Error("Source differs from frozen 85ff675 built functions");
 const keys = ["rawKmh", "derivedKmh", "ignoredDerivedKmh", "displayedKmh", "accuracyMetres", "elapsedSeconds", "distanceMetres", "movementScore", "speedSource", "displayDecision", "displayReasons", "previousAcceptedKmh", "speedDecision", "reasons", "driverUiActive"];
 const snapshots = cases.map(test => {
   let now = 0, id = 0, diagnostic, transition;
@@ -50,6 +52,6 @@ const snapshots = cases.map(test => {
   });
   return { name: test.name, expected };
 });
-const output = { provenance: { sourceCommit: "85ff675", source: "built dist/app/index.html", extractedFunctionsSha256: crypto.createHash("sha256").update(source).digest("hex"), note: "Actual built speed block + driver + distance executed with fake external timers; roundDiagnostic identity captures exact unrounded math. Accuracy output normalized finite-or-null; transit evidence supplied externally. No Brain imported." }, cases: snapshots };
+const output = { provenance: { sourceCommit: "85ff675839a259a463c30a063a34da00d3089f10", source: "built dist/app/index.html", extractedFunctionsSha256: extractedHash, note: "Actual built speed block + driver + distance executed with fake external timers; roundDiagnostic identity captures exact unrounded math. Accuracy output normalized finite-or-null; transit evidence supplied externally. No Brain imported." }, cases: snapshots };
 fs.writeFileSync(`${__dirname}/frozen.json`, JSON.stringify(encode(output), null, 2) + "\n");
 console.log(`Frozen ${snapshots.length} built-app scenarios (${snapshots.reduce((n, c) => n + c.expected.length, 0)} events)`);

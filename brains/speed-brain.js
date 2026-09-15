@@ -9,6 +9,13 @@ const DEFAULTS = Object.freeze({
   maxDisplayedSpeed: 260
 });
 
+// Fixed policy reproducing the pre-extraction built application, not tuning knobs.
+const APPLICATION_PROFILE = Object.freeze({
+  ...DEFAULTS,
+  driverModeExitSpeed: 6,
+  baselineResetSeconds: 30
+});
+
 function createSpeedState() {
   return {
     lastGpsSample: null,
@@ -32,6 +39,57 @@ function haversineMetres(a, b) {
   return radius * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
+// Keep the exact application's arithmetic; the legacy exported helper stays unchanged.
+function applicationDistanceMetres(a, b) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const lat1 = toRad(a.latitude);
+  const lat2 = toRad(b.latitude);
+  const h = Math.sin(dLat/2)**2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function noDriverTransition() {
+  return { scheduleExitTimeout: false, cancelExitTimeout: false, applyReason: null };
+}
+
+function updateApplicationDriverMode(state, speedKmh, watchActive) {
+  const transition = noDriverTransition();
+  if (watchActive === false) {
+    transition.cancelExitTimeout = Boolean(state.driverExitPending);
+    state.driverExitPending = false;
+    state.driverModeActive = false;
+    transition.applyReason = "GPS_STOPPED";
+  } else if (speedKmh >= APPLICATION_PROFILE.driverModeEnterSpeed) {
+    transition.cancelExitTimeout = Boolean(state.driverExitPending);
+    state.driverExitPending = false;
+    if (!state.driverModeActive) {
+      state.driverModeActive = true;
+      transition.applyReason = "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH";
+    }
+  } else if (state.driverModeActive && speedKmh <= APPLICATION_PROFILE.driverModeExitSpeed && !state.driverExitPending) {
+    state.driverExitPending = true;
+    transition.scheduleExitTimeout = true;
+  }
+  return transition;
+}
+
+function applicationDriverExitTimeout(state, { watchActive = true } = {}) {
+  const transition = noDriverTransition();
+  // An external callback is meaningful only for the currently pending timer.
+  if (state.driverExitPending) {
+    state.driverExitPending = false;
+    if (watchActive !== false && state.lastAcceptedSpeed <= APPLICATION_PROFILE.driverModeExitSpeed) {
+      state.driverModeActive = false;
+      transition.applyReason = "BELOW_6_KMH_FOR_5_SECONDS";
+    }
+  }
+  return { driverUiActive: state.driverModeActive, driverTransition: transition };
+}
+
 function updateDriverMode(state, speedKmh, config) {
   if (!state.driverModeActive && speedKmh >= config.driverModeEnterSpeed) {
     state.driverModeActive = true;
@@ -44,11 +102,12 @@ function processSpeedSample(state, sample, options = {}) {
   if (!state || typeof state !== "object") throw new TypeError("state is required");
   if (!sample || typeof sample !== "object") throw new TypeError("sample is required");
 
-  const config = { ...DEFAULTS, ...options };
+  const applicationProfile = options.profile === "frenano-app-v1";
+  const config = applicationProfile ? APPLICATION_PROFILE : { ...DEFAULTS, ...options };
   const previousGps = state.lastGpsSample;
-  const sampleTime = Number(sample.timestamp);
-  const accuracy = Number.isFinite(sample.accuracy) ? sample.accuracy : 0;
-  const rawKmh = Number.isFinite(sample.speedMps) && sample.speedMps >= 0
+  const sampleTime = applicationProfile ? sample.timestamp : Number(sample.timestamp);
+  const accuracy = applicationProfile ? sample.accuracy : Number.isFinite(sample.accuracy) ? sample.accuracy : 0;
+  const rawKmh = (applicationProfile ? typeof sample.speedMps === "number" : Number.isFinite(sample.speedMps)) && sample.speedMps >= 0
     ? sample.speedMps * 3.6
     : null;
 
@@ -59,7 +118,7 @@ function processSpeedSample(state, sample, options = {}) {
 
   if (previousGps) {
     elapsedSeconds = Math.max(0.001, (sampleTime - previousGps.timestamp) / 1000);
-    movedMetres = haversineMetres(previousGps, sample);
+    movedMetres = applicationProfile ? applicationDistanceMetres(previousGps, sample) : haversineMetres(previousGps, sample);
     if (elapsedSeconds > config.baselineResetSeconds) {
       baselineReset = true;
     } else if (elapsedSeconds > 0.35) {
@@ -68,7 +127,14 @@ function processSpeedSample(state, sample, options = {}) {
   }
 
   let candidateKmh = rawKmh;
-  if (candidateKmh === null && derivedKmh !== null) candidateKmh = derivedKmh;
+  let candidateSource = rawKmh !== null ? "NATIVE_GPS" : "NONE";
+  if (applicationProfile && candidateKmh === null && sample.transitRecoveryKmh != null) {
+    candidateKmh = sample.transitRecoveryKmh;
+    candidateSource = "TRANSIT_LONG_BASELINE";
+  } else if (candidateKmh === null && derivedKmh !== null) {
+    candidateKmh = derivedKmh;
+    candidateSource = "POSITION_DERIVED";
+  }
   if (candidateKmh !== null && candidateKmh < 1.8) candidateKmh = 0;
 
   let decision = baselineReset ? "RESET_BASELINE" : "NO_SPEED";
@@ -85,17 +151,21 @@ function processSpeedSample(state, sample, options = {}) {
     reasons.push("SPEED_NOT_AVAILABLE");
   }
 
+  let trustedDriverKmh = state.lastAcceptedSpeed;
   if (candidateKmh !== null && Number.isFinite(candidateKmh)) {
     const previousSpeed = previousAcceptedKmh;
     const acceptedElapsed = state.lastSpeedTimestamp === null
       ? null
       : Math.max(0.1, (sampleTime - state.lastSpeedTimestamp) / 1000);
-    const poorAccuracy = accuracy > 80;
+    const poorAccuracy = (!applicationProfile || Number.isFinite(accuracy)) && accuracy > 80;
     const implausibleAbsoluteSpeed = candidateKmh > config.maxDisplayedSpeed;
-    const derivedOnly = rawKmh === null && derivedKmh !== null;
+    const derivedOnly = candidateSource === "POSITION_DERIVED";
     const previousAccuracy = Number.isFinite(previousGps?.accuracy) ? previousGps.accuracy : accuracy;
-    const combinedAccuracy = Math.max(accuracy, previousAccuracy || 0);
-    const strongMovementContradiction = !poorAccuracy && accuracy <= 50 &&
+    const combinedAccuracy = applicationProfile
+      ? Math.max(Number.isFinite(accuracy) ? accuracy : 0, Number.isFinite(previousAccuracy) ? previousAccuracy : 0)
+      : Math.max(accuracy, previousAccuracy || 0);
+    const strongMovementContradiction = candidateSource !== "TRANSIT_LONG_BASELINE" &&
+      !poorAccuracy && (!applicationProfile || Number.isFinite(accuracy)) && accuracy <= 50 &&
       derivedKmh !== null && candidateKmh > 35 && derivedKmh < Math.max(8, candidateKmh * 0.25);
     const implausibleJump = acceptedElapsed !== null &&
       Math.abs(candidateKmh - previousSpeed) > Math.max(45, acceptedElapsed * 55);
@@ -113,6 +183,7 @@ function processSpeedSample(state, sample, options = {}) {
     if (uncertainDerivedMovement) reasons.push("GPS_DISPLACEMENT_UNCERTAIN");
     if (unconfirmedStartFromStationary) reasons.push("START_FROM_STATIONARY_UNCONFIRMED");
     if (suddenDerivedStop) reasons.push("STOP_UNCONFIRMED");
+    if (candidateSource === "TRANSIT_LONG_BASELINE") reasons.push("TRANSIT_LONG_BASELINE_RECOVERY");
 
     const needsConfirmation = !implausibleAbsoluteSpeed && (
       implausibleJump || uncertainDerivedMovement || unconfirmedStartFromStationary ||
@@ -179,15 +250,17 @@ function processSpeedSample(state, sample, options = {}) {
       state.lastSpeedTimestamp = sampleTime;
       state.targetSpeed = Math.min(config.maxDisplayedSpeed, candidateKmh);
       decision = needsConfirmation ? "ACCEPTED_CONFIRMED" : "ACCEPTED";
-      updateDriverMode(state, candidateKmh, config);
+      trustedDriverKmh = candidateKmh;
     } else {
       state.targetSpeed = previousSpeed;
       decision = implausibleAbsoluteSpeed || strongMovementContradiction ? "REJECTED" : "HELD";
-      updateDriverMode(state, previousSpeed, config);
+      trustedDriverKmh = previousSpeed;
     }
-  } else {
-    updateDriverMode(state, state.lastAcceptedSpeed, config);
   }
+
+  const driverTransition = applicationProfile
+    ? updateApplicationDriverMode(state, trustedDriverKmh, sample.watchActive)
+    : updateDriverMode(state, trustedDriverKmh, config);
 
   const displayDecision = state.targetSpeed === 0 && derivedKmh !== null && derivedKmh >= config.driverModeEnterSpeed
     ? "HELD_AT_ZERO"
@@ -215,26 +288,41 @@ function processSpeedSample(state, sample, options = {}) {
     derivedKmh,
     ignoredDerivedKmh: displayDecision === "HELD_AT_ZERO" ? derivedKmh : null,
     displayedKmh: state.targetSpeed,
-    accuracyMetres: accuracy,
+    accuracyMetres: applicationProfile && !Number.isFinite(accuracy) ? null : accuracy,
     elapsedSeconds,
     distanceMetres: movedMetres,
-    speedSource: rawKmh !== null ? "NATIVE_GPS" : derivedKmh !== null ? "POSITION_DERIVED" : "NONE",
+    speedSource: candidateSource,
     displayDecision,
     displayReasons,
     previousAcceptedKmh,
     speedDecision: decision,
     reasons,
-    driverUiActive: state.driverModeActive
+    driverUiActive: state.driverModeActive,
+    ...(applicationProfile ? {
+      acceptedKmh: state.lastAcceptedSpeed,
+      movementScore: previousGps && movedMetres !== null
+        ? movedMetres / Math.max(1, accuracy, previousGps.accuracy || 0)
+        : null,
+      driverTransition
+    } : {})
   };
 }
 
 function createSpeedBrain(options = {}) {
   let state = createSpeedState();
+  // Capture the named profile so caller mutation cannot switch a live session's policy.
+  const applicationProfile = options.profile === "frenano-app-v1";
+  const processOptions = applicationProfile ? Object.freeze({ profile: "frenano-app-v1" }) : options;
   return Object.freeze({
     version: SPEED_BRAIN_VERSION,
     process(sample) {
-      return { ...processSpeedSample(state, sample, options), brainVersion: SPEED_BRAIN_VERSION };
+      return { ...processSpeedSample(state, sample, processOptions), brainVersion: SPEED_BRAIN_VERSION };
     },
+    ...(applicationProfile ? {
+      driverExitTimeout(event) {
+        return applicationDriverExitTimeout(state, event);
+      }
+    } : {}),
     reset() {
       state = createSpeedState();
     }

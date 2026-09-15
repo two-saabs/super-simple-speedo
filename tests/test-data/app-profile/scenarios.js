@@ -20,6 +20,7 @@ for (const speed of [6, 6.000001]) cases.push({ name: `driver exit boundary ${sp
   sample(0, 10), sample(1000, speed), wait(4999), wait(1), wait(6000)
 ] });
 for (const [name, tail] of [
+  ["delayed callback without sample", [wait(8000)]],
   ["repeated low does not restart", [sample(2000, 5), wait(5000)]],
   ["midband keeps timer but callback uses latest speed", [sample(2000, 8), wait(5000), sample(3000, 6), wait(5000)]],
   ["entry cancels", [sample(2000, 10), wait(5000), sample(3000, 6), wait(5000)]],

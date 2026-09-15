@@ -43,11 +43,11 @@ try {
   assert.deepEqual(b.process(sample), first);
   options.profile = "legacy";
   a.process({ ...sample, timestamp: 1000, speedMps: 6 / 3.6 }).driverTransition.scheduleExitTimeout = false;
-  assert.equal(a.driverExitTimeout({ watchActive: true }).driverUiActive, false);
+  assert.equal(a.driverExitTimeout().driverUiActive, false, "omitted event means active watch");
   assert.equal(b.driverExitTimeout({ watchActive: true }).driverUiActive, true, "unscheduled event is inert");
   assert.equal(a.process({ ...sample, timestamp: 21000, latitude: .001, speedMps: null }).speedSource, "POSITION_DERIVED");
   b.reset();
   assert.deepEqual(b.driverExitTimeout(), { driverUiActive: false, driverTransition: { scheduleExitTimeout: false, cancelExitTimeout: false, applyReason: null } });
 } catch (error) { failures++; console.error(`FAIL app profile isolation: ${error.message}`); }
 if (failures) { process.exitCode = 1; console.error(`${failures} app-profile groups failed`); }
-else console.log(`PASS ${cases.length} frozen app-profile scenarios, 174 events, isolation and privacy`);
+else console.log(`PASS ${cases.length} frozen app-profile scenarios, ${cases.reduce((n, test) => n + test.events.length, 0)} events, isolation and privacy`);

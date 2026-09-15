@@ -105,3 +105,5 @@ for (const fixtureFile of fixtureFiles) {
 const replayCount = fixtureFiles.length * 2;
 console.log(`\n${replayCount - failures} passed, ${failures} failed`);
 if (failures > 0) process.exitCode = 1;
+
+require("./test-speed-brain-app-profile");

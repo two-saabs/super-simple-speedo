@@ -1,6 +1,6 @@
 {
   "provenance": {
-    "sourceCommit": "85ff675",
+    "sourceCommit": "85ff675839a259a463c30a063a34da00d3089f10",
     "source": "built dist/app/index.html",
     "extractedFunctionsSha256": "cc318f9b4ba5a0d618bb97a482896d6e91823e7c498a36d138a8d0570b78a856",
     "note": "Actual built speed block + driver + distance executed with fake external timers; roundDiagnostic identity captures exact unrounded math. Accuracy output normalized finite-or-null; transit evidence supplied externally. No Brain imported."
@@ -1359,6 +1359,65 @@
             "scheduleExitTimeout": false,
             "cancelExitTimeout": false,
             "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "delayed callback without sample",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "BELOW_6_KMH_FOR_5_SECONDS"
           }
         }
       ]
