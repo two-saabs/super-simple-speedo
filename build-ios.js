@@ -86,11 +86,15 @@ if (!html.includes("navigator.geolocation")) {
 }
 html = html.replaceAll("navigator.geolocation", "window.__SPEEDO_NATIVE_GEOLOCATION__");
 
-replaceRequired(
-  '        <div class="setting" style="margin:0;padding:0 0 22px;border:0;">\n          <div class="setting-title" style="font-size:19px;">Need help?</div>',
-  `        <div class="setting" id="nativeLocationPermissionSetting" style="margin:0;padding:0 0 22px;border:0;">\n          <div class="setting-title">Location access</div>\n          <div class="setting-note">Used for your current speed and automatic road/speed-limit lookup.</div>\n          <div class="setting-note" style="margin-top:8px;">Current permission: <strong id="nativeLocationPermissionStatus">Checking…</strong></div>\n          <button class="wide-button secondary" id="manageLocationPermission" style="margin-top:12px;">Manage in iPhone Settings</button>\n        </div>\n\n        <div class="setting" style="margin:0;padding:22px 0;border-top:1px solid rgba(127,127,127,.18);">\n          <div class="setting-title" style="font-size:19px;">Need help?</div>`,
-  "native location permission settings block"
-);
+// The shared Settings UI is now the single owner of the Location row. It
+// switches to native permission behaviour at runtime via __SPEEDO_NATIVE_IOS__
+// and __SPEEDO_NATIVE_PERMISSIONS__, so iOS packaging must not inject a second
+// legacy location-permission block.
+if (!html.includes("setting.id = 'locationPermissionSetting'") ||
+    !html.includes("window.__SPEEDO_NATIVE_PERMISSIONS__?.openSettings?.()")) {
+  console.error("iOS build failed: canonical native-aware location settings were not found.");
+  process.exit(1);
+}
 
 if (!html.includes('https://frenano.app/privacy.html')) {
   console.error("iOS build failed: Frenano privacy link was not found.");
@@ -129,7 +133,7 @@ if (!html.includes('id="native-ios-startup-v2"') || !html.includes('id="native-i
 
 fs.writeFileSync(packagedHtml, html, "utf8");
 console.log(`Prepared Frenano ${appStoreVersion} (build ${appVersion}) for the iOS App Store shell.`);
-console.log("Native location permission handling is enabled.");
+console.log("Native location permission handling is enabled through the shared Settings UI.");
 console.log("Native iOS shows the location explanation once, then uses a 1.5-second brand splash on later launches.");
 console.log("Privacy and support links point to frenano.app.");
 console.log("Geoapify calls use the secure Frenano server proxy; no Geoapify API key is packaged in iOS.");
