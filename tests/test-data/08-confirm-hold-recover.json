@@ -1,0 +1,57 @@
+{
+  "name": "derived speed is held until confirmation then recovers",
+  "description": "Three consistent position-derived speed candidates are required before stationary startup is accepted.",
+  "samples": [
+    {
+      "latitude": 47.3769,
+      "longitude": 8.5417,
+      "timestamp": 1000000,
+      "accuracy": 5,
+      "speedMps": null,
+      "expect": {
+        "speedDecision": "NO_SPEED",
+        "driverUiActive": false
+      }
+    },
+    {
+      "latitude": 47.3770,
+      "longitude": 8.5417,
+      "timestamp": 1001000,
+      "accuracy": 5,
+      "speedMps": null,
+      "expect": {
+        "displayedKmh": 0,
+        "speedSource": "POSITION_DERIVED",
+        "speedDecision": "HELD",
+        "reasonsIncludes": ["START_FROM_STATIONARY_UNCONFIRMED", "AWAITING_CONFIRMATION"],
+        "driverUiActive": false
+      }
+    },
+    {
+      "latitude": 47.3771,
+      "longitude": 8.5417,
+      "timestamp": 1002000,
+      "accuracy": 5,
+      "speedMps": null,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "HELD",
+        "reasonsIncludes": ["START_FROM_STATIONARY_UNCONFIRMED", "AWAITING_CONFIRMATION"],
+        "driverUiActive": false
+      }
+    },
+    {
+      "latitude": 47.3772,
+      "longitude": 8.5417,
+      "timestamp": 1003000,
+      "accuracy": 5,
+      "speedMps": null,
+      "expect": {
+        "displayedKmhApprox": {"value": 40.03, "tolerance": 0.01},
+        "speedDecision": "ACCEPTED_CONFIRMED",
+        "reasonsIncludes": ["START_FROM_STATIONARY_UNCONFIRMED"],
+        "driverUiActive": true
+      }
+    }
+  ]
+}

@@ -12,6 +12,9 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Normal native driving | ✅ | Fixture: `03-normal-native-drive.json`. |
 | Derived-speed startup | ✅ | Fixture: `04-derived-start-needs-confirmation.json`. |
 | Poor GPS accuracy | ✅ | Fixture: `05-poor-accuracy-derived-speed.json`. |
+| Long location gap | ✅ | Fixture: `06-long-gap-reset.json`. |
+| Native/derived contradiction | ✅ | Fixture: `07-native-derived-contradiction.json`. |
+| Derived confirmation recovery | ✅ | Fixture: `08-confirm-hold-recover.json`. |
 | Diagnostics schema and persistence | ✅ | Regression contracts validate timestamps, schema versioning, event creation, storage, trimming, session markers and export behaviour. |
 | Road lookup / road freshness | ✅ contract | Regression/build contracts protect confirmed-road state, stale-road distance behaviour, candidate roads and speed-limit UI state. |
 | Geoapify proxy | ✅ contract | CI checks server-side key usage, reverse/map-matching actions and CORS contract. |
@@ -29,7 +32,7 @@ This document tracks *what* Frenano protects with automated tests. It complement
 
 ## Behaviour scenarios
 
-There are currently **5 executable GPS/speed behaviour fixtures** under `tests/test-data/`. These are the highest-value tests because they feed sequences of samples through the real speed engine and assert decisions, not just source-code text.
+There are currently **8 executable GPS/speed behaviour fixtures** under `tests/test-data/`. These are the highest-value tests because they feed sequences of samples through the real speed engine and assert decisions, not just source-code text. The suite now explicitly covers long-gap baseline resets, native speed contradicted by position-derived movement, and derived-speed hold/confirmation recovery.
 
 Next scenarios worth adding from real field logs:
 

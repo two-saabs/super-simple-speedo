@@ -10,6 +10,8 @@ const fixtureFiles = fs.readdirSync(fixtureDirectory)
   .filter(name => name.endsWith(".json"))
   .sort();
 
+assert.equal(fixtureFiles.length, 8, "expected eight golden speed fixtures");
+
 let failures = 0;
 
 function approximately(actual, expected, tolerance, label) {

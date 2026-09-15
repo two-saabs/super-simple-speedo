@@ -1,0 +1,32 @@
+{
+  "name": "long location gap resets baseline",
+  "description": "A location gap longer than the baseline window is recorded while the current native speed remains accepted.",
+  "samples": [
+    {
+      "latitude": 47.3769,
+      "longitude": 8.5417,
+      "timestamp": 1000000,
+      "accuracy": 8,
+      "speedMps": 5.0,
+      "expect": {
+        "displayedKmh": 18,
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": true
+      }
+    },
+    {
+      "latitude": 47.3770,
+      "longitude": 8.5418,
+      "timestamp": 1016001,
+      "accuracy": 8,
+      "speedMps": 5.0,
+      "expect": {
+        "displayedKmh": 18,
+        "derivedKmh": null,
+        "speedDecision": "ACCEPTED",
+        "reasonsIncludes": ["LONG_LOCATION_GAP"],
+        "driverUiActive": true
+      }
+    }
+  ]
+}

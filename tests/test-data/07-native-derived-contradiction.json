@@ -1,0 +1,33 @@
+{
+  "name": "native speed contradicting position movement is rejected",
+  "description": "Native GPS reports 36 km/h while the position changes by only a fraction of a metre with good accuracy.",
+  "samples": [
+    {
+      "latitude": 47.3769,
+      "longitude": 8.5417,
+      "timestamp": 1000000,
+      "accuracy": 8,
+      "speedMps": 0,
+      "expect": {
+        "displayedKmh": 0,
+        "speedDecision": "ACCEPTED",
+        "driverUiActive": false
+      }
+    },
+    {
+      "latitude": 47.376901,
+      "longitude": 8.5417,
+      "timestamp": 1001000,
+      "accuracy": 8,
+      "speedMps": 10,
+      "expect": {
+        "rawKmh": 36,
+        "derivedKmhApprox": {"value": 0.4, "tolerance": 0.01},
+        "displayedKmh": 0,
+        "speedDecision": "REJECTED",
+        "reasonsIncludes": ["MOVEMENT_CONTRADICTION"],
+        "driverUiActive": false
+      }
+    }
+  ]
+}
