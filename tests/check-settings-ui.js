@@ -37,7 +37,7 @@ requireText('Privacy policy remains linked', 'https://frenano.app/privacy.html')
 requireText('Location setting remains installed', "setting.id='locationPermissionSetting'");
 requireText('Location title remains visible', '>Location</div>');
 requireText('Native location action remains Manage', "native?'Manage':'How to change'");
-requireText('Native denied location action remains Open Settings', "permissionStatus === 'denied' ? 'Open Settings' : 'Manage'");
+requireText('Native denied location action remains Open Settings', "permissionStatus==='denied'?'Open Settings':'Manage'");
 requireText('Units setting remains available', '>Units</div>');
 requireText('km/h unit choice remains available', 'id="unitKmhButton"');
 requireText('mph unit choice remains available', 'id="unitMphButton"');
