@@ -1,11 +1,7 @@
 function applySettingsRedesign(html) {
   const css = `
 <style id="settings-redesign-v2">
-  #settingsModal .sheet {
-    width:min(94vw,560px); max-height:min(90svh,860px); padding:18px 16px calc(20px + env(safe-area-inset-bottom));
-    border-radius:28px 28px 0 0; background:color-mix(in srgb,var(--panel) 96%,transparent); border:1px solid var(--soft-border);
-    box-shadow:0 -18px 60px rgba(0,0,0,.36); backdrop-filter:blur(28px) saturate(1.15); -webkit-backdrop-filter:blur(28px) saturate(1.15); overflow-y:auto;
-  }
+  #settingsModal .sheet { width:min(94vw,560px); max-height:min(90svh,860px); padding:18px 16px calc(20px + env(safe-area-inset-bottom)); border-radius:28px 28px 0 0; background:color-mix(in srgb,var(--panel) 96%,transparent); border:1px solid var(--soft-border); box-shadow:0 -18px 60px rgba(0,0,0,.36); backdrop-filter:blur(28px) saturate(1.15); -webkit-backdrop-filter:blur(28px) saturate(1.15); overflow-y:auto; }
   #settingsModal .grabber { width:42px; height:5px; margin:0 auto 14px; border-radius:999px; background:var(--fg); opacity:.16; }
   #settingsModal h2 { margin:2px 6px 18px; font-size:30px; line-height:1.05; font-weight:850; letter-spacing:-.035em; }
   #settingsModal .settings-section { margin:0; padding:18px 6px 20px; border:0; border-top:1px solid var(--soft-border); border-radius:0; overflow:visible; background:transparent; box-shadow:none; }
@@ -56,12 +52,7 @@ function applySettingsRedesign(html) {
     ['<div class="data-usage-title">Very low data usage</div>','<div class="data-usage-title">Network usage</div>'],
     ['<div class="data-usage-summary">Road lookups use only a few kilobytes of data.</div>','<div class="data-usage-summary">Road lookups use very little mobile data.</div>'],
     ['<div class="data-usage-label">Used all time</div>','<div class="data-usage-label">Downloaded + uploaded</div>'],
-    ['<div class="data-usage-label">Road lookups · all time</div>','<div class="data-usage-label">Road lookups</div>'],
-    ['    const shown = Math.max(0, Math.round(state.displayedSpeed));\n    if (speedEl.textContent !== String(shown)) {\n      speedEl.textContent = shown;','    const shown = Math.max(0, Math.round(state.displayedSpeed));\n    const shownForDisplay = localStorage.getItem("speedUnits") === "mph" ? Math.round(shown * 0.621371) : shown;\n    speedEl.dataset.kmh = String(shown);\n    if (speedEl.textContent !== String(shownForDisplay)) {\n      speedEl.textContent = shownForDisplay;'],
-    ['    limitEl.textContent = nextLimit ?? "?";','    limitEl.dataset.kmh = nextLimit === null ? "" : String(nextLimit);\n    limitEl.textContent = nextLimit === null ? "?" : String(localStorage.getItem("speedUnits") === "mph" ? Math.round(nextLimit * 0.621371) : nextLimit);'],
-    ['    if (shownSpeed <= 160) return 160;\n    return Math.min(240, Math.ceil(shownSpeed / 20) * 20);','    const mphMode = localStorage.getItem("speedUnits") === "mph";\n    const base = mphMode ? 160.9344 : 160;\n    const step = mphMode ? 32.18688 : 20;\n    if (shownSpeed <= base) return base;\n    return Math.min(mphMode ? 241.4016 : 240, Math.ceil(shownSpeed / step) * step);'],
-    ['    const values = [];\n    for (let value = 0; value <= maximum + 0.001; value += 10) values.push(value);','    const values = [];\n    const mphMode = localStorage.getItem("speedUnits") === "mph";\n    const tickStep = mphMode ? 16.09344 : 10;\n    for (let value = 0; value <= maximum + 0.001; value += tickStep) values.push(value);'],
-    ['        text.textContent = String(Math.round(value));','        text.textContent = String(Math.round(localStorage.getItem("speedUnits") === "mph" ? value * 0.621371 : value));']
+    ['<div class="data-usage-label">Road lookups · all time</div>','<div class="data-usage-label">Road lookups</div>']
   ];
   for (const [before, after] of replacements) {
     if (!html.includes(before)) throw new Error(`Settings redesign: expected snippet not found: ${before.slice(0,80)}`);
