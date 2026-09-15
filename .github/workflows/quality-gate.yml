@@ -73,6 +73,9 @@ jobs:
       - name: Check product contracts
         run: node tests/check-regressions.js index.template.html
 
+      - name: Check build ownership contracts
+        run: node tests/check-build-ownership.js
+
       - name: Check privacy contracts
         run: node tests/check-privacy.js
 
