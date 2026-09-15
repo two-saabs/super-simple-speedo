@@ -16,7 +16,7 @@ function requireCondition(name, condition) { condition ? pass(name) : fail(name)
 
 const settings = fs.readFileSync(settingsPath, 'utf8');
 const polish = fs.existsSync(polishPath) ? fs.readFileSync(polishPath, 'utf8') : '';
-const help = fs.readFileSync(helpPath, 'utf8');
+const help = fs.existsSync(helpPath) ? fs.readFileSync(helpPath, 'utf8') : '';
 requireCondition('usage statistics has a focused build owner', fs.existsSync(statisticsPath));
 requireCondition('Settings redesign does not own statistics state', !settings.includes('maxSpeed: 0, roadsIdentified: 0'));
 requireCondition('Settings redesign does not record maximum speed', !settings.includes('candidateKmh > (state.stats.maxSpeed || 0)'));
@@ -33,13 +33,17 @@ const speedDisplay = fs.readFileSync(speedDisplayPath, 'utf8');
 requireCondition('Speed display owner owns speed unit preference', speedDisplay.includes("const unitKey = 'speedUnits'"));
 requireCondition('Speed display owner installs unit controls', speedDisplay.includes('function installUnitsSetting'));
 
-// Task 4 target: Settings presentation, location controls, final help copy and
-// footer should have one Settings owner instead of a redesign followed by polish.
+// Task 4 target: all Settings presentation, location controls, help/privacy
+// presentation and footer have one owner. Focused non-Settings behavior remains
+// outside this transform.
 requireCondition('Settings redesign owns final location controls', settings.includes('function installLocationSetting'));
 requireCondition('Settings redesign owns final Settings footer', settings.includes("footer.className = 'settings-footer'"));
 requireCondition('Settings redesign owns final diagnostic help copy', settings.includes('Share a privacy-safe diagnostic log to help us understand what happened.'));
+requireCondition('Settings redesign owns Help & privacy presentation', settings.includes('Help & privacy'));
+requireCondition('Settings redesign owns feedback presentation', settings.includes('Questions, ideas or suggestions are always welcome'));
+requireCondition('Settings redesign owns privacy-policy presentation', settings.includes('Read privacy policy'));
 requireCondition('Historical Settings polish transform is retired', !fs.existsSync(polishPath));
-requireCondition('Help/privacy transform does not own location controls', !help.includes('locationPermissionSetting'));
+requireCondition('Historical help/privacy Settings transform is retired', !fs.existsSync(helpPath));
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} build ownership failure(s)`);
 process.exit(failures.length ? 1 : 0);
