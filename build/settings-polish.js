@@ -125,16 +125,7 @@ function applySettingsPolish(html, { appVersion }) {
 
   function simplifyHelpCopy(modal) {
     modal.querySelectorAll('.setting-title').forEach(title => {
-      const text = title.textContent.trim();
-      if (text === 'Need help?') title.textContent = 'Feedback?';
-      if (title.textContent.trim() === 'Feedback?') {
-        const setting = title.parentElement;
-        const note = setting?.querySelector('.setting-note');
-        const emailLink = setting?.querySelector('a[href^="mailto:support@frenano.app"]');
-        if (note) note.innerHTML = 'Questions, ideas or suggestions are always welcome — <a href="mailto:support@frenano.app" style="color:inherit;text-decoration:underline;font-weight:700;">support@frenano.app</a>';
-        emailLink?.remove();
-      }
-      if (text === 'Something not working?') {
+      if (title.textContent.trim() === 'Something not working?') {
         const note = title.parentElement?.querySelector('.setting-note');
         if (note) note.textContent = 'Share a privacy-safe diagnostic log to help us understand what happened.';
       }
