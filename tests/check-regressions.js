@@ -27,6 +27,9 @@ console.log(`\nSuper Simple Speedo quality gate`);
 console.log(`Checking: ${path.resolve(candidatePath)}\n`);
 
 const contracts = [
+  ['live speed callback delegates to Speed Brain', /speedBrain\.process\(/],
+  ['live speed session uses frozen application profile', /window\.FrenanoSpeedBrain\.createSpeedBrain\(\{ profile: "frenano-app-v1" \}\)/],
+  ['live driver timeout delivers actual watch state', /speedBrain\.driverExitTimeout\(\{ watchActive: state\.watchId !== null \}\)/],
   ['HTML document declaration exists', /<!doctype\s+html>/i],
   ['page title remains Super Simple Speedo', /<title>\s*Super Simple Speedo\s*<\/title>/i],
   ['viewport remains mobile friendly', /<meta[^>]+name=["']viewport["']/i],

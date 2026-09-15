@@ -3,9 +3,6 @@ function applyRoadCardRefresh(html) {
   const interactiveAfter = `        <div id="limitButton" class="unknown" aria-label="Speed limit">\n          <span id="limit">?</span>\n        </div>`;
   if (html.includes(interactiveBefore)) html = html.replace(interactiveBefore, interactiveAfter);
 
-  html = html.replace(`if (state.driverModeActive && trustedSpeed < DRIVER_MODE_EXIT_SPEED && !state.driverExitTimer) {`,`if (state.driverModeActive && trustedSpeed <= DRIVER_MODE_EXIT_SPEED && !state.driverExitTimer) {`);
-  html = html.replace(`if (state.watchId !== null && state.lastAcceptedSpeed < DRIVER_MODE_EXIT_SPEED) {`,`if (state.watchId !== null && state.lastAcceptedSpeed <= DRIVER_MODE_EXIT_SPEED) {`);
-
   const css = `
 <style id="road-card-refresh-v4">
   .lower { width:min(620px,90vw); grid-template-columns:132px minmax(0,1fr); gap:20px; padding:14px 18px; border:1px solid var(--soft-border); border-radius:28px; background:color-mix(in srgb,var(--panel) 92%,transparent); box-shadow:0 16px 42px rgba(0,0,0,.26); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }

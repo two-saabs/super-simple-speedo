@@ -49,7 +49,7 @@ forbidText('Obsolete Email us action is absent', '>Email us</a>');
 
 // Behavioural golden contract for focused non-Settings owners.
 requireText('Statistics state keeps max speed', 'maxSpeed: 0, roadsIdentified: 0');
-requireText('Statistics records a new maximum speed', 'candidateKmh > (state.stats.maxSpeed || 0)');
+requireText('Statistics records a new maximum speed', 'speedResult.acceptedKmh > (state.stats.maxSpeed || 0)');
 requireText('Statistics records newly identified roads', 'state.stats.roadsIdentified = (state.stats.roadsIdentified || 0) + 1');
 requireText('Statistics reset clears extended counters', 'apiResponseBytes: 0, maxSpeed: 0, roadsIdentified: 0 }');
 requireText('Speed display preserves canonical km/h value', 'speedEl.dataset.kmh = String(shown)');
@@ -60,4 +60,9 @@ requireText('Dial maximum retains mph conversion geometry', 'const base = mphMod
 requireText('Dial ticks retain mph conversion geometry', 'const tickStep = mphMode ? 16.09344 : 10');
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} settings UI contract failure(s)`);
-process.exit(failures.length ? 1 : 0);
+require('./test-speed-brain-integration').runIntegration(html).then(() => {
+  process.exitCode = failures.length ? 1 : 0;
+}).catch(error => {
+  console.error('FAIL live Speed Brain integration:', error);
+  process.exitCode = 1;
+});

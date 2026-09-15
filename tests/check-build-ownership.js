@@ -22,6 +22,21 @@ const polish = fs.existsSync(polishPath) ? fs.readFileSync(polishPath, 'utf8') :
 const help = fs.existsSync(helpPath) ? fs.readFileSync(helpPath, 'utf8') : '';
 requireCondition('Speed Brain has one canonical algorithm owner', fs.existsSync(brainPath));
 requireCondition('Speed Brain browser runtime has a focused build owner', fs.existsSync(runtimePath));
+const template = fs.readFileSync('index.template.html', 'utf8');
+const canonicalBrain = fs.readFileSync(brainPath, 'utf8');
+const speedCallback = template.slice(template.indexOf('  function onPosition('), template.indexOf('  function completeGpsConnection('));
+for (const token of ['MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION', 'START_FROM_STATIONARY_UNCONFIRMED']) {
+  requireCondition(`template no longer owns ${token}`, !template.includes(token));
+  requireCondition(`Brain owns ${token}`, canonicalBrain.includes(token));
+}
+requireCondition('speed callback delegates distance math to Brain', !speedCallback.slice(0, speedCallback.indexOf('    if (state.statisticsEnabled)')).includes('distanceMetres('));
+requireCondition('Brain owns speed distance radius', canonicalBrain.includes('6371000'));
+requireCondition('template retains shared Road/Transport distance helper', template.includes('const R = 6371000;'));
+requireCondition('application creates exactly one named-profile Brain',
+  (template.match(/window\.FrenanoSpeedBrain\.createSpeedBrain/g) || []).length === 1 &&
+  template.includes('createSpeedBrain({ profile: "frenano-app-v1" })'));
+requireCondition('obsolete speed filtering state and driver decision function removed',
+  !/pendingSpeedCandidate|lastGpsSample|lastSpeedTimestamp|function updateDriverMode/.test(template));
 const compatibilityEngine = fs.readFileSync('speed-engine.js', 'utf8');
 requireCondition('legacy speed-engine is only a facade', compatibilityEngine.includes('require("./brains/speed-brain")'));
 requireCondition('usage statistics has a focused build owner', fs.existsSync(statisticsPath));
