@@ -1,6 +1,19 @@
 'use strict';
 
 function applySettingsRedesign(html, { appVersion }) {
+  const privacyLink = '<div style="margin-top:10px;"><a href="/privacy.html" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">Privacy Policy</a></div>';
+  const originalPrivacyBody = `<div style="padding:4px 0 8px;line-height:1.55;opacity:.82;">\n        <div>Your journeys are your business.</div>\n        ${privacyLink}\n\n        <div style="margin-top:14px;">\n          Super Simple Speedo does not require an account and does not collect or sell your personal data.\n        </div>\n\n        <div style="margin-top:14px;">\n          Any optional statistics are stored locally on your device and never leave it.\n        </div>\n\n        <div style="margin-top:16px;font-weight:780;opacity:1;">\n          No tracking. No surprises.\n        </div>\n\n        <div style="margin-top:18px;opacity:.72;">\n          Road intelligence powered by Geoapify.\n        </div>\n\n        <div style="margin-top:16px;">\n          <a\n            href="https://supersimplespeedo.app"\n            target="_blank"\n            rel="noopener noreferrer"\n            style="color:inherit;text-decoration:none;font-weight:700;"\n          >\n            supersimplespeedo.app\n          </a>\n        </div>\n      </div>`;
+  const unifiedHelpPrivacy = `<div style="padding:4px 0 8px;line-height:1.55;">\n        <div class="setting" style="margin:0;padding:0 0 22px;border:0;">\n          <div class="setting-title" style="font-size:19px;">Feedback?</div>\n          <div class="setting-note" style="margin-top:8px;font-size:16px;line-height:1.55;">Questions, ideas or suggestions are always welcome — <a href="mailto:support@frenano.app" style="color:inherit;text-decoration:underline;font-weight:700;">support@frenano.app</a></div>\n        </div>\n\n        <div class="setting" style="margin:0;padding:22px 0;border-top:1px solid rgba(127,127,127,.18);">\n          <div class="setting-title" style="font-size:19px;">Something not working?</div>\n          <div class="setting-note" style="margin-top:8px;font-size:16px;line-height:1.55;">\n            Speed or road-sign lookup not working as you’d expect? Tap below, then choose Mail to email us a privacy-safe diagnostic log.\n          </div>\n          <button class="wide-button secondary" id="shareSupportDiagnostics" style="margin-top:14px;">Share diagnostic log</button>\n          <div class="diagnostics-format-note" id="supportDiagnosticsStatus" style="margin-top:10px;">Nothing is uploaded automatically · recent technical events only</div>\n        </div>\n\n        <div class="setting" style="margin:0;padding:22px 0 4px;border-top:1px solid rgba(127,127,127,.18);">\n          <div class="setting-title" style="font-size:19px;">Privacy policy</div>\n          <div class="setting-note" style="margin-top:8px;font-size:16px;line-height:1.55;">\n            We take privacy seriously. Read our full policy here.\n          </div>\n          <div style="margin-top:12px;"><a href="https://frenano.app/privacy.html" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;font-weight:700;">Read privacy policy</a></div>\n        </div>\n      </div>`;
+  const separateSupportSection = `\n    <div class="settings-section" data-settings-section="help-and-diagnostics">\n      <button class="settings-section-header" type="button" aria-expanded="false">\n        <div class="settings-section-title">Help & Diagnostics</div>\n        <span class="settings-section-chevron" aria-hidden="true">›</span>\n      </button>\n      <div class="settings-section-body">\n        <div class="setting">\n          <div class="setting-title">Share diagnostic log</div>\n          <div class="setting-note" style="margin-top:8px;line-height:1.5;">\n            Creates a small support report on your device. It leaves out coordinates, road names, stations, public-transport lines and destinations, API keys, and persistent identifiers.\n          </div>\n          <div class="setting-note" style="margin-top:10px;line-height:1.5;">\n            Nothing is uploaded automatically. You choose whether and how to share it.\n          </div>\n          <button class="wide-button secondary" id="shareSupportDiagnostics" style="margin-top:14px;">Share diagnostic log</button>\n          <div class="diagnostics-format-note" id="supportDiagnosticsStatus">Recent technical events only · local to this device</div>\n        </div>\n      </div>\n    </div>\n`;
+
+  const requiredReplace = (before, after, label) => {
+    if (!html.includes(before)) throw new Error(`Settings redesign: expected ${label} snippet not found`);
+    html = html.replace(before, after);
+  };
+  requiredReplace('<div class="settings-section-title">Privacy</div>', '<div class="settings-section-title">Help & privacy</div>', 'privacy title');
+  requiredReplace(originalPrivacyBody, unifiedHelpPrivacy, 'help and privacy');
+  requiredReplace(separateSupportSection, '\n', 'separate support section');
+
   const css = `
 <style id="settings-redesign-v2">
   #settingsModal .sheet { width:min(94vw,560px); max-height:min(90svh,860px); padding:18px 16px calc(20px + env(safe-area-inset-bottom)); border-radius:28px 28px 0 0; background:color-mix(in srgb,var(--panel) 96%,transparent); border:1px solid var(--soft-border); box-shadow:0 -18px 60px rgba(0,0,0,.36); backdrop-filter:blur(28px) saturate(1.15); -webkit-backdrop-filter:blur(28px) saturate(1.15); overflow-y:auto; }
@@ -75,72 +88,16 @@ function applySettingsRedesign(html, { appVersion }) {
   let permissionStatus = 'unknown';
   let permissionObject = null;
   let gpsSucceeded = false;
-
-  function updatePermissionAction() {
-    const button = document.getElementById('locationPermissionAction');
-    if (!button) return;
-    if (!window.__SPEEDO_NATIVE_IOS__) { button.textContent = 'How to change'; return; }
-    button.textContent = permissionStatus === 'denied' ? 'Open Settings' : 'Manage';
-  }
-  function setPermissionStatus(status) {
-    permissionStatus = status || 'unknown';
-    const row = document.getElementById('locationPermissionStatus');
-    const label = document.getElementById('locationPermissionLabel');
-    if (!row || !label) return;
-    row.classList.remove('granted','denied');
-    if (permissionStatus === 'granted') { row.classList.add('granted'); label.textContent = 'On — Frenano can use your location'; }
-    else if (permissionStatus === 'denied') { row.classList.add('denied'); label.textContent = 'Off in Settings'; }
-    else if (permissionStatus === 'prompt' || permissionStatus === 'prompt-with-rationale') label.textContent = 'Off — location is needed to measure your speed';
-    else label.textContent = window.__SPEEDO_NATIVE_IOS__ ? 'Checking location…' : 'Check browser location settings';
-    updatePermissionAction();
-  }
-  function markFromGeolocationError(error) { if (Number(error?.code) === 1) { gpsSucceeded = false; setPermissionStatus('denied'); } }
-  function wrapWebGeolocation() {
-    if (window.__SPEEDO_NATIVE_IOS__ || !navigator.geolocation || navigator.geolocation.__frenanoWrapped) return;
-    const geo=navigator.geolocation, originalWatch=geo.watchPosition?.bind(geo), originalGet=geo.getCurrentPosition?.bind(geo);
-    if (originalWatch) geo.watchPosition=(success,error,options)=>originalWatch(position=>{gpsSucceeded=true;setPermissionStatus('granted');success?.(position);},err=>{markFromGeolocationError(err);error?.(err);},options);
-    if (originalGet) geo.getCurrentPosition=(success,error,options)=>originalGet(position=>{gpsSucceeded=true;setPermissionStatus('granted');success?.(position);},err=>{markFromGeolocationError(err);error?.(err);},options);
-    try { Object.defineProperty(geo,'__frenanoWrapped',{value:true}); } catch (_) { geo.__frenanoWrapped=true; }
-  }
-  async function refreshPermissionStatus() {
-    if (window.__SPEEDO_NATIVE_IOS__) { try { setPermissionStatus((await window.__SPEEDO_NATIVE_PERMISSIONS__?.refresh?.()) || 'unknown'); } catch (_) { setPermissionStatus('unknown'); } return; }
-    if (gpsSucceeded) { setPermissionStatus('granted'); return; }
-    if (!navigator.permissions?.query) { setPermissionStatus(permissionStatus === 'granted' ? 'granted' : 'unknown'); return; }
-    try {
-      permissionObject=permissionObject || await navigator.permissions.query({name:'geolocation'}); setPermissionStatus(permissionObject.state);
-      if (!permissionObject.__frenanoWired) { permissionObject.addEventListener?.('change',()=>{if(permissionObject.state==='denied')gpsSucceeded=false;setPermissionStatus(gpsSucceeded?'granted':permissionObject.state);}); permissionObject.__frenanoWired=true; }
-    } catch (_) { setPermissionStatus(permissionStatus === 'granted' ? 'granted' : 'unknown'); }
-  }
-  function locationHelpText() {
-    const ua=navigator.userAgent || '';
-    if (/iPhone|iPad|iPod/i.test(ua)) return 'In Safari, open Website Settings for Frenano and choose Location. You can also review Safari location access in iPhone Settings.';
-    if (/Android/i.test(ua)) return 'Open your browser’s site settings for Frenano and choose Location.';
-    return 'Open your browser’s site permissions for Frenano and choose Location.';
-  }
-  function installLocationSetting() {
-    const privacy=document.querySelector('#settingsModal [data-settings-section="privacy"]'), body=privacy?.querySelector('.settings-section-body'); if(!body)return;
-    body.querySelectorAll('.location-setting, #nativeLocationPermissionSetting, #locationPermissionSetting').forEach(node=>node.remove());
-    const native=!!window.__SPEEDO_NATIVE_IOS__, setting=document.createElement('div'); setting.className='setting location-permission-setting'; setting.id='locationPermissionSetting';
-    setting.innerHTML='<div class="location-permission-row"><div><div class="setting-title" style="font-size:19px;">Location</div><div class="location-permission-status" id="locationPermissionStatus"><span class="location-permission-dot"></span><span id="locationPermissionLabel">Checking location…</span></div></div><button class="location-permission-action" id="locationPermissionAction" type="button">'+(native?'Manage':'How to change')+'</button></div><div class="location-permission-help" id="locationPermissionHelp">'+(native?'Location permission is controlled by iPhone Settings.':locationHelpText())+'</div>';
-    body.prepend(setting);
-    document.getElementById('locationPermissionAction')?.addEventListener('click',async()=>{if(native){await window.__SPEEDO_NATIVE_PERMISSIONS__?.openSettings?.();return;}document.getElementById('locationPermissionHelp')?.classList.toggle('show');}); refreshPermissionStatus();
-  }
-  function simplifyHelpCopy(modal) {
-    modal.querySelectorAll('.setting-title').forEach(title=>{if(title.textContent.trim()==='Something not working?'){const note=title.parentElement?.querySelector('.setting-note');if(note)note.textContent='Share a privacy-safe diagnostic log to help us understand what happened.';}});
-    const diagnostics=modal.querySelector('#supportDiagnosticsStatus'); if(diagnostics)diagnostics.textContent='Nothing is uploaded automatically.';
-  }
-  function decorateSettings() {
-    const modal=document.getElementById('settingsModal'); if(!modal)return;
-    const display=modal.querySelector('[data-settings-section="display"]'), title=display?.querySelector('.settings-section-title'); if(title)title.textContent='Appearance & Display';
-    modal.querySelectorAll('.settings-section').forEach(section=>{section.classList.add('open');section.querySelector('.settings-section-header')?.setAttribute('aria-expanded','true');});
-    const visible=display?.querySelector('.setting:nth-of-type(2)'); visible?.querySelector('.choice-list')?.classList.add('compact-choice-list'); visible?.querySelector('#elementChoices')?.classList.add('compact-choice-list');
-    simplifyHelpCopy(modal); modal.querySelector('[data-settings-section="about"]')?.setAttribute('aria-hidden','true'); installLocationSetting();
-    const sheet=modal.querySelector('.sheet'); let footer=sheet?.querySelector('.settings-footer');
-    if(!footer&&sheet){modal.querySelector('.settings-redesign-note')?.remove();footer=document.createElement('div');footer.className = 'settings-footer';const versionText=window.__SPEEDO_NATIVE_IOS__?('Version 1.0 · Build '+APP_VERSION):('Version '+APP_VERSION);footer.innerHTML='<span class="version">'+versionText+'</span>Frenano · Made in Switzerland';sheet.appendChild(footer);} refreshPermissionStatus();
-  }
-  wrapWebGeolocation();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',decorateSettings,{once:true});else decorateSettings();
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshPermissionStatus();}); window.addEventListener('pageshow',refreshPermissionStatus);
+  function updatePermissionAction(){const button=document.getElementById('locationPermissionAction');if(!button)return;if(!window.__SPEEDO_NATIVE_IOS__){button.textContent='How to change';return;}button.textContent=permissionStatus==='denied'?'Open Settings':'Manage';}
+  function setPermissionStatus(status){permissionStatus=status||'unknown';const row=document.getElementById('locationPermissionStatus'),label=document.getElementById('locationPermissionLabel');if(!row||!label)return;row.classList.remove('granted','denied');if(permissionStatus==='granted'){row.classList.add('granted');label.textContent='On — Frenano can use your location';}else if(permissionStatus==='denied'){row.classList.add('denied');label.textContent='Off in Settings';}else if(permissionStatus==='prompt'||permissionStatus==='prompt-with-rationale')label.textContent='Off — location is needed to measure your speed';else label.textContent=window.__SPEEDO_NATIVE_IOS__?'Checking location…':'Check browser location settings';updatePermissionAction();}
+  function markFromGeolocationError(error){if(Number(error?.code)===1){gpsSucceeded=false;setPermissionStatus('denied');}}
+  function wrapWebGeolocation(){if(window.__SPEEDO_NATIVE_IOS__||!navigator.geolocation||navigator.geolocation.__frenanoWrapped)return;const geo=navigator.geolocation,originalWatch=geo.watchPosition?.bind(geo),originalGet=geo.getCurrentPosition?.bind(geo);if(originalWatch)geo.watchPosition=(success,error,options)=>originalWatch(position=>{gpsSucceeded=true;setPermissionStatus('granted');success?.(position);},err=>{markFromGeolocationError(err);error?.(err);},options);if(originalGet)geo.getCurrentPosition=(success,error,options)=>originalGet(position=>{gpsSucceeded=true;setPermissionStatus('granted');success?.(position);},err=>{markFromGeolocationError(err);error?.(err);},options);try{Object.defineProperty(geo,'__frenanoWrapped',{value:true});}catch(_){geo.__frenanoWrapped=true;}}
+  async function refreshPermissionStatus(){if(window.__SPEEDO_NATIVE_IOS__){try{setPermissionStatus((await window.__SPEEDO_NATIVE_PERMISSIONS__?.refresh?.())||'unknown');}catch(_){setPermissionStatus('unknown');}return;}if(gpsSucceeded){setPermissionStatus('granted');return;}if(!navigator.permissions?.query){setPermissionStatus(permissionStatus==='granted'?'granted':'unknown');return;}try{permissionObject=permissionObject||await navigator.permissions.query({name:'geolocation'});setPermissionStatus(permissionObject.state);if(!permissionObject.__frenanoWired){permissionObject.addEventListener?.('change',()=>{if(permissionObject.state==='denied')gpsSucceeded=false;setPermissionStatus(gpsSucceeded?'granted':permissionObject.state);});permissionObject.__frenanoWired=true;}}catch(_){setPermissionStatus(permissionStatus==='granted'?'granted':'unknown');}}
+  function locationHelpText(){const ua=navigator.userAgent||'';if(/iPhone|iPad|iPod/i.test(ua))return 'In Safari, open Website Settings for Frenano and choose Location. You can also review Safari location access in iPhone Settings.';if(/Android/i.test(ua))return 'Open your browser’s site settings for Frenano and choose Location.';return 'Open your browser’s site permissions for Frenano and choose Location.';}
+  function installLocationSetting(){const privacy=document.querySelector('#settingsModal [data-settings-section="privacy"]'),body=privacy?.querySelector('.settings-section-body');if(!body)return;body.querySelectorAll('.location-setting, #nativeLocationPermissionSetting, #locationPermissionSetting').forEach(node=>node.remove());const native=!!window.__SPEEDO_NATIVE_IOS__,setting=document.createElement('div');setting.className='setting location-permission-setting';setting.id='locationPermissionSetting';setting.innerHTML='<div class="location-permission-row"><div><div class="setting-title" style="font-size:19px;">Location</div><div class="location-permission-status" id="locationPermissionStatus"><span class="location-permission-dot"></span><span id="locationPermissionLabel">Checking location…</span></div></div><button class="location-permission-action" id="locationPermissionAction" type="button">'+(native?'Manage':'How to change')+'</button></div><div class="location-permission-help" id="locationPermissionHelp">'+(native?'Location permission is controlled by iPhone Settings.':locationHelpText())+'</div>';body.prepend(setting);document.getElementById('locationPermissionAction')?.addEventListener('click',async()=>{if(native){await window.__SPEEDO_NATIVE_PERMISSIONS__?.openSettings?.();return;}document.getElementById('locationPermissionHelp')?.classList.toggle('show');});refreshPermissionStatus();}
+  function simplifyHelpCopy(modal){modal.querySelectorAll('.setting-title').forEach(title=>{if(title.textContent.trim()==='Something not working?'){const note=title.parentElement?.querySelector('.setting-note');if(note)note.textContent='Share a privacy-safe diagnostic log to help us understand what happened.';}});const diagnostics=modal.querySelector('#supportDiagnosticsStatus');if(diagnostics)diagnostics.textContent='Nothing is uploaded automatically.';}
+  function decorateSettings(){const modal=document.getElementById('settingsModal');if(!modal)return;const display=modal.querySelector('[data-settings-section="display"]'),title=display?.querySelector('.settings-section-title');if(title)title.textContent='Appearance & Display';modal.querySelectorAll('.settings-section').forEach(section=>{section.classList.add('open');section.querySelector('.settings-section-header')?.setAttribute('aria-expanded','true');});const visible=display?.querySelector('.setting:nth-of-type(2)');visible?.querySelector('.choice-list')?.classList.add('compact-choice-list');visible?.querySelector('#elementChoices')?.classList.add('compact-choice-list');simplifyHelpCopy(modal);modal.querySelector('[data-settings-section="about"]')?.setAttribute('aria-hidden','true');installLocationSetting();const sheet=modal.querySelector('.sheet');let footer=sheet?.querySelector('.settings-footer');if(!footer&&sheet){modal.querySelector('.settings-redesign-note')?.remove();footer=document.createElement('div');footer.className = 'settings-footer';const versionText=window.__SPEEDO_NATIVE_IOS__?('Version 1.0 · Build '+APP_VERSION):('Version '+APP_VERSION);footer.innerHTML='<span class="version">'+versionText+'</span>Frenano · Made in Switzerland';sheet.appendChild(footer);}refreshPermissionStatus();}
+  wrapWebGeolocation();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',decorateSettings,{once:true});else decorateSettings();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshPermissionStatus();});window.addEventListener('pageshow',refreshPermissionStatus);
 })();
 </script>`;
   if (!html.includes('</head>') || !html.includes('</body>')) throw new Error('Settings redesign: expected HTML closing tags not found');
