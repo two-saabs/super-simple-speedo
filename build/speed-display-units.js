@@ -11,6 +11,43 @@ function applySpeedDisplayUnits(html) {
     if (!html.includes(before)) throw new Error(`Speed display units: expected snippet not found: ${before.slice(0,80)}`);
     html = html.replace(before, after);
   }
+
+  const js = `
+<script id="speed-display-units-script">
+(() => {
+  const unitKey = 'speedUnits';
+  const currentUnits = () => localStorage.getItem(unitKey) === 'mph' ? 'mph' : 'kmh';
+  const asDisplay = kmh => currentUnits() === 'mph' ? Math.round(Number(kmh) * 0.621371) : Math.round(Number(kmh));
+  function updateUnitsUi() {
+    const mph = currentUnits() === 'mph';
+    document.getElementById('unitKmhButton')?.classList.toggle('active', !mph);
+    document.getElementById('unitMphButton')?.classList.toggle('active', mph);
+    const unit = document.querySelector('.speed-dial-core .unit');
+    if (unit) unit.textContent = mph ? 'mph' : 'km/h';
+    const speed = document.getElementById('speed');
+    if (speed?.dataset.kmh !== undefined && speed.dataset.kmh !== '') speed.textContent = String(asDisplay(speed.dataset.kmh));
+    const limit = document.getElementById('limit');
+    if (limit?.dataset.kmh) limit.textContent = String(asDisplay(limit.dataset.kmh));
+    document.querySelectorAll('#limitGrid .limit-choice[data-limit]').forEach(button => { const raw=Number(button.dataset.limit); if (Number.isFinite(raw)) button.textContent=String(asDisplay(raw)); });
+    window.dispatchEvent(new Event('resize'));
+  }
+  function installUnitsSetting() {
+    const displaySection = document.querySelector('#settingsModal [data-settings-section="display"]');
+    const body = displaySection?.querySelector('.settings-section-body');
+    const visible = body?.querySelector('.setting:nth-of-type(2)');
+    if (!body || !visible || document.getElementById('unitKmhButton')) return;
+    const units=document.createElement('div'); units.className='setting';
+    units.innerHTML='<div class="setting-title">Units</div><div class="segmented"><button class="segment-button" id="unitKmhButton" type="button">km/h</button><button class="segment-button" id="unitMphButton" type="button">mph</button></div>';
+    body.insertBefore(units, visible);
+    document.getElementById('unitKmhButton').addEventListener('click',()=>{localStorage.setItem(unitKey,'kmh');updateUnitsUi();});
+    document.getElementById('unitMphButton').addEventListener('click',()=>{localStorage.setItem(unitKey,'mph');updateUnitsUi();});
+    updateUnitsUi();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installUnitsSetting,{once:true});else installUnitsSetting();
+})();
+</script>`;
+  if (!html.includes('</body>')) throw new Error('Speed display units: expected HTML closing body tag not found');
+  html = html.replace('</body>', `${js}\n</body>`);
   return html;
 }
 
