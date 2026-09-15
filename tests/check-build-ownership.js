@@ -13,6 +13,7 @@ function fail(message) { failures.push(message); console.error(`FAIL  ${message}
 function requireCondition(name, condition) { condition ? pass(name) : fail(name); }
 
 const settings = fs.readFileSync(settingsPath, 'utf8');
+const speedDisplay = fs.existsSync(speedDisplayPath) ? fs.readFileSync(speedDisplayPath, 'utf8') : '';
 requireCondition('usage statistics has a focused build owner', fs.existsSync(statisticsPath));
 requireCondition('Settings redesign does not own statistics state', !settings.includes('maxSpeed: 0, roadsIdentified: 0'));
 requireCondition('Settings redesign does not record maximum speed', !settings.includes('candidateKmh > (state.stats.maxSpeed || 0)'));
@@ -23,6 +24,10 @@ requireCondition('Settings redesign does not convert displayed speed', !settings
 requireCondition('Settings redesign does not convert displayed speed limits', !settings.includes('nextLimit * 0.621371'));
 requireCondition('Settings redesign does not own dial maximum conversion', !settings.includes('const base = mphMode ? 160.9344 : 160'));
 requireCondition('Settings redesign does not own dial tick conversion', !settings.includes('const tickStep = mphMode ? 16.09344 : 10'));
+requireCondition('speed display units owns unit preference wiring', speedDisplay.includes("const unitKey = 'speedUnits'"));
+requireCondition('speed display units owns unit controls', speedDisplay.includes('unitKmhButton') && speedDisplay.includes('unitMphButton'));
+requireCondition('Settings redesign does not own unit preference wiring', !settings.includes("const unitKey = 'speedUnits'"));
+requireCondition('Settings redesign does not own unit controls', !settings.includes('unitKmhButton') && !settings.includes('unitMphButton'));
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} build ownership failure(s)`);
 process.exit(failures.length ? 1 : 0);
