@@ -2212,15 +2212,16 @@
           "ignoredDerivedKmh": null,
           "displayedKmh": 105,
           "accuracyMetres": 1,
-          "elapsedSeconds": 1,
+          "elapsedSeconds": 0.5,
           "distanceMetres": 0,
           "movementScore": 0,
           "speedSource": "TRANSIT_LONG_BASELINE",
           "displayDecision": "UPDATED",
           "displayReasons": [],
           "previousAcceptedKmh": 10,
-          "speedDecision": "ACCEPTED",
+          "speedDecision": "ACCEPTED_CONFIRMED",
           "reasons": [
+            "LARGE_SPEED_JUMP",
             "TRANSIT_LONG_BASELINE_RECOVERY"
           ],
           "driverUiActive": true,

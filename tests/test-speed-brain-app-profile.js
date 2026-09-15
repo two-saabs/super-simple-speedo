@@ -30,6 +30,10 @@ for (const [index, test] of cases.entries()) {
       const expected = frozen.cases[index].expected[eventIndex];
       const selected = Object.fromEntries(Object.keys(expected).map(key => [key, actual[key]]));
       assert.deepEqual(encode(selected), expected, `${test.name}, event ${eventIndex + 1}`);
+      if (test.name === "recovery jump two confirmations" && eventIndex === test.events.length - 1) {
+        assert.equal(actual.speedDecision, "ACCEPTED_CONFIRMED", `${test.name}, final result`);
+        assert.equal(expected.speedDecision, "ACCEPTED_CONFIRMED", `${test.name}, frozen final result`);
+      }
       assert.equal(/"(?:latitude|longitude|fromLat|toLat|fromLon|toLon|lastGpsSample|pendingSpeedCandidate)"/.test(JSON.stringify(actual)), false, "normal result is coordinate-free");
     }
   } catch (error) { failures++; console.error(`FAIL app profile: ${test.name}: ${error.message}`); }

@@ -32,7 +32,7 @@ for (const [name, events] of [
   ["recovery beats derived and exempts contradiction", [sample(0, 0), sample(1000, null, { transitRecoveryKmh: 40 })]],
   ["native beats recovery", [sample(0, 12, { transitRecoveryKmh: 80 })]],
   ["recovery two confirmations", [sample(0, null, { transitRecoveryKmh: 100 }), sample(1000, null, { transitRecoveryKmh: 105 })]],
-  ["recovery jump two confirmations", [sample(0, 10), sample(1000, null, { transitRecoveryKmh: 100 }), sample(2000, null, { transitRecoveryKmh: 105 })]],
+  ["recovery jump two confirmations", [sample(0, 10), sample(1000, null, { transitRecoveryKmh: 100 }), sample(1500, null, { transitRecoveryKmh: 105 })]],
   ["recovery short segment", [sample(0, 0), sample(100, null, { transitRecoveryKmh: 30 })]],
   ["recovery long gap and fallback", [sample(0, 0), sample(30001, null, { transitRecoveryKmh: 30 }), sample(40001, null, { latitude: .001, transitRecoveryKmh: null })]],
   ["missing recovery fallback", [sample(0, 6), sample(10000, null, { latitude: .001 })]]
