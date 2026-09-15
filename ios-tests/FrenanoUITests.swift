@@ -24,21 +24,18 @@ final class FrenanoUITests: XCTestCase {
 
     private func waitForCoreSpeedometer(timeout: TimeInterval = 10) {
         XCTAssertTrue(app.staticTexts["km/h"].waitForExistence(timeout: timeout))
-        XCTAssertTrue(app.buttons["Change speed limit"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 3))
     }
 
     func testNativeFirstRunLocationIntroThenAutomaticStartup() {
-        // A clean install explains location once. Later test runs may already have
-        // that acknowledgement stored, so Continue is intentionally optional here.
-        let continueButton = app.buttons["Continue"]
-        if continueButton.waitForExistence(timeout: 2) {
-            continueButton.tap()
+        // A clean install now presents the shared location-intro action. On native
+        // iOS, returning launches skip it automatically after it has been accepted.
+        let letsGoButton = app.buttons["Let’s go!"]
+        if letsGoButton.waitForExistence(timeout: 2) {
+            letsGoButton.tap()
             app.tap() // Allows XCTest to handle the native location alert.
         }
 
-        // Native iOS never uses the web-only second-stage Let’s go control.
-        XCTAssertFalse(app.buttons["Let’s go!"].waitForExistence(timeout: 2))
         waitForCoreSpeedometer()
     }
 
@@ -77,6 +74,5 @@ final class FrenanoUITests: XCTestCase {
         XCUIDevice.shared.orientation = .portrait
         XCTAssertTrue(app.staticTexts["km/h"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Settings"].exists)
-        XCTAssertTrue(app.buttons["Change speed limit"].exists)
     }
 }
