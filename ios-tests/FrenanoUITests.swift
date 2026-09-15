@@ -33,8 +33,13 @@ final class FrenanoUITests: XCTestCase {
         let webView = app.webViews.firstMatch
         guard webView.waitForExistence(timeout: 2) else { return element.exists }
 
+        // WKWebView does not always expose off-screen DOM elements to XCTest, so
+        // scroll the visible Settings viewport first and only then query the target.
+        let start = webView.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.82))
+        let end = webView.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.22))
+
         for _ in 0..<maxSwipes {
-            webView.swipeUp()
+            start.press(forDuration: 0.05, thenDragTo: end)
             if element.waitForExistence(timeout: 1), element.isHittable {
                 return true
             }
