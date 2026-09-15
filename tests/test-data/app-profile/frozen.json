@@ -1,0 +1,4290 @@
+{
+  "provenance": {
+    "sourceCommit": "85ff675",
+    "source": "built dist/app/index.html",
+    "extractedFunctionsSha256": "cc318f9b4ba5a0d618bb97a482896d6e91823e7c498a36d138a8d0570b78a856",
+    "note": "Actual built speed block + driver + distance executed with fake external timers; roundDiagnostic identity captures exact unrounded math. Accuracy output normalized finite-or-null; transit evidence supplied externally. No Brain imported."
+  },
+  "cases": [
+    {
+      "name": "gap 15s native null",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 2.6686782394694095,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 2.6686782394694095,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 15,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 2.6686782394694095,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 2.6686782394694095,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 2.6686782394694095,
+          "speedDecision": "HELD",
+          "reasons": [
+            "LARGE_SPEED_JUMP",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 2.6686782394694095,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 15s native 100",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 2.6686782394694095,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 15,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "REJECTED",
+          "reasons": [
+            "MOVEMENT_CONTRADICTION",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 100,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 100,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 15.001s native null",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 2.66850033944678,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 2.66850033944678,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 15.001,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 2.66850033944678,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 2.66850033944678,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 2.66850033944678,
+          "speedDecision": "HELD",
+          "reasons": [
+            "LARGE_SPEED_JUMP",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 2.66850033944678,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 15.001s native 100",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 2.66850033944678,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 15.001,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "REJECTED",
+          "reasons": [
+            "MOVEMENT_CONTRADICTION",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 100,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 100,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 20s native null",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 2.001508679602057,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 2.001508679602057,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 20,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 2.001508679602057,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 2.001508679602057,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 2.001508679602057,
+          "speedDecision": "HELD",
+          "reasons": [
+            "LARGE_SPEED_JUMP",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 2.001508679602057,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 20s native 100",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 2.001508679602057,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 20,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "REJECTED",
+          "reasons": [
+            "MOVEMENT_CONTRADICTION",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 100,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 100,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 30s native null",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 1.3343391197347048,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 30,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": 120.09052077612347,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "LARGE_SPEED_JUMP",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 30s native 100",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 1.3343391197347048,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 30,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "REJECTED",
+          "reasons": [
+            "MOVEMENT_CONTRADICTION",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 100,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 100,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 30.001s native null",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 30.001,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "NONE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "RESET_BASELINE",
+          "reasons": [
+            "LONG_LOCATION_GAP"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": 120.09052077612347,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "gap 30.001s native 100",
+      "expected": [
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 30.001,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "LONG_LOCATION_GAP",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 100,
+          "derivedKmh": 120.09052077612347,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 100,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 33.35847799336763,
+          "movementScore": 33.35847799336763,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 100,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "derived start 5",
+      "expected": [
+        {
+          "rawKmh": 5,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 5,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5,
+          "speedDecision": "HELD",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 5,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5,
+          "speedDecision": "HELD",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 5,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "derived start 5.5",
+      "expected": [
+        {
+          "rawKmh": 5.5,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5.5,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 5.5,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5.5,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5.5,
+          "speedDecision": "HELD",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 5.5,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5.5,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5.5,
+          "speedDecision": "HELD",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 5.5,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5.5,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "derived start 5.999999",
+      "expected": [
+        {
+          "rawKmh": 5.999999,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5.999999,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 5.999999,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5.999999,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5.999999,
+          "speedDecision": "HELD",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 5.999999,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5.999999,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5.999999,
+          "speedDecision": "HELD",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 5.999999,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 5.999999,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [
+            "START_FROM_STATIONARY_UNCONFIRMED"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "derived start 6",
+      "expected": [
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 40.03017359204115,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 5,
+          "distanceMetres": 55.597463322279374,
+          "movementScore": 55.597463322279374,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 40.03017359204115,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "driver exit boundary 6",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "BELOW_6_KMH_FOR_5_SECONDS"
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "driver exit boundary 6.000001",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6.000001,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6.000001,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6.000001,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeated low does not restart",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 5,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 5,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 5,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "BELOW_6_KMH_FOR_5_SECONDS"
+          }
+        }
+      ]
+    },
+    {
+      "name": "midband keeps timer but callback uses latest speed",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 8,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 8,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 8,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 8,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "BELOW_6_KMH_FOR_5_SECONDS"
+          }
+        }
+      ]
+    },
+    {
+      "name": "entry cancels",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 10,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": true,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "BELOW_6_KMH_FOR_5_SECONDS"
+          }
+        }
+      ]
+    },
+    {
+      "name": "inactive callback keeps driver active",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": true,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "GPS_STOPPED"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "GPS_STOPPED"
+          }
+        }
+      ]
+    },
+    {
+      "name": "inactive process cancels",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": true,
+            "applyReason": "GPS_STOPPED"
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "reset cancels",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": true,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "driverUiActive": false,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "recovery beats derived and exempts contradiction",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 40,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "native beats recovery",
+      "expected": [
+        {
+          "rawKmh": 12,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 12,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 12,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "recovery two confirmations",
+      "expected": [
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "SPEED_NOT_AVAILABLE",
+            "TRANSIT_LONG_BASELINE_RECOVERY",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 105,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED_CONFIRMED",
+          "reasons": [
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 105,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "recovery jump two confirmations",
+      "expected": [
+        {
+          "rawKmh": 10,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 10,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "HELD",
+          "reasons": [
+            "LARGE_SPEED_JUMP",
+            "TRANSIT_LONG_BASELINE_RECOVERY",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 10,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 105,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 10,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 105,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "recovery short segment",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 30,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 0.1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "ELAPSED_TIME_TOO_SHORT",
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 30,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "recovery long gap and fallback",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 30,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 30.001,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "LONG_LOCATION_GAP",
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 30,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 30,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing recovery fallback",
+      "expected": [
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy undefined",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": null,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": {
+            "$number": "NaN"
+          },
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 43.2,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy undefined",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 2.223898532891175,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy null",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": null,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 43.2,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy null",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 2.223898532891175,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy 8",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": null,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 13.899365830569844,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 43.2,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy 8",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 2.223898532891175,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy NaN",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": null,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": {
+            "$number": "NaN"
+          },
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 43.2,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy NaN",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 2.223898532891175,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy Infinity",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": null,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 0,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 43.2,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy Infinity",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": null,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 0,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy 0",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": 0,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": 0,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "REJECTED",
+          "reasons": [
+            "MOVEMENT_CONTRADICTION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy 0",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 0,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 2.223898532891175,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy 50",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": 50,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "REJECTED",
+          "reasons": [
+            "MOVEMENT_CONTRADICTION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 2.223898532891175,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy 50",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 2.223898532891175,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy 80",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": 80,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": 80,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 1.3899365830569843,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 43.2,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy 80",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 80,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 1.3899365830569843,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "accuracy 81",
+      "expected": [
+        {
+          "rawKmh": 36,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 36,
+          "accuracyMetres": 81,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "POOR_POSITION_ACCURACY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 36,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": 43.2,
+          "derivedKmh": 0,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": 81,
+          "elapsedSeconds": 1,
+          "distanceMetres": 0,
+          "movementScore": 0,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 36,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "POOR_POSITION_ACCURACY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 43.2,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 1.3727768721550462,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 43.2,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 43.2,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "previous accuracy 81",
+      "expected": [
+        {
+          "rawKmh": 0,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 81,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "POOR_POSITION_ACCURACY"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": 40.03017359204115,
+          "displayedKmh": 0,
+          "accuracyMetres": 50,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 1.3727768721550462,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "START_FROM_STATIONARY_UNCONFIRMED",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "raw Infinity",
+      "expected": [
+        {
+          "rawKmh": {
+            "$number": "Infinity"
+          },
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "NO_SPEED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": {
+            "$number": "Infinity"
+          },
+          "derivedKmh": 40.030173592041145,
+          "ignoredDerivedKmh": 40.030173592041145,
+          "displayedKmh": 0,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "HELD_AT_ZERO",
+          "displayReasons": [
+            "DERIVED_SPEED_NOT_USED_FOR_DISPLAY"
+          ],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "NO_SPEED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 0,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "raw -1",
+      "expected": [
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "SPEED_NOT_AVAILABLE",
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.030173592041145,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 20,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "raw NaN",
+      "expected": [
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "SPEED_NOT_AVAILABLE",
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.030173592041145,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 20,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "raw null",
+      "expected": [
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "SPEED_NOT_AVAILABLE",
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.030173592041145,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 20,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "raw 10",
+      "expected": [
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "SPEED_NOT_AVAILABLE",
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.030173592041145,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 20,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "raw undefined",
+      "expected": [
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "TRANSIT_LONG_BASELINE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [
+            "SPEED_NOT_AVAILABLE",
+            "TRANSIT_LONG_BASELINE_RECOVERY"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.030173592041145,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 20,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 1,
+          "distanceMetres": 11.119492664455873,
+          "movementScore": 11.119492664455873,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 20,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 20,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "exact distance latitude 0",
+      "expected": [
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 56.61121439656115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 56.61121439656115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 157.25337332378098,
+          "movementScore": 157.25337332378098,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 56.61121439656115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 17.99996785739722,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 56.61121439656115,
+          "accuracyMetres": 20,
+          "elapsedSeconds": 10,
+          "distanceMetres": 49.999910714992275,
+          "movementScore": 2.4999955357496138,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 56.61121439656115,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 56.61121439656115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "exact distance latitude 47.3769",
+      "expected": [
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 48.3446869576168,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 48.3446869576168,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 134.2907971044911,
+          "movementScore": 134.2907971044911,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 48.3446869576168,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 17.99996785743796,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 48.3446869576168,
+          "accuracyMetres": 20,
+          "elapsedSeconds": 10,
+          "distanceMetres": 49.999910715105436,
+          "movementScore": 2.499995535755272,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 48.3446869576168,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 48.3446869576168,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "exact distance latitude 85",
+      "expected": [
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.181892815919504,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.181892815919504,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.61636893310973,
+          "movementScore": 111.61636893310973,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.181892815919504,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 17.99996785743796,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.181892815919504,
+          "accuracyMetres": 20,
+          "elapsedSeconds": 10,
+          "distanceMetres": 49.999910715105436,
+          "movementScore": 2.499995535755272,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 40.181892815919504,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 40.181892815919504,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "exact distance latitude -47.3769",
+      "expected": [
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 48.344975211871756,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 48.344975211871756,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 134.29159781075487,
+          "movementScore": 134.29159781075487,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 48.344975211871756,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 17.99996785743796,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 48.344975211871756,
+          "accuracyMetres": 20,
+          "elapsedSeconds": 10,
+          "distanceMetres": 49.999910715105436,
+          "movementScore": 2.499995535755272,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "HELD_PREVIOUS_SPEED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 48.344975211871756,
+          "speedDecision": "HELD",
+          "reasons": [
+            "GPS_DISPLACEMENT_UNCERTAIN",
+            "AWAITING_CONFIRMATION"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 48.344975211871756,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "raw timestamp representation",
+      "expected": [
+        {
+          "rawKmh": 6,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 6,
+          "accuracyMetres": 1,
+          "elapsedSeconds": null,
+          "distanceMetres": null,
+          "movementScore": null,
+          "speedSource": "NATIVE_GPS",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 0,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": false,
+          "acceptedKmh": 6,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": 40.03017359204115,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": 10,
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "POSITION_DERIVED",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 6,
+          "speedDecision": "ACCEPTED",
+          "reasons": [],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": "DISPLAY_SPEED_AT_OR_ABOVE_10_KMH"
+          }
+        },
+        {
+          "rawKmh": null,
+          "derivedKmh": null,
+          "ignoredDerivedKmh": null,
+          "displayedKmh": 40.03017359204115,
+          "accuracyMetres": 1,
+          "elapsedSeconds": {
+            "$number": "NaN"
+          },
+          "distanceMetres": 111.19492664455875,
+          "movementScore": 111.19492664455875,
+          "speedSource": "NONE",
+          "displayDecision": "UPDATED",
+          "displayReasons": [],
+          "previousAcceptedKmh": 40.03017359204115,
+          "speedDecision": "NO_SPEED",
+          "reasons": [
+            "SPEED_NOT_AVAILABLE"
+          ],
+          "driverUiActive": true,
+          "acceptedKmh": 40.03017359204115,
+          "driverTransition": {
+            "scheduleExitTimeout": false,
+            "cancelExitTimeout": false,
+            "applyReason": null
+          }
+        }
+      ]
+    }
+  ]
+}
