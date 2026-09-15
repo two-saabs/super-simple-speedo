@@ -6,7 +6,7 @@ This document tracks *what* Frenano protects with automated tests. It complement
 
 | Area | Status | Automated protection |
 | --- | --- | --- |
-| Core speed calculation | ✅ | Behaviour fixtures replay `speed-engine.js`; CI also reports Node/V8 code coverage for the engine. |
+| Core speed calculation | ✅ | Eight behaviour fixtures replay `brains/speed-brain.js` through both the canonical API and the legacy `speed-engine.js` facade. Another 59 frozen application-profile scenarios cover 177 events. CI also reports Node/V8 code coverage for this suite. |
 | Stationary start | ✅ | Fixture: `01-stationary-start.json`. |
 | Impossible GPS jump | ✅ | Fixture: `02-impossible-gps-jump.json`. |
 | Normal native driving | ✅ | Fixture: `03-normal-native-drive.json`. |
@@ -15,7 +15,7 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Long location gap | ✅ | Fixture: `06-long-gap-reset.json`. |
 | Native/derived contradiction | ✅ | Fixture: `07-native-derived-contradiction.json`. |
 | Derived confirmation recovery | ✅ | Fixture: `08-confirm-hold-recover.json`. |
-| Diagnostics schema and persistence | ✅ | Regression contracts validate timestamps, schema versioning, event creation, storage, trimming, session markers and export behaviour. |
+| Diagnostics schema and persistence | ✅ | Regression contracts validate timestamps, schema versioning, event creation, storage, trimming, session markers and export behaviour. The privacy suite executes the generated sanitised support formatter with sensitive sentinel values. |
 | Road lookup / road freshness | ✅ contract | Regression/build contracts protect confirmed-road state, stale-road distance behaviour, candidate roads and speed-limit UI state. |
 | Geoapify proxy | ✅ contract | CI checks server-side key usage, reverse/map-matching actions and CORS contract. |
 | Privacy | ✅ | Dedicated privacy contract suite plus checks that secrets/analytics are not introduced. |
@@ -24,6 +24,7 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Native iOS startup | ✅ package | iOS CI verifies native packaging and automatic startup without the web button. |
 | Frenano branding/assets | ✅ | CI checks required production PNGs and built output branding. |
 | Settings/support UI | ✅ contract | Regression/build checks protect settings sections, support address, diagnostic sharing and hidden experimental controls. |
+| Generated Speed Brain integration | ✅ contract | The built app's Brain runtime and live GPS callback are executed together to check statistics, diagnostics ordering, timers/reset, transit recovery, startup and speed presentation. |
 | Transport classifier | ✅ contract | Regression contracts cover walking, bus, car, tram and train scoring plus hysteresis. |
 | Journey mode | ✅ contract | Regression contracts cover segment creation, waiting delay and transport-engine dependency. |
 | Swiss public-transport matching | ✅ contract | Regression contracts protect stationboard/location API integration, timetable evidence and transit-match diagnostics. |
@@ -32,7 +33,7 @@ This document tracks *what* Frenano protects with automated tests. It complement
 
 ## Behaviour scenarios
 
-There are currently **8 executable GPS/speed behaviour fixtures** under `tests/test-data/`. These are the highest-value tests because they feed sequences of samples through the real speed engine and assert decisions, not just source-code text. The suite now explicitly covers long-gap baseline resets, native speed contradicted by position-derived movement, and derived-speed hold/confirmation recovery.
+There are currently **8 executable GPS/speed behaviour fixtures** under `tests/test-data/`. Each fixture runs against both the canonical Brain and the legacy compatibility facade, for 16 replays. The suite also compares 59 application-profile scenarios and 177 events with frozen output from the pre-extraction built speed block. Speed Brain v1.0.0 is versioned independently from the Frenano app.
 
 Next scenarios worth adding from real field logs:
 
