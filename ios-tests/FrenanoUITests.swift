@@ -27,17 +27,20 @@ final class FrenanoUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 3))
     }
 
-    private func scrollSettingsUntilVisible(_ element: XCUIElement, maxSwipes: Int = 4) -> Bool {
+    private func scrollSettingsUntilVisible(_ element: XCUIElement, maxSwipes: Int = 8) -> Bool {
         if element.exists && element.isHittable { return true }
 
+        let webView = app.webViews.firstMatch
+        guard webView.waitForExistence(timeout: 2) else { return element.exists }
+
         for _ in 0..<maxSwipes {
-            app.swipeUp()
+            webView.swipeUp()
             if element.waitForExistence(timeout: 1), element.isHittable {
                 return true
             }
         }
 
-        return element.exists
+        return element.exists && element.isHittable
     }
 
     func testNativeFirstRunLocationIntroThenAutomaticStartup() {
@@ -62,8 +65,10 @@ final class FrenanoUITests: XCTestCase {
         waitForCoreSpeedometer()
         app.buttons["Settings"].tap()
 
-        XCTAssertTrue(app.staticTexts["Location"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Close settings"].waitForExistence(timeout: 3))
+
+        let location = app.staticTexts["Location"]
+        XCTAssertTrue(scrollSettingsUntilVisible(location))
 
         let helpAndPrivacy = app.staticTexts["Help & privacy"]
         XCTAssertTrue(scrollSettingsUntilVisible(helpAndPrivacy))
