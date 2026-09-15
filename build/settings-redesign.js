@@ -62,32 +62,6 @@ function applySettingsRedesign(html) {
   const js = `
 <script id="settings-redesign-v2-script">
 (() => {
-  const unitKey = 'speedUnits';
-  const currentUnits = () => localStorage.getItem(unitKey) === 'mph' ? 'mph' : 'kmh';
-  const asDisplay = kmh => currentUnits() === 'mph' ? Math.round(Number(kmh) * 0.621371) : Math.round(Number(kmh));
-  function updateUnitsUi() {
-    const mph = currentUnits() === 'mph';
-    document.getElementById('unitKmhButton')?.classList.toggle('active', !mph);
-    document.getElementById('unitMphButton')?.classList.toggle('active', mph);
-    const unit = document.querySelector('.speed-dial-core .unit');
-    if (unit) unit.textContent = mph ? 'mph' : 'km/h';
-    const speed = document.getElementById('speed');
-    if (speed?.dataset.kmh !== undefined && speed.dataset.kmh !== '') speed.textContent = String(asDisplay(speed.dataset.kmh));
-    const limit = document.getElementById('limit');
-    if (limit?.dataset.kmh) limit.textContent = String(asDisplay(limit.dataset.kmh));
-    document.querySelectorAll('#limitGrid .limit-choice[data-limit]').forEach(button => { const raw=Number(button.dataset.limit); if (Number.isFinite(raw)) button.textContent=String(asDisplay(raw)); });
-    window.dispatchEvent(new Event('resize'));
-  }
-  function installUnitsSetting(displaySection) {
-    const body = displaySection?.querySelector('.settings-section-body');
-    const visible = body?.querySelector('.setting:nth-of-type(2)');
-    if (!body || !visible || document.getElementById('unitKmhButton')) return;
-    const units=document.createElement('div'); units.className='setting';
-    units.innerHTML='<div class="setting-title">Units</div><div class="segmented"><button class="segment-button" id="unitKmhButton" type="button">km/h</button><button class="segment-button" id="unitMphButton" type="button">mph</button></div>';
-    body.insertBefore(units, visible);
-    document.getElementById('unitKmhButton').addEventListener('click',()=>{localStorage.setItem(unitKey,'kmh');updateUnitsUi();});
-    document.getElementById('unitMphButton').addEventListener('click',()=>{localStorage.setItem(unitKey,'mph');updateUnitsUi();});
-  }
   function decorateSettings() {
     const modal=document.getElementById('settingsModal'); if(!modal)return;
     const display=modal.querySelector('[data-settings-section="display"]');
@@ -96,10 +70,8 @@ function applySettingsRedesign(html) {
     const visible=display?.querySelector('.setting:nth-of-type(2)');
     visible?.querySelector('.choice-list')?.classList.add('compact-choice-list');
     visible?.querySelector('#elementChoices')?.classList.add('compact-choice-list');
-    installUnitsSetting(display);
     const sheet=modal.querySelector('.sheet');
     if(sheet&&!sheet.querySelector('.settings-redesign-note')){const note=document.createElement('div');note.className='settings-redesign-note';note.textContent='Frenano · Made in Switzerland';sheet.appendChild(note);}
-    updateUnitsUi();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',decorateSettings,{once:true});else decorateSettings();
 })();
