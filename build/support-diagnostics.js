@@ -5,7 +5,7 @@ function replaceRequired(source, before, after, label) {
   return source.replace(before, after);
 }
 
-function injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures }) {
+function injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures, speedBrainVersion }) {
   const supportSection = `
     <div class="settings-section" data-settings-section="help-and-diagnostics">
       <button class="settings-section-header" type="button" aria-expanded="false">
@@ -109,6 +109,7 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
       "# Frenano support diagnostics v2",
       "# privacy=sanitised; no coordinates; no road/station/line/destination; no API keys; no persistent identifiers",
       "# app_version=${appVersion}",
+      "# speed_engine=${speedBrainVersion}",
       "# build_channel=${buildChannel}",
       "# platform=" + supportSafeToken(navigator.platform || "unknown", 60),
       "# capabilities=" + capabilitySummary,

@@ -3,6 +3,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
+const { injectSupportDiagnostics } = require('../build/support-diagnostics');
+const { SPEED_BRAIN_VERSION } = require('../brains/speed-brain');
 const root = path.join(__dirname, '..');
 const readRoot = file => fs.readFileSync(path.join(root, file), 'utf8');
 
@@ -39,6 +42,68 @@ check(/Share diagnostic log/.test(support), 'explicit diagnostic sharing control
 check(/Nothing is uploaded automatically/i.test(support), 'diagnostic UI says nothing uploads automatically');
 check(/coordinates, road names, stations, public-transport lines and destinations, API keys, and persistent identifiers/i.test(support), 'diagnostic UI states sensitive fields are excluded');
 check(/navigator\.share/.test(support), 'system share sheet is used when available');
+
+const injectedDiagnostics = injectSupportDiagnostics(template, {
+  appVersion: '13.4.1',
+  buildChannel: 'test',
+  experimentalFeatures: true,
+  speedBrainVersion: SPEED_BRAIN_VERSION
+});
+const formatterSource = injectedDiagnostics.match(
+  /  const SUPPORT_REPORT_MAX_EVENTS = 150;[\s\S]*?(?=\n  async function shareSupportDiagnostics)/
+);
+const sensitiveSentinels = {
+  latitude: 'PRIVATE_LATITUDE_47_123',
+  longitude: 'PRIVATE_LONGITUDE_8_456',
+  road: 'PRIVATE_ROAD_BIRCHERWEG',
+  station: 'PRIVATE_STATION_CENTRAL',
+  line: 'PRIVATE_LINE_S42',
+  destination: 'PRIVATE_DESTINATION_HOME',
+  apiKey: 'PRIVATE_API_KEY_SECRET',
+  persistentId: 'PRIVATE_PERSISTENT_DEVICE_ID'
+};
+let renderedReport = '';
+if (formatterSource) {
+  const sandbox = {
+    state: {
+      diagnosticLog: [{
+        timeUtc: '2026-09-15T12:00:00.000Z',
+        event: 'SPEED',
+        displayedKmh: 42,
+        latitude: sensitiveSentinels.latitude,
+        longitude: sensitiveSentinels.longitude,
+        roadName: sensitiveSentinels.road,
+        stationName: sensitiveSentinels.station,
+        lineName: sensitiveSentinels.line,
+        destination: sensitiveSentinels.destination,
+        apiKey: sensitiveSentinels.apiKey,
+        persistentId: sensitiveSentinels.persistentId
+      }]
+    },
+    navigator: {
+      platform: 'test-platform',
+      userAgent: `privacy-test lat=${sensitiveSentinels.latitude} lon=${sensitiveSentinels.longitude}`
+    },
+    window: {}
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(`${formatterSource[0]}\nglobalThis.renderedReport = sanitisedSupportDiagnosticText();`, sandbox);
+  renderedReport = sandbox.renderedReport;
+}
+const canonicalVersionWiring =
+  /const \{ SPEED_BRAIN_VERSION \} = require\("\.\/brains\/speed-brain"\);/.test(build) &&
+  /speedBrainVersion:\s*SPEED_BRAIN_VERSION/.test(build) &&
+  /"# speed_engine=\$\{speedBrainVersion\}"/.test(support) &&
+  !/["']1\.0\.0["']/.test(build) &&
+  !/["']1\.0\.0["']/.test(support);
+check(
+  canonicalVersionWiring && renderedReport.includes('# app_version=13.4.1\n# speed_engine=1.0.0\n'),
+  'sanitised output includes the canonical Speed Brain header immediately after app version'
+);
+check(!/\b(?:latitude|longitude|lat=|lon=)/i.test(renderedReport), 'sanitised output excludes coordinate field names');
+for (const [label, sentinel] of Object.entries(sensitiveSentinels)) {
+  check(!renderedReport.includes(sentinel), `sanitised output excludes sentinel ${label}`);
+}
 
 const reportMatch = support.match(/function sanitisedSupportDiagnosticText\(\)[\s\S]*?\n  }\n\n  async function shareSupportDiagnostics/);
 check(Boolean(reportMatch), 'sanitised support diagnostic formatter found');

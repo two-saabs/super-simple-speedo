@@ -16,6 +16,9 @@ if (!fs.existsSync(candidatePath)) stop(`Cannot find ${candidatePath}`);
 
 const read = filePath => fs.readFileSync(filePath, 'utf8');
 const candidate = read(candidatePath);
+const root = path.join(__dirname, '..');
+const build = read(path.join(root, 'build.js'));
+const supportDiagnostics = read(path.join(root, 'build/support-diagnostics.js'));
 const failures = [];
 const warnings = [];
 const pass = message => console.log(`PASS  ${message}`);
@@ -25,6 +28,16 @@ const has = (text, pattern) => typeof pattern === 'string' ? text.includes(patte
 
 console.log(`\nSuper Simple Speedo quality gate`);
 console.log(`Checking: ${path.resolve(candidatePath)}\n`);
+
+const canonicalSpeedBrainDiagnostics =
+  /const \{ SPEED_BRAIN_VERSION \} = require\("\.\/brains\/speed-brain"\);/.test(build) &&
+  /speedBrainVersion:\s*SPEED_BRAIN_VERSION/.test(build) &&
+  /"# speed_engine=\$\{speedBrainVersion\}"/.test(supportDiagnostics) &&
+  !/["']1\.0\.0["']/.test(build) &&
+  !/["']1\.0\.0["']/.test(supportDiagnostics);
+canonicalSpeedBrainDiagnostics
+  ? pass('support diagnostics source the Speed Brain header from the canonical version')
+  : fail('support diagnostics source the Speed Brain header from the canonical version');
 
 const contracts = [
   ['live speed callback delegates to Speed Brain', /speedBrain\.process\(/],
