@@ -5,6 +5,7 @@ const { applyRoadFreshnessFix } = require("./build/road-freshness-fix");
 const { applyStartupRobustnessFix } = require("./build/startup-robustness-fix");
 const { applyHelpContactPrivacyFix } = require("./build/help-contact-privacy-fix");
 const { applyUsageStatistics } = require("./build/usage-statistics");
+const { applySpeedDisplayUnits } = require("./build/speed-display-units");
 const { applySettingsRedesign } = require("./build/settings-redesign");
 const { applySettingsPolish } = require("./build/settings-polish");
 const { applyBrandRefresh } = require("./build/brand-refresh");
@@ -28,11 +29,7 @@ const experimentalFeatures = buildProfile.experimentalFeatures === true;
 const buildChannel = buildProfile.channel;
 if (!["stable", "test", "experimental"].includes(buildChannel) || experimentalFeatures !== (buildChannel === "experimental")) { console.error("Invalid build-profile.json"); process.exit(1); }
 fs.mkdirSync(outputDir, { recursive: true });
-
-// Marketing homepage at /
 writeOutputFile("index.html", readRequiredFile("home.html"));
-
-// Actual Frenano web/PWA app at /app/
 let html = readRequiredFile("index.template.html");
 html = replaceAllRequired(html, "__GEOAPIFY_API_KEY__", key, "index.template.html");
 html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.html");
@@ -43,6 +40,7 @@ html = applyRoadFreshnessFix(html, replaceRequiredSnippet);
 html = injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures });
 html = applyHelpContactPrivacyFix(html, replaceRequiredSnippet, { appVersion, buildChannel });
 html = applyUsageStatistics(html);
+html = applySpeedDisplayUnits(html);
 html = applySettingsRedesign(html);
 html = applySettingsPolish(html, { appVersion });
 html = applyBrandRefresh(html);
@@ -72,7 +70,6 @@ html = replaceRequiredSnippet(html,'sounds: localStorage.getItem("limitSounds") 
 html = replaceRequiredSnippet(html,'warning: localStorage.getItem("overspeedWarning") !== "false",','warning: EXPERIMENTAL_FEATURES && localStorage.getItem("overspeedWarning") !== "false",',"index.template.html");
 html = replaceRequiredSnippet(html,'greetingAudio: localStorage.getItem("greetingAudio") !== "false",','greetingAudio: EXPERIMENTAL_FEATURES && localStorage.getItem("greetingAudio") !== "false",',"index.template.html");
 writeOutputFile("app/index.html", html);
-
 let sw = readRequiredFile("service-worker.js"); sw = replaceAllRequired(sw, "__APP_VERSION__", appVersion, "service-worker.js"); writeOutputFile("service-worker.js", sw);
 for (const filename of ["manifest.webmanifest", "_headers", "privacy.html"]) { const src = path.join(rootDir, filename); if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outputDir, filename)); }
 for (const dir of ["audio", "images"]) { const src = path.join(rootDir, dir); if (fs.existsSync(src)) fs.cpSync(src, path.join(outputDir, dir), { recursive:true }); }
