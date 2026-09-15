@@ -47,5 +47,20 @@ requireText('Native version footer remains App Store plus build version', "'Vers
 forbidText('Obsolete Need help copy is absent', '>Need help?<');
 forbidText('Obsolete Email us action is absent', '>Email us</a>');
 
+// Behavioural golden contract for non-Settings responsibilities that are
+// historically injected by settings-redesign.js. These assertions deliberately
+// target the generated product rather than the transform filename, so ownership
+// can move without weakening the contract.
+requireText('Statistics state keeps max speed', 'maxSpeed: 0, roadsIdentified: 0');
+requireText('Statistics records a new maximum speed', 'candidateKmh > (state.stats.maxSpeed || 0)');
+requireText('Statistics records newly identified roads', 'state.stats.roadsIdentified = (state.stats.roadsIdentified || 0) + 1');
+requireText('Statistics reset clears extended counters', 'apiResponseBytes: 0, maxSpeed: 0, roadsIdentified: 0 }');
+requireText('Speed display preserves canonical km/h value', 'speedEl.dataset.kmh = String(shown)');
+requireText('Speed display converts canonical speed to mph', 'Math.round(shown * 0.621371)');
+requireText('Limit display preserves canonical km/h value', 'limitEl.dataset.kmh = nextLimit === null ? "" : String(nextLimit)');
+requireText('Limit display converts canonical limit to mph', 'Math.round(nextLimit * 0.621371)');
+requireText('Dial maximum retains mph conversion geometry', 'const base = mphMode ? 160.9344 : 160');
+requireText('Dial ticks retain mph conversion geometry', 'const tickStep = mphMode ? 16.09344 : 10');
+
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} settings UI contract failure(s)`);
 process.exit(failures.length ? 1 : 0);
