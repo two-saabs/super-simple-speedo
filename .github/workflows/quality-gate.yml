@@ -108,14 +108,25 @@ jobs:
           grep -q 'https://frenano.app/privacy.html' dist/app/index.html
           grep -q 'id="letsDriveButton"' dist/app/index.html
           grep -q 'simple-startup-v5' dist/app/index.html
+          grep -q 'positive-onboarding-v5' dist/app/index.html
           grep -q 'frenano-startup-flow-v5' dist/app/index.html
           grep -q 'data-flow="v6-smooth-launch"' dist/app/index.html
           grep -q '>Let’s go!<' dist/app/index.html
           grep -q 'frenanoLocationIntroSeenV1' dist/app/index.html
           grep -q 'returning-native' dist/app/index.html
           grep -q 'GPS speedometer, simply done.' dist/app/index.html
-          grep -q 'Completely free · No account or subscription needed' dist/app/index.html
-          grep -q 'No advertisements · Private · Made in Switzerland' dist/app/index.html
+          grep -q 'Simple.<br>Private.<br>Swiss.' dist/app/index.html
+          grep -q 'Frenano is developed with<br>privacy and simplicity at its core.' dist/app/index.html
+          grep -q '>Completely free<' dist/app/index.html
+          grep -q '>No advertisements<' dist/app/index.html
+          grep -q 'A clean, focused experience.' dist/app/index.html
+          grep -q 'No account or<br>subscription needed' dist/app/index.html
+          grep -q 'Just open and go.' dist/app/index.html
+          grep -q '>Made in Switzerland<' dist/app/index.html
+          grep -q 'Simple by design.' dist/app/index.html
+          grep -q 'Respecting and staying within the speed limit<br>is always the responsibility of the driver.' dist/app/index.html
+          grep -q 'When asked, allow location access for the best experience.' dist/app/index.html
+          grep -q '“Allow While Using App”' dist/app/index.html
 
       - name: Install iOS packaging dependencies
         run: npm install --no-package-lock
@@ -133,9 +144,22 @@ jobs:
           grep -q 'id="native-ios-startup-v2"' dist/index.html
           grep -q 'id="native-ios-startup-script"' dist/index.html
           grep -q 'frenano-startup-flow-v5' dist/index.html
+          grep -q 'positive-onboarding-v5' dist/index.html
           grep -q 'returning-native' dist/index.html
           grep -q '>Let’s go!<' dist/index.html
           grep -q 'GPS speedometer, simply done.' dist/index.html
+          grep -q 'Simple.<br>Private.<br>Swiss.' dist/index.html
+          grep -q 'Frenano is developed with<br>privacy and simplicity at its core.' dist/index.html
+          grep -q '>Completely free<' dist/index.html
+          grep -q '>No advertisements<' dist/index.html
+          grep -q 'A clean, focused experience.' dist/index.html
+          grep -q 'No account or<br>subscription needed' dist/index.html
+          grep -q 'Just open and go.' dist/index.html
+          grep -q '>Made in Switzerland<' dist/index.html
+          grep -q 'Simple by design.' dist/index.html
+          grep -q 'Respecting and staying within the speed limit<br>is always the responsibility of the driver.' dist/index.html
+          grep -q 'When asked, allow location access for the best experience.' dist/index.html
+          grep -q '“Allow While Using App”' dist/index.html
           ! grep -q 'ios-build-placeholder-not-secret' dist/index.html
           ! grep -q 'test-key-not-for-production' dist/index.html
           grep -q '"appName": "Frenano"' capacitor.config.json
