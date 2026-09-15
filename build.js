@@ -10,6 +10,7 @@ const { applyBrandRefresh } = require("./build/brand-refresh");
 const { applySimpleStartup } = require("./build/startup-simple");
 const { applyPositiveOnboarding } = require("./build/positive-onboarding");
 const { applyRoadCardRefresh } = require("./build/road-card-refresh");
+const { injectSpeedBrainRuntime } = require("./build/speed-brain-runtime");
 const key = process.env.GEOAPIFY_API_KEY;
 if (!key) { console.error("Build failed: GEOAPIFY_API_KEY is not set in Netlify."); process.exit(1); }
 const rootDir = __dirname;
@@ -65,6 +66,7 @@ html = replaceRequiredSnippet(html,'visualTheme: localStorage.getItem("visualThe
 html = replaceRequiredSnippet(html,'sounds: localStorage.getItem("limitSounds") === "true",','sounds: EXPERIMENTAL_FEATURES && localStorage.getItem("limitSounds") === "true",',"index.template.html");
 html = replaceRequiredSnippet(html,'warning: localStorage.getItem("overspeedWarning") !== "false",','warning: EXPERIMENTAL_FEATURES && localStorage.getItem("overspeedWarning") !== "false",',"index.template.html");
 html = replaceRequiredSnippet(html,'greetingAudio: localStorage.getItem("greetingAudio") !== "false",','greetingAudio: EXPERIMENTAL_FEATURES && localStorage.getItem("greetingAudio") !== "false",',"index.template.html");
+html = injectSpeedBrainRuntime(html, readRequiredFile("brains/speed-brain.js"));
 writeOutputFile("app/index.html", html);
 let sw = readRequiredFile("service-worker.js"); sw = replaceAllRequired(sw, "__APP_VERSION__", appVersion, "service-worker.js"); writeOutputFile("service-worker.js", sw);
 for (const filename of ["manifest.webmanifest", "_headers", "privacy.html"]) { const src = path.join(rootDir, filename); if (fs.existsSync(src)) fs.copyFileSync(src, path.join(outputDir, filename)); }

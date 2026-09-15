@@ -2,12 +2,15 @@
 'use strict';
 
 const fs = require('fs');
+const vm = require('vm');
 
 const settingsPath = 'build/settings-redesign.js';
 const polishPath = 'build/settings-polish.js';
 const helpPath = 'build/help-contact-privacy-fix.js';
 const statisticsPath = 'build/usage-statistics.js';
 const speedDisplayPath = 'build/speed-display-units.js';
+const brainPath = 'brains/speed-brain.js';
+const runtimePath = 'build/speed-brain-runtime.js';
 const failures = [];
 
 function pass(message) { console.log(`PASS  ${message}`); }
@@ -17,6 +20,10 @@ function requireCondition(name, condition) { condition ? pass(name) : fail(name)
 const settings = fs.readFileSync(settingsPath, 'utf8');
 const polish = fs.existsSync(polishPath) ? fs.readFileSync(polishPath, 'utf8') : '';
 const help = fs.existsSync(helpPath) ? fs.readFileSync(helpPath, 'utf8') : '';
+requireCondition('Speed Brain has one canonical algorithm owner', fs.existsSync(brainPath));
+requireCondition('Speed Brain browser runtime has a focused build owner', fs.existsSync(runtimePath));
+const compatibilityEngine = fs.readFileSync('speed-engine.js', 'utf8');
+requireCondition('legacy speed-engine is only a facade', compatibilityEngine.includes('require("./brains/speed-brain")'));
 requireCondition('usage statistics has a focused build owner', fs.existsSync(statisticsPath));
 requireCondition('Settings redesign does not own statistics state', !settings.includes('maxSpeed: 0, roadsIdentified: 0'));
 requireCondition('Settings redesign does not record maximum speed', !settings.includes('candidateKmh > (state.stats.maxSpeed || 0)'));
@@ -32,6 +39,80 @@ requireCondition('Settings redesign does not install unit controls', !settings.i
 const speedDisplay = fs.readFileSync(speedDisplayPath, 'utf8');
 requireCondition('Speed display owner owns speed unit preference', speedDisplay.includes("const unitKey = 'speedUnits'"));
 requireCondition('Speed display owner installs unit controls', speedDisplay.includes('function installUnitsSetting'));
+
+for (const algorithmSymbol of ['processSpeedSample', 'haversineMetres', 'MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION']) {
+  requireCondition(`Settings redesign does not own ${algorithmSymbol}`, !settings.includes(algorithmSymbol));
+  requireCondition(`Speed display units does not own ${algorithmSymbol}`, !speedDisplay.includes(algorithmSymbol));
+}
+
+if (fs.existsSync(runtimePath)) {
+  const { injectSpeedBrainRuntime } = require(`../${runtimePath}`);
+  const brainSource = fs.readFileSync(brainPath, 'utf8');
+  const guardedApplicationHtml = `<!doctype html>
+<html><body>
+<script>
+(() => {
+  const EXPERIMENTAL_FEATURES = false;
+  window.releaseGuardPreserved = EXPERIMENTAL_FEATURES === false;
+  const brain = window.FrenanoSpeedBrain.createSpeedBrain({ profile: "frenano-app-v1" });
+  window.applicationDecision = brain.process({
+    latitude: 47,
+    longitude: 8,
+    timestamp: 1000,
+    accuracy: 5,
+    speedMps: 5,
+    watchActive: false
+  });
+})();
+</script>
+</body></html>`;
+  const transformed = injectSpeedBrainRuntime(guardedApplicationHtml, brainSource);
+  const inlineScripts = [...transformed.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter(match => !/\bsrc\s*=/.test(match[1]))
+    .map(match => ({ attributes: match[1], source: match[2] }));
+
+  requireCondition('Speed Brain runtime is a standalone script before the application script',
+    inlineScripts.length === 2 && /\bid=["']frenano-speed-brain-v1["']/.test(inlineScripts[0].attributes));
+
+  let parseError = null;
+  try {
+    inlineScripts.forEach((script, index) => new vm.Script(script.source, { filename: `inline-${index + 1}.js` }));
+  } catch (error) {
+    parseError = error;
+  }
+  requireCondition('every generated inline script parses as standalone JavaScript', parseError === null);
+
+  const sandbox = { window: {} };
+  vm.createContext(sandbox);
+  let executionError = null;
+  try {
+    inlineScripts.forEach((script, index) => {
+      new vm.Script(script.source, { filename: `inline-${index + 1}.js` }).runInContext(sandbox);
+    });
+  } catch (error) {
+    executionError = error;
+  }
+  requireCondition('Speed Brain runtime executes before the guarded application IIFE', executionError === null);
+
+  const browserApi = sandbox.window.FrenanoSpeedBrain;
+  requireCondition('browser facade exposes only version and createSpeedBrain',
+    browserApi && Object.keys(browserApi).sort().join(',') === 'createSpeedBrain,version');
+  requireCondition('browser facade is frozen', browserApi && Object.isFrozen(browserApi));
+  requireCondition('browser facade exposes Speed Brain version 1.0.0', browserApi?.version === '1.0.0');
+  requireCondition('browser facade creates a legacy processor',
+    typeof browserApi?.createSpeedBrain?.()?.process === 'function');
+  requireCondition('browser facade includes the Frenano application profile',
+    sandbox.window.applicationDecision?.brainVersion === '1.0.0' &&
+    sandbox.window.applicationDecision?.acceptedKmh === 18);
+  requireCondition('release guard survives Speed Brain injection', sandbox.window.releaseGuardPreserved === true);
+
+  let missingMarkerRejected = false;
+  let missingScriptRejected = false;
+  try { injectSpeedBrainRuntime('<html><body></body></html>', brainSource); } catch (_) { missingMarkerRejected = true; }
+  try { injectSpeedBrainRuntime('<html><body>(() => {</body></html>', brainSource); } catch (_) { missingScriptRejected = true; }
+  requireCondition('runtime injection fails closed without an application IIFE', missingMarkerRejected);
+  requireCondition('runtime injection fails closed without an enclosing application script', missingScriptRejected);
+}
 
 // Task 4 target: all Settings presentation, location controls, help/privacy
 // presentation and footer have one owner. Focused non-Settings behavior remains

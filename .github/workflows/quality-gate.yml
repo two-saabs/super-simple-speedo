@@ -12,6 +12,7 @@ on:
       - "manifest.webmanifest"
       - "images/**"
       - "build/**"
+      - "brains/**"
       - "tests/**"
       - "ios-tests/**"
       - "speed-engine.js"
@@ -32,6 +33,7 @@ on:
       - "manifest.webmanifest"
       - "images/**"
       - "build/**"
+      - "brains/**"
       - "tests/**"
       - "ios-tests/**"
       - "speed-engine.js"
@@ -133,6 +135,8 @@ jobs:
           grep -q 'Respecting and staying within the speed limit<br>is always the responsibility of the driver.' dist/app/index.html
           grep -q 'When asked, allow location access for the best experience.' dist/app/index.html
           grep -q '“Allow While Using App”' dist/app/index.html
+          grep -q 'id="frenano-speed-brain-v1"' dist/app/index.html
+          grep -q '1.0.0' dist/app/index.html
 
       - name: Install iOS packaging dependencies
         run: npm install --no-package-lock
@@ -166,6 +170,8 @@ jobs:
           grep -q 'Respecting and staying within the speed limit<br>is always the responsibility of the driver.' dist/index.html
           grep -q 'When asked, allow location access for the best experience.' dist/index.html
           grep -q '“Allow While Using App”' dist/index.html
+          grep -q 'id="frenano-speed-brain-v1"' dist/index.html
+          grep -q '1.0.0' dist/index.html
           ! grep -q 'ios-build-placeholder-not-secret' dist/index.html
           ! grep -q 'test-key-not-for-production' dist/index.html
           grep -q '"appName": "Frenano"' capacitor.config.json
