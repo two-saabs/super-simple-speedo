@@ -93,6 +93,9 @@ jobs:
           GEOAPIFY_API_KEY: test-key-not-for-production
         run: node build.js
 
+      - name: Check current Settings UI contract
+        run: node tests/check-settings-ui.js dist/app/index.html
+
       - name: Check release-channel contracts
         run: node tests/check-channel-contract.js
 
