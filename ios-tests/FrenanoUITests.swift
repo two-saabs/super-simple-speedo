@@ -27,6 +27,19 @@ final class FrenanoUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 3))
     }
 
+    private func scrollSettingsUntilVisible(_ element: XCUIElement, maxSwipes: Int = 4) -> Bool {
+        if element.exists && element.isHittable { return true }
+
+        for _ in 0..<maxSwipes {
+            app.swipeUp()
+            if element.waitForExistence(timeout: 1), element.isHittable {
+                return true
+            }
+        }
+
+        return element.exists
+    }
+
     func testNativeFirstRunLocationIntroThenAutomaticStartup() {
         // A clean install now presents the shared location-intro action. On native
         // iOS, returning launches skip it automatically after it has been accepted.
@@ -51,7 +64,9 @@ final class FrenanoUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Location"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Close settings"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Help & privacy"].waitForExistence(timeout: 3))
+
+        let helpAndPrivacy = app.staticTexts["Help & privacy"]
+        XCTAssertTrue(scrollSettingsUntilVisible(helpAndPrivacy))
     }
 
     func testAboutShowsAppStoreVersion() {
@@ -61,7 +76,7 @@ final class FrenanoUITests: XCTestCase {
         let version = app.staticTexts.matching(
             NSPredicate(format: "label BEGINSWITH %@", "Version 1.0")
         ).firstMatch
-        XCTAssertTrue(version.waitForExistence(timeout: 3))
+        XCTAssertTrue(scrollSettingsUntilVisible(version))
     }
 
     func testPortraitLandscapePortraitKeepsCoreUIAvailable() {
