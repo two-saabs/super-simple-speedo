@@ -146,6 +146,7 @@ function createRoadBrain() {
       candidateLimits: state.candidateLimits.slice(),
       candidateRoads: state.candidateRoads.slice(),
       candidateKeys: state.candidateKeys.slice(),
+      accepted: acceptedSnapshot(),
       acceptedLimit: state.acceptedLimit,
       acceptedRoad: state.acceptedRoad,
       acceptedPosition: clonePosition(state.acceptedPosition)
