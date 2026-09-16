@@ -35,7 +35,7 @@ assert.ok(brainSource.includes('candidateRoads'), 'Road Brain owns road-name can
 assert.ok(!brainSource.includes('Geoapify'), 'Road Brain remains provider-agnostic');
 assert.ok(!brainSource.includes('road_class'), 'Road Brain accepts normalized evidence, not provider field names');
 
-assert.ok(iosSource.includes('dist", "app", "index.html'), 'iOS packages shared web build');
+assert.ok(/path\.join\(distDir,\s*["']app["'],\s*["']index\.html["']\)/.test(iosSource), 'iOS packages shared web build');
 assert.ok(!iosSource.includes('brains/road-brain.js'), 'iOS builder does not duplicate Road Brain source');
 
 console.log('Road Brain runtime and ownership integration tests passed.');
