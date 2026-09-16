@@ -111,6 +111,7 @@ for (const bad of [
   const state = brain.getState();
   assert.strictEqual(state.candidateKeys.length, 3);
   assert.strictEqual(state.candidateLimits.length, 3);
+  assert.strictEqual(state.candidateRoads.length, 3);
   assert.deepStrictEqual(state.candidateLimits, [40, 50, 60]);
 }
 
@@ -122,6 +123,7 @@ for (const bad of [
   brain.reset();
   assert.deepStrictEqual(brain.getState(), {
     candidateLimits: [],
+    candidateRoads: [],
     candidateKeys: [],
     acceptedLimit: null,
     acceptedRoad: '',
