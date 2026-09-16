@@ -11,6 +11,9 @@ const statisticsPath = 'build/usage-statistics.js';
 const speedDisplayPath = 'build/speed-display-units.js';
 const brainPath = 'brains/speed-brain.js';
 const runtimePath = 'build/speed-brain-runtime.js';
+const roadBrainPath = 'brains/road-brain.js';
+const roadRuntimePath = 'build/road-brain-runtime.js';
+const roadFreshnessPath = 'build/road-freshness-fix.js';
 const failures = [];
 
 function pass(message) { console.log(`PASS  ${message}`); }
@@ -58,6 +61,24 @@ requireCondition('Speed display owner installs unit controls', speedDisplay.incl
 for (const algorithmSymbol of ['processSpeedSample', 'haversineMetres', 'MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION']) {
   requireCondition(`Settings redesign does not own ${algorithmSymbol}`, !settings.includes(algorithmSymbol));
   requireCondition(`Speed display units does not own ${algorithmSymbol}`, !speedDisplay.includes(algorithmSymbol));
+}
+
+// Road Brain ownership guard: road confirmation/freshness thresholds and state
+// must stay in the deterministic Brain, not drift back into presentation/build code.
+requireCondition('Road Brain has one canonical algorithm owner', fs.existsSync(roadBrainPath));
+requireCondition('Road Brain browser runtime has a focused build owner', fs.existsSync(roadRuntimePath));
+if (fs.existsSync(roadBrainPath)) {
+  const roadBrain = fs.readFileSync(roadBrainPath, 'utf8');
+  const roadFreshness = fs.existsSync(roadFreshnessPath) ? fs.readFileSync(roadFreshnessPath, 'utf8') : '';
+  requireCondition('Road Brain owns 30 m quality threshold', /accuracyMetres\s*<=\s*30/.test(roadBrain));
+  requireCondition('Road Brain owns moving/stationary 2/3 confirmation thresholds', /stationary\s*\?\s*3\s*:\s*2/.test(roadBrain));
+  requireCondition('Road Brain owns 60 m spatial freshness threshold', /distanceMetres\s*<\s*60/.test(roadBrain));
+  requireCondition('template does not own road confirmation thresholds',
+    !/accuracyMetres\s*<=\s*30|stationary\s*\?\s*3\s*:\s*2/.test(template));
+  requireCondition('road freshness transform does not own 60 m threshold', !/\b60\b/.test(roadFreshness));
+  requireCondition('template creates exactly one Road Brain instance',
+    (template.match(/window\.FrenanoRoadBrain\.createRoadBrain/g) || []).length === 1);
+  requireCondition('template no longer owns candidateConfirmation', !template.includes('function candidateConfirmation'));
 }
 
 if (fs.existsSync(runtimePath)) {
