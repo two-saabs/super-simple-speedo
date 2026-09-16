@@ -59,8 +59,9 @@ function applyRoadBrainOwnership(source) {
         setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
       }`;
 
-  const newDecisionBlock = `      const previousConfirmedLimit = state.acceptedAutoLimit;
-      const previousConfirmedRoad = state.acceptedAutoRoad || null;
+  const newDecisionBlock = `      const previousAccepted = roadBrain.getState().accepted;
+      const previousConfirmedLimit = previousAccepted?.limit ?? null;
+      const previousConfirmedRoad = previousAccepted?.road ? displayRoadName(previousAccepted.road) : null;
       const roadDecision = roadBrain.process({
         limit: Number.isFinite(value) ? value : null,
         roadName,
@@ -72,21 +73,19 @@ function applyRoadBrainOwnership(source) {
       });
       const roadOutcome = roadDecision.outcome;
       const confirmation = roadDecision.confidenceChecks;
+      const acceptedRoadState = roadBrain.getState().accepted;
+      const acceptedLimit = acceptedRoadState?.limit ?? null;
+      const acceptedRoad = acceptedRoadState?.road ? displayRoadName(acceptedRoadState.road) : null;
 
-      if (roadOutcome === "CONFIRMED") {
-        const previous = state.acceptedAutoLimit;
-        state.acceptedAutoLimit = roadDecision.accepted.limit;
-        state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road);
-        setLimit(state.acceptedAutoLimit, "Automatic limit from:", state.acceptedAutoRoad, {
-          chime: previous !== null && previous !== state.acceptedAutoLimit,
-          previous
+      if (roadOutcome === "CONFIRMED" && acceptedLimit !== null) {
+        setLimit(acceptedLimit, "Automatic limit from:", acceptedRoad, {
+          chime: previousConfirmedLimit !== null && previousConfirmedLimit !== acceptedLimit,
+          previous: previousConfirmedLimit
         });
-        setAutomaticStatus("matched", state.acceptedAutoRoad);
-      } else if (roadOutcome === "RETAINED_UNCONFIRMED" && roadDecision.accepted) {
-        state.acceptedAutoLimit = roadDecision.accepted.limit;
-        state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road);
-        setLimit(state.acceptedAutoLimit, "Automatic limit from:", state.acceptedAutoRoad || "Last matched road");
-        setAutomaticStatus("confirming", state.acceptedAutoRoad || "Last matched road");
+        setAutomaticStatus("matched", acceptedRoad);
+      } else if (roadOutcome === "RETAINED_UNCONFIRMED" && acceptedLimit !== null) {
+        setLimit(acceptedLimit, "Automatic limit from:", acceptedRoad || "Last matched road");
+        setAutomaticStatus("confirming", acceptedRoad || "Last matched road");
       } else if (roadOutcome === "BEST_ESTIMATE" && roadDecision.display) {
         setLimit(roadDecision.display.limit, "Automatic limit from:", roadDecision.display.road || "Road match pending");
         setAutomaticStatus("confirming", roadDecision.display.road || "Road match pending");
