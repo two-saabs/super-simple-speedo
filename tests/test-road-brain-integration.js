@@ -30,6 +30,9 @@ assert.ok(appSource.includes('roadBrain.process({'), 'road lookup delegates evid
 assert.ok(!appSource.includes('function candidateConfirmation('), 'legacy inline road confirmation function is removed from generated app');
 assert.ok(!appSource.includes('state.autoCandidates.push('), 'generated app no longer owns road candidate history');
 assert.ok(!appSource.includes('state.autoMatchCandidates.push('), 'generated app no longer owns road match candidate history');
+assert.ok(!appSource.includes('state.acceptedAutoLimit = roadDecision.accepted.limit'), 'generated app does not copy accepted limit out of Road Brain');
+assert.ok(!appSource.includes('state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road)'), 'generated app does not copy accepted road out of Road Brain');
+assert.ok(appSource.includes('roadBrain.getState().accepted'), 'generated app reads accepted road state from Road Brain');
 assert.ok(brainSource.includes('candidateLimits'), 'Road Brain owns limit candidate history');
 assert.ok(brainSource.includes('candidateRoads'), 'Road Brain owns road-name candidate history');
 assert.ok(!brainSource.includes('Geoapify'), 'Road Brain remains provider-agnostic');
