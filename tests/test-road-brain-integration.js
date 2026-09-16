@@ -38,6 +38,13 @@ assert.ok(brainSource.includes('candidateRoads'), 'Road Brain owns road-name can
 assert.ok(!brainSource.includes('Geoapify'), 'Road Brain remains provider-agnostic');
 assert.ok(!brainSource.includes('road_class'), 'Road Brain accepts normalized evidence, not provider field names');
 
+const transportSampleStart = appSource.indexOf('  function recordTransportSample(speedKmh) {');
+const transportSampleEnd = appSource.indexOf('\n  function applyExperimentalSettings()', transportSampleStart);
+assert.ok(transportSampleStart >= 0 && transportSampleEnd > transportSampleStart, 'generated app retains Transport sample adapter');
+const transportSampleSource = appSource.slice(transportSampleStart, transportSampleEnd);
+assert.ok(transportSampleSource.includes('roadBrain.getState().accepted'), 'Transport reads canonical accepted road evidence from Road Brain');
+assert.ok(!transportSampleSource.includes('state.acceptedAutoRoad'), 'Transport does not infer road confirmation from copied app state');
+
 assert.ok(/path\.join\(distDir,\s*["']app["'],\s*["']index\.html["']\)/.test(iosSource), 'iOS packages shared web build');
 assert.ok(!iosSource.includes('brains/road-brain.js'), 'iOS builder does not duplicate Road Brain source');
 
