@@ -78,6 +78,12 @@ jobs:
       - name: Check build ownership contracts
         run: node tests/check-build-ownership.js
 
+      - name: Check Road Brain contract
+        run: node tests/test-road-brain.js
+
+      - name: Check Road Brain runtime and ownership integration
+        run: node tests/test-road-brain-integration.js
+
       - name: Check privacy contracts
         run: node tests/check-privacy.js
 
