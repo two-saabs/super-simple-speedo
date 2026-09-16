@@ -16,6 +16,9 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Native/derived contradiction | ✅ | Fixture: `07-native-derived-contradiction.json`. |
 | Derived confirmation recovery | ✅ | Fixture: `08-confirm-hold-recover.json`. |
 | Diagnostics schema and persistence | ✅ | Regression contracts validate timestamps, schema versioning, event creation, storage, trimming, session markers and export behaviour. The privacy suite executes the generated sanitised support formatter with sensitive sentinel values. |
+| Road Brain unit coverage | ✅ | `tests/test-road-brain.js` protects road-name sanitisation, moving and stationary confirmation, quality rejection, invalid road classes and limits, retained accepted results, no-limit behaviour, three-entry candidate history, reset behaviour and Road Brain v1.0.0. |
+| Road Brain adapter/integration coverage | ✅ contract | `tests/test-road-brain-integration.js` protects browser-runtime injection, the neutral Geoapify-to-Brain observation boundary, canonical decision mapping, single Brain ownership, Transport consumption of canonical evidence and web/iOS build integration. |
+| Road Brain spatial freshness coverage | ✅ | Unit and integration contracts protect the 60 m spatial-freshness boundary and require the application/build transform to delegate freshness decisions to Road Brain rather than duplicating the threshold. |
 | Road lookup / road freshness | ✅ contract | Regression/build contracts protect confirmed-road state, stale-road distance behaviour, candidate roads and speed-limit UI state. |
 | Geoapify proxy | ✅ contract | CI checks server-side key usage, reverse/map-matching actions and CORS contract. |
 | Privacy | ✅ | Dedicated privacy contract suite plus checks that secrets/analytics are not introduced. |
@@ -29,11 +32,11 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Journey mode | ✅ contract | Regression contracts cover segment creation, waiting delay and transport-engine dependency. |
 | Swiss public-transport matching | ✅ contract | Regression contracts protect stationboard/location API integration, timetable evidence and transit-match diagnostics. |
 | Native iOS UI interactions | 🟡 limited | UI-test source exists, but native interaction coverage is still much smaller than the JavaScript/build contract suite. |
-| Live external road/timetable services | 🟡 integration/manual | CI validates our contracts; real provider availability and real-world matching still require field testing. |
+| Live external road/timetable services | 🟡 integration/manual | CI validates our contracts; real provider availability and real-world matching still require field testing. Live Geoapify correctness is not covered by deterministic CI and remains a field/integration concern. |
 
 ## Behaviour scenarios
 
-There are currently **8 executable GPS/speed behaviour fixtures** under `tests/test-data/`. Each fixture runs against both the canonical Brain and the legacy compatibility facade, for 16 replays. The suite also compares 59 application-profile scenarios and 177 events with frozen output from the pre-extraction built speed block. Speed Brain v1.0.0 is versioned independently from the Frenano app.
+There are currently **8 executable GPS/speed behaviour fixtures** under `tests/test-data/`. Each fixture runs against both the canonical Brain and the legacy compatibility facade, for 16 replays. The suite also compares 59 application-profile scenarios and 177 events with frozen output from the pre-extraction built speed block. Speed Brain v1.0.0 and Road Brain v1.0.0 are versioned independently from the Frenano app.
 
 Next scenarios worth adding from real field logs:
 
@@ -56,13 +59,14 @@ CI runs:
 node --test --experimental-test-coverage tests/test-speed-engine.js
 ```
 
-The resulting GitHub Actions log reports statement/branch/function coverage for code exercised by the core behaviour suite. Treat this as **core-engine coverage**, not whole-app coverage: much of the product currently lives in generated/browser/native integration code that is protected by contract/build tests rather than instrumented unit tests.
+The resulting GitHub Actions log reports statement/branch/function coverage for code exercised by the core behaviour suite. Treat this as **core-engine coverage**, not whole-app coverage: much of the product currently lives in generated/browser/native integration code that is protected by contract/build tests rather than instrumented unit tests. Road Brain is currently protected by deterministic unit and integration contracts rather than this Node/V8 percentage report.
 
 ## How to interpret the quality gate
 
 A green quality gate currently means:
 
 - the core speed fixtures pass;
+- Road Brain's deterministic contract and application integration pass;
 - required product, diagnostic and privacy contracts remain present;
 - the configured release builds successfully;
 - release-channel rules remain intact;
