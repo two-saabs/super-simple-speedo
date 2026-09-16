@@ -11,6 +11,7 @@ const statisticsPath = 'build/usage-statistics.js';
 const speedDisplayPath = 'build/speed-display-units.js';
 const brainPath = 'brains/speed-brain.js';
 const runtimePath = 'build/speed-brain-runtime.js';
+const coveragePath = 'TEST-COVERAGE.md';
 const failures = [];
 
 function pass(message) { console.log(`PASS  ${message}`); }
@@ -145,6 +146,12 @@ requireCondition('Settings redesign owns feedback presentation', settings.includ
 requireCondition('Settings redesign owns privacy-policy presentation', settings.includes('Read privacy policy'));
 requireCondition('Historical Settings polish transform is retired', !fs.existsSync(polishPath));
 requireCondition('Historical help/privacy Settings transform is retired', !fs.existsSync(helpPath));
+
+const coverage = fs.readFileSync(coveragePath, 'utf8');
+requireCondition('coverage docs identify Road Brain unit coverage', coverage.includes('Road Brain unit coverage'));
+requireCondition('coverage docs identify Road Brain adapter/integration coverage', coverage.includes('Road Brain adapter/integration coverage'));
+requireCondition('coverage docs identify Road Brain spatial freshness coverage', coverage.includes('Road Brain spatial freshness coverage'));
+requireCondition('coverage docs explicitly exclude live Geoapify correctness', coverage.includes('Live Geoapify correctness is not covered'));
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} build ownership failure(s)`);
 process.exit(failures.length ? 1 : 0);
