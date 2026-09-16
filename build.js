@@ -3,6 +3,7 @@ const path = require("path");
 const { injectSupportDiagnostics } = require("./build/support-diagnostics");
 const { SPEED_BRAIN_VERSION } = require("./brains/speed-brain");
 const { ROAD_BRAIN_VERSION } = require("./brains/road-brain");
+const { applyRoadBrainOwnership } = require("./build/road-brain-ownership");
 const { applyRoadFreshnessFix } = require("./build/road-freshness-fix");
 const { applyStartupRobustnessFix } = require("./build/startup-robustness-fix");
 const { applyUsageStatistics } = require("./build/usage-statistics");
@@ -38,6 +39,7 @@ html = replaceAllRequired(html, "__APP_VERSION__", appVersion, "index.template.h
 html = replaceRequiredSnippet(html, "Free forever. ", "", "index.template.html");
 html = replaceRequiredSnippet(html,'        <div>Your journeys are your business.</div>','        <div>Your journeys are your business.</div>\n        <div style="margin-top:10px;"><a href="/privacy.html" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">Privacy Policy</a></div>',"index.template.html");
 html = applyStartupRobustnessFix(html, replaceRequiredSnippet);
+html = applyRoadBrainOwnership(html);
 html = applyRoadFreshnessFix(html, replaceRequiredSnippet);
 html = injectSupportDiagnostics(html, {
   appVersion,
