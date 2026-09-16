@@ -37,6 +37,7 @@ function distanceMetres(a, b) {
 function createRoadBrain() {
   const state = {
     candidateLimits: [],
+    candidateRoads: [],
     candidateKeys: [],
     acceptedLimit: null,
     acceptedRoad: '',
@@ -97,8 +98,10 @@ function createRoadBrain() {
 
     const key = `${roundedLimit}|${road}`;
     state.candidateLimits.push(roundedLimit);
+    state.candidateRoads.push(road);
     state.candidateKeys.push(key);
     state.candidateLimits = state.candidateLimits.slice(-3);
+    state.candidateRoads = state.candidateRoads.slice(-3);
     state.candidateKeys = state.candidateKeys.slice(-3);
 
     const recent = state.candidateKeys.slice(-requiredMatches);
@@ -131,6 +134,7 @@ function createRoadBrain() {
 
   function reset() {
     state.candidateLimits = [];
+    state.candidateRoads = [];
     state.candidateKeys = [];
     state.acceptedLimit = null;
     state.acceptedRoad = '';
@@ -140,6 +144,7 @@ function createRoadBrain() {
   function getState() {
     return {
       candidateLimits: state.candidateLimits.slice(),
+      candidateRoads: state.candidateRoads.slice(),
       candidateKeys: state.candidateKeys.slice(),
       acceptedLimit: state.acceptedLimit,
       acceptedRoad: state.acceptedRoad,
