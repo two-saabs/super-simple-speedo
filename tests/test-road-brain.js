@@ -42,6 +42,7 @@ function observation(overrides = {}) {
     road: 'Badenerstrasse',
     position: { latitude: 47, longitude: 8 }
   });
+  assert.deepStrictEqual(brain.getState().accepted, confirmed.accepted);
 }
 
 // Stationary requires three identical recent candidates.
@@ -115,7 +116,7 @@ for (const bad of [
   assert.deepStrictEqual(state.candidateLimits, [40, 50, 60]);
 }
 
-// Reset clears all algorithmic state.
+// Reset clears all algorithmic state, including the public accepted snapshot.
 {
   const brain = createRoadBrain();
   brain.process(observation());
@@ -125,6 +126,7 @@ for (const bad of [
     candidateLimits: [],
     candidateRoads: [],
     candidateKeys: [],
+    accepted: null,
     acceptedLimit: null,
     acceptedRoad: '',
     acceptedPosition: null
