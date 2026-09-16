@@ -11,6 +11,7 @@ const statisticsPath = 'build/usage-statistics.js';
 const speedDisplayPath = 'build/speed-display-units.js';
 const brainPath = 'brains/speed-brain.js';
 const runtimePath = 'build/speed-brain-runtime.js';
+const legacyRoadFreshnessPath = 'build/road-freshness-fix.js';
 const coveragePath = 'TEST-COVERAGE.md';
 const failures = [];
 
@@ -146,6 +147,7 @@ requireCondition('Settings redesign owns feedback presentation', settings.includ
 requireCondition('Settings redesign owns privacy-policy presentation', settings.includes('Read privacy policy'));
 requireCondition('Historical Settings polish transform is retired', !fs.existsSync(polishPath));
 requireCondition('Historical help/privacy Settings transform is retired', !fs.existsSync(helpPath));
+requireCondition('Historical road freshness transform is retired', !fs.existsSync(legacyRoadFreshnessPath));
 
 const coverage = fs.readFileSync(coveragePath, 'utf8');
 requireCondition('coverage docs identify Road Brain unit coverage', coverage.includes('Road Brain unit coverage'));
