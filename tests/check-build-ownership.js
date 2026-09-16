@@ -40,6 +40,11 @@ requireCondition('obsolete speed filtering state and driver decision function re
 const compatibilityEngine = fs.readFileSync('speed-engine.js', 'utf8');
 requireCondition('legacy speed-engine is only a facade', compatibilityEngine.includes('require("./brains/speed-brain")'));
 requireCondition('usage statistics has a focused build owner', fs.existsSync(statisticsPath));
+const statistics = fs.readFileSync(statisticsPath, 'utf8');
+requireCondition('usage statistics does not depend on copied Road Brain accepted state',
+  !statistics.includes('state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road)'));
+requireCondition('usage statistics observes confirmed Road Brain decisions',
+  statistics.includes('roadOutcome === "CONFIRMED"') && statistics.includes('previousConfirmedRoad !== acceptedRoad'));
 requireCondition('Settings redesign does not own statistics state', !settings.includes('maxSpeed: 0, roadsIdentified: 0'));
 requireCondition('Settings redesign does not record maximum speed', !settings.includes('candidateKmh > (state.stats.maxSpeed || 0)'));
 requireCondition('Settings redesign does not count identified roads', !settings.includes('state.stats.roadsIdentified = (state.stats.roadsIdentified || 0) + 1'));
