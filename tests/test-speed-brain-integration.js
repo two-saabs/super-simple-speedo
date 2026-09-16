@@ -57,14 +57,19 @@ function harness(html) {
   // iOS packaging substitutes this platform boundary for browser geolocation.
   sandbox.window.__SPEEDO_NATIVE_GEOLOCATION__ = sandbox.navigator.geolocation;
   vm.createContext(sandbox);
-  const runtime = html.match(/<script id="frenano-speed-brain-v1">([\s\S]*?)<\/script>/);
-  assert.ok(runtime, 'generated app includes browser Brain runtime');
-  vm.runInContext(runtime[1], sandbox);
-  const initialization = html.match(/  const speedBrain = window\.FrenanoSpeedBrain\.createSpeedBrain\([^\n]+/);
-  assert.ok(initialization, 'generated application creates its session Brain');
+  const speedRuntime = html.match(/<script id="frenano-speed-brain-v1">([\s\S]*?)<\/script>/);
+  assert.ok(speedRuntime, 'generated app includes browser Speed Brain runtime');
+  vm.runInContext(speedRuntime[1], sandbox);
+  const roadRuntime = html.match(/<script id="frenano-road-brain-v1">([\s\S]*?)<\/script>/);
+  assert.ok(roadRuntime, 'generated app includes browser Road Brain runtime');
+  vm.runInContext(roadRuntime[1], sandbox);
+  const speedInitialization = html.match(/  const speedBrain = window\.FrenanoSpeedBrain\.createSpeedBrain\([^\n]+/);
+  assert.ok(speedInitialization, 'generated application creates its session Speed Brain');
+  const roadInitialization = html.match(/  const roadBrain = window\.FrenanoRoadBrain\.createRoadBrain\([^\n]*\);/);
+  assert.ok(roadInitialization, 'generated application creates its session Road Brain');
   const constants = [...html.matchAll(/^  const (?:DRIVER_MODE_\w+|TRANSIT_CANDIDATE_MAX_AGE_MS|TRANSIT_SPEED_RECOVERY_\w+) = .+;/gm)].map(m => m[0]);
   const functions = ['onPosition', 'distanceMetres', 'roundDiagnostic', 'hasStrongRailTransitContext', 'median', 'deriveTransitLongBaselineSpeed', 'applyDriverMode', 'logDriverUiChange', 'startGPS', 'disconnectDrive', 'animateSpeed', 'applySpeedBrainDriverTransition'];
-  vm.runInContext([...constants, initialization[0], ...functions.map(name => functionSource(html, name))].join('\n'), sandbox);
+  vm.runInContext([...constants, speedInitialization[0], roadInitialization[0], ...functions.map(name => functionSource(html, name))].join('\n'), sandbox);
   return { state, logs, effects, saves, timers, element, sandbox,
     sample(kmh, timestamp = 0, latitude = 0, accuracy = 1) {
       sandbox.onPosition({ timestamp, coords: { latitude, longitude: 0, accuracy, speed: kmh === null ? null : kmh / 3.6 } });
