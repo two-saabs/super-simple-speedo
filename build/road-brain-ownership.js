@@ -104,6 +104,16 @@ function applyRoadBrainOwnership(source) {
     '          validRoadName: confirmation?.validRoadName ?? Boolean(roadName),'
   );
 
+  // Transport consumes canonical Road Brain evidence rather than reconstructing
+  // confirmation from UI/app state. This keeps classifier behaviour unchanged
+  // while making Road Brain the single owner of accepted-road truth.
+  source = replaceOnce(
+    source,
+    '      roadConfirmed: state.roadMatchStage === "matched" && Boolean(state.acceptedAutoRoad)',
+    '      roadConfirmed: Boolean(roadBrain.getState().accepted)',
+    'Transport confirmed-road evidence'
+  );
+
   // Legacy arrays are no longer decision owners. Remove their mutations/resets so
   // generated web/iOS code has exactly one candidate-history state machine.
   source = source.replaceAll('    state.autoCandidates = [];\n    state.autoMatchCandidates = [];\n', '    roadBrain.reset();\n');
