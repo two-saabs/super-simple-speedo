@@ -132,13 +132,15 @@ function createRoadBrain() {
     return result('BEST_ESTIMATE', candidate, checks, false);
   }
 
-  function reset() {
+  function reset({ preserveAccepted = false } = {}) {
     state.candidateLimits = [];
     state.candidateRoads = [];
     state.candidateKeys = [];
-    state.acceptedLimit = null;
-    state.acceptedRoad = '';
-    state.acceptedPosition = null;
+    if (!preserveAccepted) {
+      state.acceptedLimit = null;
+      state.acceptedRoad = '';
+      state.acceptedPosition = null;
+    }
   }
 
   function getState() {

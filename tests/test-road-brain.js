@@ -133,6 +133,22 @@ for (const bad of [
   });
 }
 
+// Returning to automatic mode clears pending matches but retains accepted evidence.
+{
+  const brain = createRoadBrain();
+  brain.process(observation());
+  brain.process(observation());
+  const accepted = brain.getState().accepted;
+  brain.process(observation({ limit: 80, roadName: 'Road B' }));
+  brain.reset({ preserveAccepted: true });
+  assert.deepStrictEqual(brain.getState().accepted, accepted);
+  assert.deepStrictEqual(brain.getState().candidateLimits, []);
+  assert.deepStrictEqual(brain.getState().candidateRoads, []);
+  assert.deepStrictEqual(brain.getState().candidateKeys, []);
+  assert.strictEqual(brain.process(observation({ limit: 80, roadName: 'Road B' })).outcome, 'BEST_ESTIMATE');
+  assert.strictEqual(brain.process(observation()).outcome, 'CONFIRMED');
+}
+
 // Spatial freshness is fresh below 60m and stale at/above 60m.
 {
   const brain = createRoadBrain();

@@ -2147,10 +2147,6 @@
     lookupBusy: false,
     lastLookupAt: 0,
     lastLookupPosition: null,
-    autoCandidates: [],
-    autoMatchCandidates: [],
-    acceptedAutoLimit: null,
-    acceptedAutoRoad: "",
     roadMatchStage: "waiting",
     apiKey: "__GEOAPIFY_API_KEY__",
     sounds: localStorage.getItem("limitSounds") === "true",
@@ -2212,6 +2208,7 @@
 
 
   const speedBrain = window.FrenanoSpeedBrain.createSpeedBrain({ profile: "frenano-app-v1" });
+  const roadBrain = window.FrenanoRoadBrain.createRoadBrain();
 
   function setMatchStage(stage, detail = "") {
     const labels = {
@@ -2240,12 +2237,13 @@
   }
 
   function setAutomaticStatus(stage, message = "") {
-    const hasLastConfirmed = state.acceptedAutoLimit !== null;
+    const accepted = roadBrain.getState().accepted;
+    const hasLastConfirmed = Boolean(accepted);
     setMatchStage(stage, "");
 
     if (stage === "matched") {
       sourceEl.textContent = "From:";
-      roadEl.textContent = displayRoadName(message || state.acceptedAutoRoad) || "Confirmed road";
+      roadEl.textContent = displayRoadName(message || accepted?.road) || "Confirmed road";
       setRoadConfidence("confirmed", "Confirmed");
       return;
     }
@@ -2259,13 +2257,13 @@
 
     if (stage === "error") {
       sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit unavailable";
-      roadEl.textContent = hasLastConfirmed ? (displayRoadName(state.acceptedAutoRoad) || "Last confirmed road") : "Lookup unavailable";
+      roadEl.textContent = hasLastConfirmed ? (displayRoadName(accepted?.road) || "Last confirmed road") : "Lookup unavailable";
       setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
       return;
     }
 
     sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit";
-    roadEl.textContent = hasLastConfirmed ? (displayRoadName(state.acceptedAutoRoad) || "Last confirmed road") : (displayRoadName(message) || ({
+    roadEl.textContent = hasLastConfirmed ? (displayRoadName(accepted?.road) || "Last confirmed road") : (displayRoadName(message) || ({
       locating: "Finding road...",
       waiting: "Finding your location…",
       collecting: "Checking road...",
@@ -3493,7 +3491,7 @@
     state.transportSamples.push({
       t: now,
       speed: speedKmh,
-      roadConfirmed: state.roadMatchStage === "matched" && Boolean(state.acceptedAutoRoad)
+      roadConfirmed: Boolean(roadBrain.getState().accepted)
     });
 
     if (moving && !state.transportMoving) {
@@ -3839,11 +3837,11 @@
   function setAutomaticMode() {
     state.mode = "auto";
     localStorage.setItem("limitMode", "auto");
-    state.autoCandidates = [];
-    state.autoMatchCandidates = [];
+    roadBrain.reset({ preserveAccepted: true });
     sourceEl.classList.remove("manual-source");
-    if (state.acceptedAutoLimit) {
-      setLimit(state.acceptedAutoLimit, "Last confirmed limit", state.acceptedAutoRoad || "Checking road...");
+    const accepted = roadBrain.getState().accepted;
+    if (accepted) {
+      setLimit(accepted.limit, "Last confirmed limit", accepted.road || "Checking road...");
       setAutomaticStatus("matching", "Checking road...");
     } else {
       setLimit(null, "Automatic limit", "Checking road...");
@@ -3942,46 +3940,11 @@
 
     const moved = distanceMetres(state.lastLookupPosition, c);
     const stationary = state.targetSpeed < 2;
-    const interval = stationary && state.acceptedAutoLimit !== null
+    const interval = stationary && roadBrain.getState().accepted !== null
       ? STATIONARY_LOOKUP_INTERVAL_MS
       : MOVING_LOOKUP_INTERVAL_MS;
 
     return moved >= 22 || now - state.lastLookupAt >= interval;
-  }
-
-  function candidateConfirmation({ limit, road, accuracyMetres, roadClass, matchType, speedKmh }) {
-    const validRoadName = Boolean(road);
-    const invalidRoadClass = roadClass === "service_other";
-    const implausibleRoadLimit = roadClass === "residential" && limit > 70;
-    const qualityGood = Number.isFinite(accuracyMetres)
-      && accuracyMetres <= 30
-      && validRoadName
-      && !invalidRoadClass
-      && matchType !== "unmatched"
-      && !implausibleRoadLimit;
-
-    const key = `${limit}|${road || ""}`;
-    state.autoCandidates.push(limit);
-    state.autoCandidates = state.autoCandidates.slice(-3);
-    state.autoMatchCandidates.push(key);
-    state.autoMatchCandidates = state.autoMatchCandidates.slice(-3);
-
-    const stationary = speedKmh < 3;
-    const requiredMatches = stationary ? 3 : 2;
-    const recent = state.autoMatchCandidates.slice(-requiredMatches);
-    const repeatedMatch = recent.length === requiredMatches && recent.every(item => item === key);
-    const matchesAccepted = state.acceptedAutoLimit === limit && state.acceptedAutoRoad === road;
-
-    return {
-      confirmed: qualityGood && (matchesAccepted || repeatedMatch),
-      qualityGood,
-      repeatedMatch,
-      requiredMatches,
-      validRoadName,
-      invalidRoadClass,
-      implausibleRoadLimit,
-      stationary
-    };
   }
 
   async function lookupSpeedLimit(currentCoords) {
@@ -4036,41 +3999,36 @@
       const rawRoadName = step?.name || step?.road_class || "";
       const roadName = displayRoadName(rawRoadName);
 
-      const previousConfirmedLimit = state.acceptedAutoLimit;
-      const previousConfirmedRoad = state.acceptedAutoRoad || null;
-      let roadOutcome = "NO_LIMIT";
+      const previousAccepted = roadBrain.getState().accepted;
+      const previousConfirmedLimit = previousAccepted?.limit ?? null;
+      const previousConfirmedRoad = previousAccepted?.road ? displayRoadName(previousAccepted.road) : null;
+      const roadDecision = roadBrain.process({
+        limit: Number.isFinite(value) ? value : null,
+        roadName,
+        accuracyMetres: Number(currentCoords.accuracy),
+        roadClass: step?.road_class || null,
+        matchType: latest?.match_type || (step ? "matched" : "unmatched"),
+        speedKmh: state.targetSpeed,
+        position: { latitude: currentCoords.latitude, longitude: currentCoords.longitude }
+      });
+      const roadOutcome = roadDecision.outcome;
+      const confirmation = roadOutcome === "NO_LIMIT" ? null : roadDecision.confidenceChecks;
+      const acceptedRoadState = roadBrain.getState().accepted;
+      const acceptedLimit = acceptedRoadState?.limit ?? null;
+      const acceptedRoad = acceptedRoadState?.road ? displayRoadName(acceptedRoadState.road) : null;
 
-      let confirmation = null;
-      if (Number.isFinite(value) && value > 0) {
-        const roundedLimit = Math.round(value);
-        confirmation = candidateConfirmation({
-          limit: roundedLimit,
-          road: roadName,
-          accuracyMetres: Number(currentCoords.accuracy),
-          roadClass: step?.road_class || null,
-          matchType: latest?.match_type || (step ? "matched" : "unmatched"),
-          speedKmh: state.targetSpeed
+      if (roadOutcome === "CONFIRMED" && acceptedLimit !== null) {
+        setLimit(acceptedLimit, "Automatic limit from:", acceptedRoad, {
+          chime: previousConfirmedLimit !== null && previousConfirmedLimit !== acceptedLimit,
+          previous: previousConfirmedLimit
         });
-
-        if (confirmation.confirmed) {
-          roadOutcome = "CONFIRMED";
-          const previous = state.acceptedAutoLimit;
-          state.acceptedAutoLimit = roundedLimit;
-          state.acceptedAutoRoad = displayRoadName(roadName);
-          setLimit(roundedLimit, "Automatic limit from:", state.acceptedAutoRoad, {
-            chime: previous !== null && previous !== roundedLimit,
-            previous
-          });
-          setAutomaticStatus("matched", state.acceptedAutoRoad);
-        } else if (!confirmation.validRoadName && state.acceptedAutoLimit !== null) {
-          roadOutcome = "RETAINED_UNCONFIRMED";
-          setLimit(state.acceptedAutoLimit, "Automatic limit from:", state.acceptedAutoRoad || "Last matched road");
-          setAutomaticStatus("confirming", state.acceptedAutoRoad || "Last matched road");
-        } else {
-          roadOutcome = "BEST_ESTIMATE";
-          setLimit(roundedLimit, "Automatic limit from:", roadName || "Road match pending");
-          setAutomaticStatus("confirming", roadName || "Road match pending");
-        }
+        setAutomaticStatus("matched", acceptedRoad);
+      } else if (roadOutcome === "RETAINED_UNCONFIRMED" && acceptedLimit !== null) {
+        setLimit(acceptedLimit, "Automatic limit from:", acceptedRoad || "Last matched road");
+        setAutomaticStatus("confirming", acceptedRoad || "Last matched road");
+      } else if (roadOutcome === "BEST_ESTIMATE" && roadDecision.display) {
+        setLimit(roadDecision.display.limit, "Automatic limit from:", roadDecision.display.road || "Road match pending");
+        setAutomaticStatus("confirming", roadDecision.display.road || "Road match pending");
       } else {
         setAutomaticStatus("nodata", roadName ? "No mapped speed limit" : "No road identified");
       }
@@ -4097,11 +4055,11 @@
           previousConfirmedLimit,
           previousConfirmedRoad,
           outcome: roadOutcome,
-          displayedLimit: state.acceptedAutoLimit,
-          displayedRoad: state.acceptedAutoRoad || null,
+          displayedLimit: acceptedLimit,
+          displayedRoad: acceptedRoad,
           candidate: Number.isFinite(value) ? { limit: Math.round(value), road: roadName || null } : null,
-          candidateHistory: [...state.autoCandidates],
-          validRoadName: Boolean(roadName),
+          candidateHistory: roadBrain.getState().candidateLimits,
+          validRoadName: confirmation?.validRoadName ?? Boolean(roadName),
           confidenceChecks: confirmation ? {
             qualityGood: confirmation.qualityGood,
             repeatedMatch: confirmation.repeatedMatch,
@@ -4129,8 +4087,8 @@
         provider: "Geoapify",
         response: { httpStatus: status },
         roadDecision: {
-          previousConfirmedLimit: state.acceptedAutoLimit,
-          previousConfirmedRoad: state.acceptedAutoRoad || null,
+          previousConfirmedLimit: roadBrain.getState().accepted?.limit ?? null,
+          previousConfirmedRoad: roadBrain.getState().accepted?.road || null,
           state: "ERROR",
           reason: String(error?.message || error)
         },
@@ -4295,7 +4253,7 @@
     const movedEnough = state.points.length >= 2;
     statusEl.textContent = "";
 
-    if (state.mode === "auto" && !state.lookupBusy && !state.acceptedAutoLimit) {
+    if (state.mode === "auto" && !state.lookupBusy && !roadBrain.getState().accepted) {
       setAutomaticStatus(movedEnough ? "collecting" : "locating");
     }
 
@@ -4959,10 +4917,7 @@
     state.lastLookupPosition = null;
     state.targetSpeed = 0;
     state.displayedSpeed = 0;
-    state.acceptedAutoLimit = null;
-    state.acceptedAutoRoad = "";
-    state.autoCandidates = [];
-    state.autoMatchCandidates = [];
+    roadBrain.reset();
     setLimit(null, "Automatic limit", "Finding your location…");
     setAutomaticStatus("waiting", "Finding your location…");
 
