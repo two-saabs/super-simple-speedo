@@ -23,16 +23,21 @@ assert.ok(runtimeSource.includes('createRoadBrain: api.createRoadBrain'), 'runti
 assert.ok(runtimeSource.includes('sanitiseRoadName: api.sanitiseRoadName'), 'runtime exposes sanitiser');
 assert.ok(runtimeSource.includes('version: api.ROAD_BRAIN_VERSION'), 'runtime exposes version');
 
-// Ownership contract is asserted on the generated application source because
-// Frenano already uses deterministic build transforms for release wiring.
+// The source template itself is now the ownership boundary. Build transforms may
+// inject runtime packaging, but must not perform a road-decision brain transplant.
+assert.ok(templateSource.includes('const roadBrain = window.FrenanoRoadBrain.createRoadBrain'), 'template creates one Road Brain instance natively');
+assert.ok(templateSource.includes('roadBrain.process({'), 'template road lookup delegates evidence to Road Brain natively');
+assert.ok(!templateSource.includes('function candidateConfirmation('), 'template contains no legacy inline road confirmation function');
+assert.ok(!templateSource.includes('state.autoCandidates.push('), 'template no longer owns road candidate history');
+assert.ok(!templateSource.includes('state.autoMatchCandidates.push('), 'template no longer owns road match candidate history');
+assert.ok(!templateSource.includes('state.acceptedAutoLimit = roadDecision.accepted.limit'), 'template does not copy accepted limit out of Road Brain');
+assert.ok(!templateSource.includes('state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road)'), 'template does not copy accepted road out of Road Brain');
+assert.ok(templateSource.includes('roadBrain.getState().accepted'), 'template reads accepted road state from Road Brain');
+
+// Generated application must preserve that native ownership unchanged.
 assert.ok(appSource.includes('const roadBrain = window.FrenanoRoadBrain.createRoadBrain'), 'app creates one Road Brain instance');
 assert.ok(appSource.includes('roadBrain.process({'), 'road lookup delegates evidence to Road Brain');
-assert.ok(!appSource.includes('function candidateConfirmation('), 'legacy inline road confirmation function is removed from generated app');
-assert.ok(!appSource.includes('state.autoCandidates.push('), 'generated app no longer owns road candidate history');
-assert.ok(!appSource.includes('state.autoMatchCandidates.push('), 'generated app no longer owns road match candidate history');
-assert.ok(!appSource.includes('state.acceptedAutoLimit = roadDecision.accepted.limit'), 'generated app does not copy accepted limit out of Road Brain');
-assert.ok(!appSource.includes('state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road)'), 'generated app does not copy accepted road out of Road Brain');
-assert.ok(appSource.includes('roadBrain.getState().accepted'), 'generated app reads accepted road state from Road Brain');
+assert.ok(!appSource.includes('function candidateConfirmation('), 'legacy inline road confirmation function is absent from generated app');
 assert.ok(brainSource.includes('candidateLimits'), 'Road Brain owns limit candidate history');
 assert.ok(brainSource.includes('candidateRoads'), 'Road Brain owns road-name candidate history');
 assert.ok(!brainSource.includes('Geoapify'), 'Road Brain remains provider-agnostic');
