@@ -2238,13 +2238,14 @@
 
   function setAutomaticStatus(stage, message = "") {
     const accepted = roadBrain.getState().accepted;
-    const hasLastConfirmed = Boolean(accepted);
+    const hasAccepted = Boolean(accepted);
+    const acceptedConfidence = hasAccepted && !roadBrain.freshnessForPosition(state.lastStatsPosition).fresh ? "Last confirmed" : "Confirmed";
     setMatchStage(stage, "");
 
     if (stage === "matched") {
       sourceEl.textContent = "From:";
       roadEl.textContent = displayRoadName(message || accepted?.road) || "Confirmed road";
-      setRoadConfidence("confirmed", "Confirmed");
+      setRoadConfidence("confirmed", acceptedConfidence);
       return;
     }
 
@@ -2256,21 +2257,21 @@
     }
 
     if (stage === "error") {
-      sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit unavailable";
-      roadEl.textContent = hasLastConfirmed ? (displayRoadName(accepted?.road) || "Last confirmed road") : "Lookup unavailable";
-      setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
+      sourceEl.textContent = hasAccepted ? "From:" : "Automatic limit unavailable";
+      roadEl.textContent = hasAccepted ? (displayRoadName(accepted?.road) || "Last confirmed road") : "Lookup unavailable";
+      setRoadConfidence(hasAccepted ? "confirmed" : "", hasAccepted ? acceptedConfidence : "");
       return;
     }
 
-    sourceEl.textContent = hasLastConfirmed ? "From:" : "Automatic limit";
-    roadEl.textContent = hasLastConfirmed ? (displayRoadName(accepted?.road) || "Last confirmed road") : (displayRoadName(message) || ({
+    sourceEl.textContent = hasAccepted ? "From:" : "Automatic limit";
+    roadEl.textContent = hasAccepted ? (displayRoadName(accepted?.road) || "Last confirmed road") : (displayRoadName(message) || ({
       locating: "Finding road...",
       waiting: "Finding your location…",
       collecting: "Checking road...",
       matching: "Checking road...",
       nodata: "No road identified"
     }[stage] || "Checking road..."));
-    setRoadConfidence(hasLastConfirmed ? "confirmed" : "", hasLastConfirmed ? "Confirmed" : "");
+    setRoadConfidence(hasAccepted ? "confirmed" : "", hasAccepted ? acceptedConfidence : "");
   }
 
   function displayRoadName(rawRoadName) {
