@@ -49,6 +49,8 @@ const transportSampleEnd = appSource.indexOf('\n  function applyExperimentalSett
 assert.ok(transportSampleStart >= 0 && transportSampleEnd > transportSampleStart, 'generated app retains Transport sample adapter');
 const transportSampleSource = appSource.slice(transportSampleStart, transportSampleEnd);
 assert.ok(transportSampleSource.includes('roadBrain.getState().accepted'), 'Transport reads canonical accepted road evidence from Road Brain');
+assert.ok(transportSampleSource.includes('roadBrain.freshnessForPosition('), 'Transport requires accepted road evidence to be spatially fresh for the current position');
+assert.ok(!transportSampleSource.includes('roadConfirmed: Boolean(roadBrain.getState().accepted)'), 'Transport does not treat any historical accepted road as currently confirmed');
 assert.ok(!transportSampleSource.includes('state.acceptedAutoRoad'), 'Transport does not infer road confirmation from copied app state');
 
 assert.ok(/path\.join\(distDir,\s*["']app["'],\s*["']index\.html["']\)/.test(iosSource), 'iOS packages shared web build');
