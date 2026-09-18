@@ -44,6 +44,14 @@ assert.ok(brainSource.includes('candidateRoads'), 'Road Brain owns road-name can
 assert.ok(!brainSource.includes('Geoapify'), 'Road Brain remains provider-agnostic');
 assert.ok(!brainSource.includes('road_class'), 'Road Brain accepts normalized evidence, not provider field names');
 
+const automaticStatusStart = appSource.indexOf('  function setAutomaticStatus(stage, message = "") {');
+const automaticStatusEnd = appSource.indexOf('\n  function displayRoadName(', automaticStatusStart);
+assert.ok(automaticStatusStart >= 0 && automaticStatusEnd > automaticStatusStart, 'generated app retains automatic road-status adapter');
+const automaticStatusSource = appSource.slice(automaticStatusStart, automaticStatusEnd);
+assert.ok(automaticStatusSource.includes('roadBrain.freshnessForPosition('), 'automatic road UI asks Road Brain whether retained accepted evidence is spatially fresh');
+assert.ok(automaticStatusSource.includes('"Last confirmed"'), 'automatic road UI distinguishes stale retained evidence from current confirmation');
+assert.ok(!automaticStatusSource.includes('const hasLastConfirmed = Boolean(accepted);'), 'automatic road UI does not equate any historical accepted road with current confirmation');
+
 const transportSampleStart = appSource.indexOf('  function recordTransportSample(speedKmh) {');
 const transportSampleEnd = appSource.indexOf('\n  function applyExperimentalSettings()', transportSampleStart);
 assert.ok(transportSampleStart >= 0 && transportSampleEnd > transportSampleStart, 'generated app retains Transport sample adapter');
