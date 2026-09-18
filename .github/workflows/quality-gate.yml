@@ -75,6 +75,9 @@ jobs:
       - name: Check product contracts
         run: node tests/check-regressions.js index.template.html
 
+      - name: Check removed-feature contracts
+        run: node tests/check-dead-feature-purge.js
+
       - name: Check build ownership contracts
         run: node tests/check-build-ownership.js
 
