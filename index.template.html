@@ -3491,7 +3491,7 @@
     state.transportSamples.push({
       t: now,
       speed: speedKmh,
-      roadConfirmed: Boolean(roadBrain.getState().accepted)
+      roadConfirmed: Boolean(roadBrain.getState().accepted && roadBrain.freshnessForPosition(state.lastStatsPosition).fresh)
     });
 
     if (moving && !state.transportMoving) {
