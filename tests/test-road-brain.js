@@ -83,6 +83,39 @@ for (const bad of [
   assert.strictEqual(result.outcome, 'CONFIRMED');
 }
 
+// A limit-only transition on the same named road requires fresh repeated evidence.
+{
+  const brain = createRoadBrain();
+  brain.process(observation());
+  brain.process(observation());
+  const first30 = brain.process(observation({ limit: 30 }));
+  assert.strictEqual(first30.outcome, 'BEST_ESTIMATE');
+  assert.deepStrictEqual(first30.accepted, {
+    limit: 50,
+    road: 'Badenerstrasse',
+    position: { latitude: 47, longitude: 8 }
+  });
+  const confirmed30 = brain.process(observation({ limit: 30 }));
+  assert.strictEqual(confirmed30.outcome, 'CONFIRMED');
+  assert.strictEqual(confirmed30.accepted.limit, 30);
+  assert.strictEqual(confirmed30.accepted.road, 'Badenerstrasse');
+}
+
+// A road-name-only transition at the same limit also requires fresh repeated evidence.
+{
+  const brain = createRoadBrain();
+  brain.process(observation());
+  brain.process(observation());
+  const firstNewRoad = brain.process(observation({ roadName: 'Seestrasse' }));
+  assert.strictEqual(firstNewRoad.outcome, 'BEST_ESTIMATE');
+  assert.strictEqual(firstNewRoad.accepted.limit, 50);
+  assert.strictEqual(firstNewRoad.accepted.road, 'Badenerstrasse');
+  const confirmedNewRoad = brain.process(observation({ roadName: 'Seestrasse' }));
+  assert.strictEqual(confirmedNewRoad.outcome, 'CONFIRMED');
+  assert.strictEqual(confirmedNewRoad.accepted.limit, 50);
+  assert.strictEqual(confirmedNewRoad.accepted.road, 'Seestrasse');
+}
+
 // Invalid unnamed evidence retains a prior accepted result.
 {
   const brain = createRoadBrain();
