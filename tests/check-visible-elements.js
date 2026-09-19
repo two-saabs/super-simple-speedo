@@ -3,11 +3,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { applyVisibleElements } = require('../build/visible-elements');
 
 const candidatePath = process.argv[2] || path.join(__dirname, '..', 'index.template.html');
-const source = fs.readFileSync(candidatePath, 'utf8');
-const html = candidatePath.includes(`${path.sep}dist${path.sep}`) ? source : applyVisibleElements(source);
+// Inspect the native source or an explicitly supplied built artifact unchanged.
+const html = fs.readFileSync(candidatePath, 'utf8');
 const failures = [];
 
 function requireText(name, text) {

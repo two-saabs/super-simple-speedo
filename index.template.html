@@ -1404,20 +1404,20 @@
     <section class="cluster">
       <div class="speed-side" id="speedSection">
         <div class="speed-dial" id="speedDial">
-          <svg class="speed-dial-svg" viewBox="0 0 320 320" aria-hidden="true" focusable="false">
+          <svg class="speed-dial-svg" id="speedDialArtwork" viewBox="0 0 320 320" aria-hidden="true" focusable="false">
             <path id="dialTrack" class="dial-track" pathLength="100"></path>
             <path id="dialAvailable" class="dial-available" pathLength="100"></path>
             <path id="dialCurrent" class="dial-current" pathLength="100"></path>
             <g id="dialTicks"></g>
           </svg>
-          <div class="speed-dial-core">
+          <div class="speed-dial-core" id="speedDigital">
             <div id="speed">0</div>
             <div class="unit">km/h</div>
           </div>
         </div>
       </div>
 
-      <div class="lower">
+      <div class="lower" id="speedLimitSection">
         <button id="limitButton" class="unknown" aria-label="Change speed limit">
           <span id="limit">?</span>
         </button>
@@ -1538,15 +1538,10 @@
 
     <div class="setting">
       <div class="setting-title">Visible elements</div>
-      <div class="choice-list">
-        <label class="choice-row"><input type="radio" name="viewMode" value="all" id="viewAll">View all</label>
-        <label class="choice-row"><input type="radio" name="viewMode" value="custom" id="viewCustom">Choose elements</label>
-      </div>
       <div class="choice-list" id="elementChoices">
-        <label class="choice-row"><input type="checkbox" id="showSpeedo">Speedo</label>
-        <label class="choice-row"><input type="checkbox" id="showDial">Dial</label>
+        <label class="choice-row"><input type="checkbox" id="showSpeedo">Speed (Digital)</label>
+        <label class="choice-row"><input type="checkbox" id="showDial">Speed (Dial)</label>
         <label class="choice-row"><input type="checkbox" id="showLimit">Speed limit</label>
-        <label class="choice-row"><input type="checkbox" id="showGps">GPS status</label>
       </div>
     </div>
       </div>
@@ -1882,11 +1877,9 @@
     experimentalMode: localStorage.getItem("experimentalMode") === "true",
     visualTheme: localStorage.getItem("visualTheme") || "classic",
     speedDisplayStyle: localStorage.getItem("speedDisplayStyle") || "dial",
-    viewMode: localStorage.getItem("speedoViewMode") || "all",
     showSpeedo: localStorage.getItem("showSpeedo") !== "false",
     showDial: localStorage.getItem("showDial") !== "false",
     showLimit: localStorage.getItem("showLimit") !== "false",
-    showGps: localStorage.getItem("showGps") !== "false",
     statisticsEnabled: localStorage.getItem("statisticsEnabled") !== "false",
     warningArmed: true,
     audioContext: null,
@@ -2679,30 +2672,22 @@
   }
 
   function applyVisibility() {
-    const all = state.viewMode === "all";
-    $("viewAll").checked = all;
-    $("viewCustom").checked = !all;
-    $("elementChoices").style.opacity = all ? ".45" : "1";
-    $("elementChoices").style.pointerEvents = all ? "none" : "auto";
     $("showSpeedo").checked = state.showSpeedo;
     $("showDial").checked = state.showDial;
     $("showLimit").checked = state.showLimit;
-    $("showGps").checked = state.showGps;
-    document.body.classList.toggle("dial-display", all || state.showDial);
-    $("speedSection").classList.toggle("hidden-element", !all && !state.showSpeedo);
-    $("limitButton").classList.toggle("hidden-element", !all && !state.showLimit);
-    // While moving, road name/source remain visible as evidence for the shown limit,
-    // even when optional GPS diagnostics are hidden in the user's custom view.
-    const keepRoadEvidence = state.driverModeActive;
-    $("gpsSection").classList.toggle("hidden-element", !keepRoadEvidence && !all && !state.showGps);
+    document.body.classList.toggle("dial-display", state.showDial);
+    $("speedDigital").classList.toggle("hidden-element", !state.showSpeedo);
+    $("speedDialArtwork").classList.toggle("hidden-element", !state.showDial);
+    $("speedLimitSection").classList.toggle("hidden-element", !state.showLimit);
   }
 
   function saveVisibility() {
-    localStorage.setItem("speedoViewMode", state.viewMode);
     localStorage.setItem("showSpeedo", String(state.showSpeedo));
     localStorage.setItem("showDial", String(state.showDial));
     localStorage.setItem("showLimit", String(state.showLimit));
-    localStorage.setItem("showGps", String(state.showGps));
+    // Remove obsolete visibility preferences from older Frenano builds.
+    localStorage.removeItem("speedoViewMode");
+    localStorage.removeItem("showGps");
     applyVisibility();
   }
 
@@ -3685,13 +3670,6 @@
 
 
 
-  document.querySelectorAll('input[name="viewMode"]').forEach(input => {
-    input.addEventListener("change", () => {
-      state.viewMode = input.value;
-      saveVisibility();
-    });
-  });
-
   $("showSpeedo").addEventListener("change", e => {
     state.showSpeedo = e.target.checked;
     saveVisibility();
@@ -3704,11 +3682,6 @@
     state.showLimit = e.target.checked;
     saveVisibility();
   });
-  $("showGps").addEventListener("change", e => {
-    state.showGps = e.target.checked;
-    saveVisibility();
-  });
-
 
   $("statisticsSwitch").addEventListener("click", () => {
     if (state.statisticsEnabled) {

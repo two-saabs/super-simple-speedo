@@ -25,6 +25,12 @@ const help = fs.existsSync(helpPath) ? fs.readFileSync(helpPath, 'utf8') : '';
 requireCondition('Speed Brain has one canonical algorithm owner', fs.existsSync(brainPath));
 requireCondition('Speed Brain browser runtime has a focused build owner', fs.existsSync(runtimePath));
 const template = fs.readFileSync('index.template.html', 'utf8');
+const buildSource = fs.readFileSync('build.js', 'utf8');
+requireCondition('Visible Elements transform module is retired', !fs.existsSync('build/visible-elements.js'));
+requireCondition('builder no longer imports or invokes Visible Elements transform',
+  !/applyVisibleElements|visible-elements/.test(buildSource));
+requireCondition('template natively owns independent visibility targets',
+  ['speedDigital', 'speedDialArtwork', 'speedLimitSection'].every(id => template.includes(`id="${id}"`)));
 const canonicalBrain = fs.readFileSync(brainPath, 'utf8');
 const speedCallback = template.slice(template.indexOf('  function onPosition('), template.indexOf('  function completeGpsConnection('));
 for (const token of ['MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION', 'START_FROM_STATIONARY_UNCONFIRMED']) {

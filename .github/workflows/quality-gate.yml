@@ -111,7 +111,9 @@ jobs:
         run: node build.js
 
       - name: Check current Settings UI contract
-        run: node tests/check-settings-ui.js dist/app/index.html
+        run: |
+          node tests/check-settings-ui.js dist/app/index.html
+          node tests/check-visible-elements.js dist/app/index.html
 
       - name: Check release-channel contracts
         run: node tests/check-channel-contract.js
@@ -158,6 +160,7 @@ jobs:
 
       - name: Verify iOS package contract
         run: |
+          node tests/check-visible-elements.js dist/index.html
           test -f dist/index.html
           test -f dist/native-ios.bundle.js
           grep -q 'window.__SPEEDO_NATIVE_IOS__ = true' dist/index.html
