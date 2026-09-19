@@ -64,16 +64,22 @@ requireCondition('Settings redesign does not own statistics state', !settings.in
 requireCondition('Settings redesign does not record maximum speed', !settings.includes('candidateKmh > (state.stats.maxSpeed || 0)'));
 requireCondition('Settings redesign does not count identified roads', !settings.includes('state.stats.roadsIdentified = (state.stats.roadsIdentified || 0) + 1'));
 
-requireCondition('speed display units has a focused build owner', fs.existsSync(speedDisplayPath));
+requireCondition('Speed Display Units transform module is retired', !fs.existsSync(speedDisplayPath));
+requireCondition('builder no longer imports or invokes Speed Display Units transform',
+  !/applySpeedDisplayUnits|speed-display-units/.test(buildSource));
 requireCondition('Settings redesign does not convert displayed speed', !settings.includes('shown * 0.621371'));
 requireCondition('Settings redesign does not convert displayed speed limits', !settings.includes('nextLimit * 0.621371'));
 requireCondition('Settings redesign does not own dial maximum conversion', !settings.includes('const base = mphMode ? 160.9344 : 160'));
 requireCondition('Settings redesign does not own dial tick conversion', !settings.includes('const tickStep = mphMode ? 16.09344 : 10'));
 requireCondition('Settings redesign does not own speed unit preference', !settings.includes("const unitKey = 'speedUnits'"));
 requireCondition('Settings redesign does not install unit controls', !settings.includes('function installUnitsSetting'));
-const speedDisplay = fs.readFileSync(speedDisplayPath, 'utf8');
+const speedDisplay = template;
+const nativeMarkup = template.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '');
 requireCondition('Speed display owner owns speed unit preference', speedDisplay.includes("const unitKey = 'speedUnits'"));
-requireCondition('Speed display owner installs unit controls', speedDisplay.includes('function installUnitsSetting'));
+requireCondition('template natively contains both Units buttons',
+  ['unitKmhButton', 'unitMphButton'].every(id => nativeMarkup.includes(`id="${id}"`)));
+requireCondition('Units runtime no longer dynamically installs the setting',
+  !/installUnitsSetting|body\.insertBefore\(units/.test(speedDisplay));
 
 for (const algorithmSymbol of ['processSpeedSample', 'haversineMetres', 'MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION']) {
   requireCondition(`Settings redesign does not own ${algorithmSymbol}`, !settings.includes(algorithmSymbol));
