@@ -10,7 +10,6 @@ const { applySettingsRedesign } = require("./build/settings-redesign");
 const { applyBrandRefresh } = require("./build/brand-refresh");
 const { applySimpleStartup } = require("./build/startup-simple");
 const { applyPositiveOnboarding } = require("./build/positive-onboarding");
-const { applyRoadCardRefresh } = require("./build/road-card-refresh");
 const { injectSpeedBrainRuntime } = require("./build/speed-brain-runtime");
 const { injectRoadBrainRuntime } = require("./build/road-brain-runtime");
 const key = process.env.GEOAPIFY_API_KEY;
@@ -49,7 +48,6 @@ html = applySettingsRedesign(html, { appVersion });
 html = applyBrandRefresh(html);
 html = applySimpleStartup(html);
 html = applyPositiveOnboarding(html);
-html = applyRoadCardRefresh(html);
 const buildTimeZurich = zurichBuildTime();
 if (buildChannel !== "stable") {
   const markerTitle = buildChannel === "experimental" ? "EXPERIMENTAL VERSION" : "TEST VERSION";

@@ -37,7 +37,7 @@ The PNG icon files must be complete binary PNGs. The GitHub quality gate verifie
 
 - `speed-engine.js` — speed calculation/selection logic.
 - `road-freshness-fix.js` — road match freshness behaviour.
-- `road-card-refresh.js` — road/speed-limit card presentation.
+Road/speed-limit card markup and responsive styling are owned natively by `index.template.html`, protected by `tests/check-road-card.js` for source and web/iOS output.
 - `startup-robustness-fix.js` — startup resilience changes.
 - `settings-redesign.js` — settings UI structure.
 - `help-contact-privacy-fix.js` — support/contact/privacy UI.

@@ -31,6 +31,9 @@ requireCondition('builder no longer imports or invokes Visible Elements transfor
   !/applyVisibleElements|visible-elements/.test(buildSource));
 requireCondition('template natively owns independent visibility targets',
   ['speedDigital', 'speedDialArtwork', 'speedLimitSection'].every(id => template.includes(`id="${id}"`)));
+requireCondition('Road Card transform module is retired', !fs.existsSync('build/road-card-refresh.js'));
+requireCondition('builder no longer imports or invokes Road Card transform',
+  !/applyRoadCardRefresh|road-card-refresh/.test(buildSource));
 const canonicalBrain = fs.readFileSync(brainPath, 'utf8');
 const speedCallback = template.slice(template.indexOf('  function onPosition('), template.indexOf('  function completeGpsConnection('));
 for (const token of ['MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION', 'START_FROM_STATIONARY_UNCONFIRMED']) {
