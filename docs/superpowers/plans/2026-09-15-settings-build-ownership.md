@@ -1,5 +1,7 @@
 # Settings Build Ownership Cleanup Implementation Plan
 
+> Historical implementation document. Transport/Journey preservation or integration requirements below are superseded by the 2026-09-19 purge; they do not require restoring the removed subsystem.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Untangle Settings build ownership while preserving Frenano's current generated UI and behaviour exactly.

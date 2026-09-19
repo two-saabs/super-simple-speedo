@@ -1086,142 +1086,6 @@
       opacity: 1;
     }
 
-    .experimental-transport-setting {
-      overflow: hidden;
-      max-height: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      border-top-color: transparent;
-      opacity: 0;
-      transition: max-height .28s ease, padding .28s ease, opacity .2s ease, border-color .2s ease;
-    }
-    .experimental-transport-setting.show {
-      max-height: 360px;
-      padding-top: 16px;
-      padding-bottom: 16px;
-      border-top-color: rgba(255,255,255,.09);
-      opacity: 1;
-    }
-    .experimental-choice-card {
-      margin-top: 2px;
-      padding: 15px;
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 16px;
-      background: rgba(255,255,255,.025);
-    }
-    .experimental-choice-card.recommended {
-      background: rgba(255,255,255,.045);
-    }
-    .experimental-choice-card .setting-row { align-items: flex-start; }
-    .experimental-choice-card .switch { flex: 0 0 auto; margin-top: 1px; }
-    .experimental-choice-kicker {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 4px 7px;
-      border-radius: 7px;
-      background: rgba(52,199,89,.14);
-      color: #66d781;
-      font-size: 10px;
-      font-weight: 760;
-      letter-spacing: .02em;
-    }
-    .experimental-choice-kicker.standalone {
-      background: rgba(45,156,219,.14);
-      color: #61b9ed;
-    }
-    #transportBadge {
-      position: fixed;
-      left: 50%;
-      top: auto;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-      transform: translateX(-50%);
-      z-index: 7;
-      display: none;
-      width: min(82vw, 330px);
-      padding: 9px 14px 10px;
-      border: 1px solid rgba(255,255,255,.10);
-      border-radius: 15px;
-      background: rgba(12,12,12,.66);
-      color: rgba(255,255,255,.86);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      pointer-events: none;
-    }
-    #transportBadge.show { display: grid; gap: 5px; }
-    body.driver-mode #transportBadge { opacity: .48; }
-    .transport-detector-row {
-      display: grid;
-      grid-template-columns: max-content minmax(0, 1fr);
-      gap: 9px;
-      align-items: baseline;
-      min-width: 0;
-    }
-    .transport-detector-label {
-      font-size: 10px;
-      font-weight: 760;
-      letter-spacing: .09em;
-      text-transform: uppercase;
-      opacity: .42;
-      white-space: nowrap;
-    }
-    .transport-detector-value {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 14px;
-      line-height: 1.2;
-      font-weight: 760;
-      letter-spacing: -.01em;
-    }
-
-    #journeyPanel {
-      position: fixed;
-      left: 50%;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-      transform: translateX(-50%);
-      z-index: 8;
-      display: none;
-      width: min(88vw, 390px);
-      padding: 12px 14px;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 18px;
-      background: rgba(12,12,12,.74);
-      color: rgba(255,255,255,.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      pointer-events: none;
-    }
-    #journeyPanel.show { display: block; }
-    .journey-current { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-    .journey-mode { font-size:20px; font-weight:820; letter-spacing:-.02em; }
-    .journey-line { font-size:20px; font-weight:820; letter-spacing:-.02em; text-align:right; }
-    .journey-meta { margin-top:3px; font-size:11px; font-weight:700; opacity:.52; }
-    .journey-timeline { display:flex; gap:6px; overflow:hidden; margin-top:10px; }
-    .journey-chip {
-      min-width:0; padding:5px 8px; border-radius:10px; background:rgba(255,255,255,.08);
-      font-size:11px; font-weight:730; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .journey-chip.current { background:rgba(255,255,255,.15); }
-    body.driver-mode #journeyPanel { opacity:.72; }
-    @media (orientation: landscape) {
-      #journeyPanel { bottom: calc(env(safe-area-inset-bottom, 0px) + 3px); width:min(76vw, 390px); padding-top:9px; padding-bottom:9px; }
-      .journey-timeline { margin-top:7px; }
-    }
-
-    /* Detailed classifier evidence belongs in Diagnostics / Live Intelligence,
-       not on the driving screen. Keep this node for diagnostic/test contracts. */
-    #transportMetrics { display: none !important; }
-
-    @media (orientation: landscape) {
-      #transportBadge {
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 3px);
-        width: min(70vw, 330px);
-        padding-top: 7px;
-        padding-bottom: 8px;
-      }
-    }
-
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1350,72 +1214,6 @@
       line-height: 1.45;
       opacity: .5;
     }
-
-    /* v13.1 Live Intelligence: truthful terminal-style instrumentation. */
-    .live-intelligence {
-      margin-top: 14px;
-      border: 1px solid rgba(127,127,127,.22);
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(0,0,0,.24);
-    }
-    .live-intelligence-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(127,127,127,.15);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      opacity: .72;
-    }
-    .live-intelligence-status {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      letter-spacing: 0;
-      text-transform: none;
-      font-weight: 700;
-      opacity: .8;
-    }
-    .live-intelligence-feed {
-      height: 230px;
-      overflow: auto;
-      padding: 10px 12px 12px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 10.5px;
-      line-height: 1.55;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-variant-numeric: tabular-nums;
-    }
-    .live-intelligence-line { opacity: .42; }
-    .live-intelligence-line:nth-last-child(-n+5) { opacity: .7; }
-    .live-intelligence-line:last-child { opacity: 1; font-weight: 700; }
-    .live-intelligence-line.match { opacity: 1; font-weight: 850; }
-    .hypothesis-race {
-      padding: 10px 12px 12px;
-      border-top: 1px solid rgba(127,127,127,.15);
-      display: grid;
-      gap: 6px;
-    }
-    .hypothesis-row {
-      display: grid;
-      grid-template-columns: 62px 1fr 34px;
-      gap: 8px;
-      align-items: center;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      font-size: 10px;
-    }
-    .hypothesis-track {
-      height: 5px;
-      border-radius: 99px;
-      background: rgba(127,127,127,.16);
-      overflow: hidden;
-    }
-    .hypothesis-fill { height: 100%; background: currentColor; opacity: .72; }
-    .hypothesis-value { text-align: right; opacity: .62; }
 
     header,
     .drive-controls,
@@ -1583,7 +1381,6 @@
     <div class="launch-checklist hidden" id="launchChecklist" aria-live="polite">
       <div class="launch-step active" id="launchStepStart">Starting application…</div>
       <div class="launch-step" id="launchStepLocation">Finding your location…</div>
-      <div class="launch-step hidden" id="launchStepTransit">Connecting to public transport data…</div>
       <div class="launch-step" id="launchStepReady">Ready to go</div>
     </div>
     <div class="launch-disclaimer" id="launchDisclaimer">Driving safely and respecting speed limits is always the responsibility of the driver.</div>
@@ -1665,17 +1462,6 @@
       <button class="limit-choice" data-limit="130">130</button>
     </div>
   </div>
-</div>
-
-<div id="transportMetrics" aria-live="polite" aria-hidden="true"></div>
-<div id="transportBadge" aria-live="polite" aria-hidden="true">🧭 Learning journey…</div>
-<div id="journeyPanel" aria-live="polite" aria-hidden="true">
-  <div class="journey-current">
-    <div class="journey-mode" id="journeyModeLabel">Thinking…</div>
-    <div class="journey-line" id="journeyLineLabel"></div>
-  </div>
-  <div class="journey-meta" id="journeyMeta">Learning how you are moving…</div>
-  <div class="journey-timeline" id="journeyTimeline"></div>
 </div>
 
 <div class="modal" id="settingsModal" aria-hidden="true">
@@ -1918,34 +1704,6 @@
       </div>
     </div>
 
-    <div class="setting experimental-transport-setting" id="experimentalJourneySetting" aria-hidden="true">
-      <div class="experimental-choice-card recommended">
-        <div class="setting-row">
-          <div>
-            <div class="setting-title">Super Simple Journey</div>
-            <div class="experimental-choice-kicker">Recommended · all-in-one</div>
-            <div class="setting-note">Understands how you are moving and builds a simple session timeline such as Walking → S4 → Tram 16. Includes the Transport Detective engine automatically.</div>
-            <div class="setting-note" id="journeyStatus">Off.</div>
-          </div>
-          <button class="switch" id="journeyModeSwitch" aria-label="Toggle Super Simple Journey"></button>
-        </div>
-      </div>
-    </div>
-
-    <div class="setting experimental-transport-setting" id="experimentalTransportSetting" aria-hidden="true">
-      <div class="experimental-choice-card">
-        <div class="setting-row">
-          <div>
-            <div class="setting-title">Transport Detective</div>
-            <div class="experimental-choice-kicker standalone">Standalone</div>
-            <div class="setting-note">Just identify the current vehicle type and public-transport line. No journey timeline. Current coordinates may be sent to transport.opendata.ch for Swiss timetable matching.</div>
-            <div class="setting-note" id="transportDetectiveStatus">Off.</div>
-          </div>
-          <button class="switch" id="transportDetectiveSwitch" aria-label="Toggle standalone Transport Detective"></button>
-        </div>
-      </div>
-    </div>
-
     <div class="setting experimental-theme-setting" id="experimentalThemeSetting" aria-hidden="true">
       <div class="setting-title">Theme</div>
       <div class="setting-note">Choose Classic or preview the calmer, Volvo-inspired Modern theme.</div>
@@ -1966,27 +1724,10 @@
       </div>
       <div class="diagnostics-panel" id="diagnosticsPanel">
         <div class="diagnostics-summary" id="diagnosticsSummary">No GPS samples recorded yet.</div>
-        <div class="live-intelligence" id="liveIntelligence">
-          <div class="live-intelligence-header">
-            <span>Live Intelligence</span>
-            <span class="live-intelligence-status" id="liveIntelligenceStatus">standby</span>
-          </div>
-          <div class="live-intelligence-feed" id="liveIntelligenceFeed" aria-live="polite">Waiting for diagnostic events…</div>
-          <div class="hypothesis-race" id="hypothesisRace"></div>
-        </div>
         <div class="diagnostics-actions">
           <button class="wide-button secondary" id="copyDiagnostics">Copy recent log</button>
           <button class="wide-button secondary" id="downloadDiagnostics">Export all .tsv</button>
           <button class="wide-button secondary" id="clearDiagnostics">Clear log</button>
-        </div>
-        <div class="setting-note" style="margin-top:14px">Actual mode (optional ground truth)</div>
-        <div class="segmented" id="groundTruthButtons" style="grid-template-columns:repeat(3,1fr);margin-top:8px">
-          <button class="segment-button" data-ground-truth="stationary">I’m not moving</button>
-          <button class="segment-button" data-ground-truth="walking">Walk</button>
-          <button class="segment-button" data-ground-truth="bus">Bus</button>
-          <button class="segment-button" data-ground-truth="car">Car</button>
-          <button class="segment-button" data-ground-truth="tram">Tram</button>
-          <button class="segment-button" data-ground-truth="train">Train</button>
         </div>
         <div class="diagnostics-format-note" id="diagnosticsArchiveStatus">Persistent archive starting…</div>
         <div class="diagnostics-format-note">Recent events stay visible here; the full diagnostics archive is stored on this device for up to 30 days and survives app restarts. Export remains TSV for easy analysis.</div>
@@ -2045,16 +1786,6 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  // Diagnostics rendering must never be able to execute markup or break startup.
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
   // Last-resort field diagnostics: iOS standalone PWAs otherwise make early
   // JavaScript failures look like a frozen launch screen. Preserve a compact
   // error marker locally and surface it on the launch screen when possible.
@@ -2107,13 +1838,6 @@
   const DIAGNOSTIC_ARCHIVE_STORE = "events";
   const DIAGNOSTIC_ARCHIVE_DAYS = 30;
   const DIAGNOSTIC_SESSION_ID = `${new Date().toISOString().replace(/[:.]/g, "-")}-${Math.random().toString(36).slice(2, 8)}`;
-  const TRANSIT_LOOKUP_INTERVAL_MS = 45000;
-  const TRANSIT_CANDIDATE_MAX_AGE_MS = 120000;
-  const TRANSIT_NEARBY_RADIUS_M = 900;
-  const TRANSIT_STATIONBOARD_LIMIT = 60;
-  const TRANSIT_SPEED_RECOVERY_WINDOW_MS = 30000;
-  const TRANSIT_SPEED_RECOVERY_MIN_BASELINE_MS = 8000;
-  const TRANSIT_SPEED_RECOVERY_MAX_ACCURACY_M = 250;
   let diagnosticPersistTimer = null;
   let diagnosticArchiveDbPromise = null;
 
@@ -2156,23 +1880,6 @@
     beepType: localStorage.getItem("beepType") || "elegant",
     theme: localStorage.getItem("speedoTheme") || "dark",
     experimentalMode: localStorage.getItem("experimentalMode") === "true",
-    transportDetectiveEnabled: localStorage.getItem("transportDetectiveEnabled") === "true",
-    journeyModeEnabled: localStorage.getItem("journeyModeEnabled") === "true",
-    journeySegments: [],
-    journeyCurrent: null,
-    journeyPendingKey: null,
-    journeyPendingCount: 0,
-    transportSamples: [],
-    transportStops: [],
-    transportMoving: false,
-    transportStopStartedAt: null,
-    transportGuess: { mode: "unknown", confidence: 0, reason: "Not enough movement yet." },
-    transitLookupBusy: false,
-    transitServiceStatus: "unchecked",
-    lastTransitLookupAt: 0,
-    transitCandidate: null,
-    transitEvidence: [],
-    transitSpeedRecoverySamples: [],
     visualTheme: localStorage.getItem("visualTheme") || "classic",
     speedDisplayStyle: localStorage.getItem("speedDisplayStyle") || "dial",
     viewMode: localStorage.getItem("speedoViewMode") || "all",
@@ -2309,8 +2016,6 @@
     startupCompletionScheduled = false;
     const checklist = $("launchChecklist");
     if (checklist) checklist.classList.add("hidden");
-    const transitStep = $("launchStepTransit");
-    if (transitStep) transitStep.classList.toggle("hidden", !(state.experimentalMode && state.transportDetectiveEnabled));
     setLaunchSteps("active", "", "");
     const disclaimer = $("launchDisclaimer");
     if (disclaimer) disclaimer.classList.remove("hidden");
@@ -2655,14 +2360,6 @@
         details = `outcome=${item.outcome || ""};gesture=${item.fromUserGesture ?? ""};display=${item.displayMode || ""}`;
       } else if (item.event === "DRIVER_UI_CHANGE") {
         details = `active=${item.driverUiActive ?? ""};reason=${item.reason || ""}`;
-      } else if (item.event === "TRANSIT_MATCH" || item.event === "MATCH_ACQUIRED") {
-        details = `mode=${item.mode || ""};line=${item.line || ""};to=${item.to || ""};station=${item.station || ""};distance=${item.stationDistanceMetres ?? ""};scheduled=${item.scheduledAt || ""};confidence=${item.confidence ?? ""}`;
-      } else if (item.event === "TRANSIT_SERVICE") {
-        details = `outcome=${item.outcome || ""};latencyMs=${item.latencyMs ?? ""};online=${item.online ?? ""}`;
-      } else if (item.event === "TRANSIT_QUERY") {
-        details = `outcome=${item.outcome || ""};count=${item.count ?? ""};nearest=${item.nearestMetres ?? ""};station=${item.station || ""};services=${item.services ?? ""};latencyMs=${item.latencyMs ?? ""};candidates=${item.candidateCount ?? ""};summary=${item.summary || ""}`;
-      } else if (item.event === "GROUND_TRUTH") {
-        details = `actual=${item.actualMode || ""};predicted=${item.predictedMode || ""};predictedConfidence=${item.predictedConfidence ?? ""}`;
       } else if (item.event) {
         details = `reason=${item.reason || ""};outcome=${item.outcome || ""}`;
       } else {
@@ -2692,85 +2389,6 @@
     return [...header, ...rows].join("\n");
   }
 
-  function liveIntelligenceLine(item) {
-    const time = (item.timeLocal || item.timeUtc || "").slice(11, 19);
-    const ms = item.timeUtc ? String(new Date(item.timeUtc).getMilliseconds()).padStart(3, "0") : "000";
-    const stamp = `${time}.${ms}`;
-    if (!item.event) {
-      const acc = item.accuracyMetres ?? "—";
-      const speed = item.displayedKmh ?? "—";
-      return `${stamp}  GPS     ${speed} km/h · ±${acc}m · ${item.speedDecision || item.decision || "sample"}`;
-    }
-    if (item.event === "TRANSIT_SERVICE") {
-      if (item.outcome === "CONNECTED") return `${stamp}  SWISS   database online · ${item.latencyMs ?? "—"} ms  >>> WE'RE IN`;
-      return `${stamp}  SWISS   connection failed · ${item.reason || "unknown error"}`;
-    }
-    if (item.event === "TRANSIT_QUERY") {
-      if (item.outcome === "BEGIN") return `${stamp}  TRANSIT querying nearby stops…`;
-      if (item.outcome === "STOPS") return `${stamp}  TRANSIT ${item.count ?? 0} stops in range · nearest ${item.nearestMetres ?? "—"}m`;
-      if (item.outcome === "BOARD") return `${stamp}  GTFS    ${item.station || "station"} · ${item.services ?? 0} scheduled services · ${item.latencyMs ?? "—"}ms`;
-      if (item.outcome === "BOARD_SERVICES") return `${stamp}  LINES   ${item.station || "station"} · ${item.summary || "none"}`;
-      if (item.outcome === "RACE") return `${stamp}  CAND    ${item.summary || "no plausible candidates"}`;
-    }
-    if (item.event === "TRANSIT_MATCH") {
-      if (item.outcome === "CANDIDATE") return `${stamp}  MATCH   ${item.mode || "?"} ${item.line || ""}${item.to ? ` → ${item.to}` : ""} · ${item.confidence ?? "—"}%`;
-      return `${stamp}  MATCH   ${item.outcome || "—"} · ${item.reason || ""}`;
-    }
-    if (item.event === "MATCH_ACQUIRED") {
-      return `${stamp}  >>> MATCH ACQUIRED · ${item.line || item.mode || "service"} · ${item.confidence ?? "—"}%`;
-    }
-    if (item.event === "TRANSPORT_GUESS") {
-      return `${stamp}  CLASS   ${(item.outcome || "thinking").toLowerCase()} · ${item.confidence ?? "—"}%`;
-    }
-    if (item.event === "GROUND_TRUTH") {
-      return `${stamp}  TRUTH   actual ${item.actualMode || "—"} · predicted ${item.predictedMode || "—"}`;
-    }
-    if (item.event === "ROAD_LOOKUP") {
-      return `${stamp}  ROAD    ${item.roadDecision?.displayedRoad || item.response?.roadNameSanitised || "lookup"}`;
-    }
-    if (item.event === "DIAGNOSTIC_SESSION") return `${stamp}  ──── JOURNEY / DIAGNOSTIC SESSION ${item.outcome || ""} ────`;
-    return `${stamp}  ${item.event.padEnd(7).slice(0,7)} ${item.outcome || item.reason || ""}`;
-  }
-
-  function updateLiveIntelligence() {
-    const feed = $("liveIntelligenceFeed");
-    const race = $("hypothesisRace");
-    const status = $("liveIntelligenceStatus");
-    if (!feed || !race || !status) return;
-    const active = state.experimentalMode && state.transportDetectiveEnabled;
-    status.textContent = !active ? "transport detective off" :
-      state.transitServiceStatus === "connected" ? "Swiss PT online" :
-      state.transitServiceStatus === "checking" ? "connecting…" :
-      state.transitServiceStatus === "error" ? "Swiss PT unavailable" : "awaiting GPS";
-
-    // The Live Intelligence panel is for real-world transport reasoning, not
-    // engineering housekeeping. Keep SPEED/GPS samples and WAKE_LOCK events in
-    // diagnostics/export, but hide them here so classifier/route events stay readable.
-    const entries = state.diagnosticLog
-      .filter(item => Boolean(item.event) && item.event !== "WAKE_LOCK")
-      .slice(-28);
-    if (!entries.length) {
-      feed.textContent = "Waiting for transport events…";
-    } else {
-      feed.innerHTML = entries.map(item => {
-        const text = liveIntelligenceLine(item);
-        const match = item.event === "MATCH_ACQUIRED" || (item.event === "TRANSIT_SERVICE" && item.outcome === "CONNECTED");
-        return `<div class="live-intelligence-line${match ? " match" : ""}">${escapeHtml(text)}</div>`;
-      }).join("");
-      feed.scrollTop = feed.scrollHeight;
-    }
-
-    const scores = state.transportGuess?.metrics?.scores || {};
-    const rows = [
-      ["🚶 Walk", scores.walking], ["🚌 Bus", scores.bus], ["🚗 Car", scores.car],
-      ["🚋 Tram", scores.tram], ["🚆 Train", scores.train]
-    ];
-    race.innerHTML = rows.map(([label, value]) => {
-      const v = Number.isFinite(Number(value)) ? Math.max(0, Math.min(100, Number(value))) : 0;
-      return `<div class="hypothesis-row"><span>${label}</span><span class="hypothesis-track"><span class="hypothesis-fill" style="display:block;width:${v}%"></span></span><span class="hypothesis-value">${Math.round(v)}%</span></div>`;
-    }).join("");
-  }
-
   function updateDiagnosticsDisplay() {
     const panel = $("diagnosticsPanel");
     const output = $("diagnosticsSummary");
@@ -2778,7 +2396,6 @@
     $("diagnosticsSwitch").classList.toggle("on", state.diagnosticsEnabled);
     $("diagnosticsSwitch").setAttribute("aria-pressed", String(state.diagnosticsEnabled));
     panel.classList.toggle("show", state.diagnosticsEnabled);
-    updateLiveIntelligence();
     if (!state.diagnosticLog.length) {
       output.textContent = "No GPS samples recorded yet.";
       return;
@@ -2953,571 +2570,11 @@
     rebuildDialTicks(maximum);
   }
 
-  const TRANSPORT_WINDOW_MS = 4 * 60 * 1000;
-  const WALKING_WINDOW_MS = 90 * 1000;
-  const WALKING_MIN_DURATION_MS = 45 * 1000;
-  const TRANSPORT_WAITING_BADGE_DELAY_MS = 25 * 1000;
-
-  function transportLabel(mode) {
-    return ({
-      walking: "🚶 Walking",
-      tram: "🚋 Tram-like",
-      train: "🚆 Train-like",
-      bus: "🚌 Bus-like",
-      car: "🚗 Road vehicle-like",
-      unknown: "🧭 Thinking…"
-    })[mode] || "🧭 Thinking…";
-  }
-
-  const JOURNEY_WAITING_SEGMENT_DELAY_MS = 90 * 1000;
-
-  function journeyModeName(mode) {
-    return ({ walking: "Walking", bus: "Bus", car: "Car", tram: "Tram", train: "Train", waiting: "Waiting" })[mode] || "Thinking…";
-  }
-
-  function journeyModeIcon(mode) {
-    return ({ walking: "🚶", bus: "🚌", car: "🚗", tram: "🚋", train: "🚆", waiting: "•" })[mode] || "🧭";
-  }
-
-  function formatJourneyDuration(ms) {
-    const total = Math.max(0, Math.floor(ms / 1000));
-    if (total < 60) return `${total}s`;
-    const minutes = Math.floor(total / 60);
-    if (minutes < 60) return `${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    return `${hours}h ${minutes % 60}m`;
-  }
-
-  function resetJourneySession() {
-    state.journeySegments = [];
-    state.journeyCurrent = null;
-    state.journeyPendingKey = null;
-    state.journeyPendingCount = 0;
-    updateJourneyUi(true);
-  }
-
-  function observeJourney(now = Date.now()) {
-    if (!(state.experimentalMode && state.journeyModeEnabled && state.transportDetectiveEnabled)) return;
-    const guess = state.transportGuess || { mode: "unknown" };
-    const stationaryForMs = !state.transportMoving && state.transportStopStartedAt
-      ? Math.max(0, now - state.transportStopStartedAt)
-      : 0;
-    let mode = stationaryForMs >= JOURNEY_WAITING_SEGMENT_DELAY_MS ? "waiting" : guess.mode;
-    if (!mode || mode === "unknown") return;
-
-    const transitCandidate = state.transitCandidate && now - state.transitCandidate.matchedAt <= TRANSIT_CANDIDATE_MAX_AGE_MS
-      ? state.transitCandidate
-      : null;
-    const line = ["bus", "tram", "train"].includes(mode) ? (transitCandidate?.line || "") : "";
-
-    // If the vehicle is already right and the line arrives a little later, enrich
-    // the current segment rather than manufacturing a second journey leg.
-    if (state.journeyCurrent && state.journeyCurrent.mode === mode && !state.journeyCurrent.line && line) {
-      state.journeyCurrent.line = line;
-      state.journeyCurrent.key = `${mode}:${line}`;
-      state.journeyPendingKey = null;
-      state.journeyPendingCount = 0;
-      return;
-    }
-
-    const key = `${mode}:${line}`;
-    if (state.journeyCurrent?.key === key) {
-      state.journeyPendingKey = null;
-      state.journeyPendingCount = 0;
-      return;
-    }
-
-    // A different PT line can briefly appear as nearby timetable evidence changes.
-    // Require two observations before splitting an otherwise unchanged vehicle leg.
-    const sameTransitMode = state.journeyCurrent && state.journeyCurrent.mode === mode && ["bus", "tram", "train"].includes(mode);
-    if (sameTransitMode) {
-      if (state.journeyPendingKey !== key) {
-        state.journeyPendingKey = key;
-        state.journeyPendingCount = 1;
-        return;
-      }
-      state.journeyPendingCount += 1;
-      if (state.journeyPendingCount < 2) return;
-    }
-
-    if (state.journeyCurrent) {
-      state.journeyCurrent.endAt = now;
-      state.journeySegments.push(state.journeyCurrent);
-      state.journeySegments = state.journeySegments.slice(-12);
-    }
-    state.journeyCurrent = { key, mode, line, startAt: now, endAt: null };
-    state.journeyPendingKey = null;
-    state.journeyPendingCount = 0;
-  }
-
-  function updateJourneyUi(renderOnly = false) {
-    const setting = $("experimentalJourneySetting");
-    const toggle = $("journeyModeSwitch");
-    const panel = $("journeyPanel");
-    const available = state.experimentalMode;
-    const enabled = available && state.journeyModeEnabled;
-    setting?.classList.toggle("show", available);
-    setting?.setAttribute("aria-hidden", String(!available));
-    toggle?.classList.toggle("on", state.journeyModeEnabled);
-    toggle?.setAttribute("aria-pressed", String(state.journeyModeEnabled));
-    panel?.classList.toggle("show", enabled);
-    panel?.setAttribute("aria-hidden", String(!enabled));
-    if (!enabled) return;
-
-    if (!renderOnly) observeJourney();
-    const now = Date.now();
-    const current = state.journeyCurrent;
-    const modeEl = $("journeyModeLabel");
-    const lineEl = $("journeyLineLabel");
-    const metaEl = $("journeyMeta");
-    const timelineEl = $("journeyTimeline");
-    const statusEl = $("journeyStatus");
-
-    if (!current) {
-      if (modeEl) modeEl.textContent = "Thinking…";
-      if (lineEl) lineEl.textContent = "";
-      if (metaEl) metaEl.textContent = "Learning how you are moving…";
-      if (timelineEl) timelineEl.innerHTML = "";
-      if (statusEl) statusEl.textContent = "On — waiting for a confident movement segment.";
-      return;
-    }
-
-    if (modeEl) modeEl.textContent = `${journeyModeIcon(current.mode)} ${journeyModeName(current.mode)}`;
-    if (lineEl) lineEl.textContent = current.line || "";
-    if (metaEl) metaEl.textContent = `Current leg · ${formatJourneyDuration(now - current.startAt)} · session only`;
-    if (statusEl) statusEl.textContent = `On — ${journeyModeName(current.mode)}${current.line ? ` ${current.line}` : ""}.`;
-
-    const segments = [...state.journeySegments.slice(-4), current];
-    if (timelineEl) timelineEl.innerHTML = segments.map((segment, index) => {
-      const endAt = segment.endAt || now;
-      const label = `${journeyModeIcon(segment.mode)} ${segment.line || journeyModeName(segment.mode)} · ${formatJourneyDuration(endAt - segment.startAt)}`;
-      const currentClass = index === segments.length - 1 ? " current" : "";
-      return `<div class="journey-chip${currentClass}">${escapeHtml(label)}</div>`;
-    }).join("");
-  }
-
-  function updateTransportUi() {
-    const setting = $("experimentalTransportSetting");
-    const toggle = $("transportDetectiveSwitch");
-    const badge = $("transportBadge");
-    const status = $("transportDetectiveStatus");
-    const available = state.experimentalMode;
-    setting?.classList.toggle("show", available);
-    setting?.setAttribute("aria-hidden", String(!available));
-    const standaloneEnabled = state.transportDetectiveEnabled && !state.journeyModeEnabled;
-    toggle?.classList.toggle("on", standaloneEnabled);
-    toggle?.setAttribute("aria-pressed", String(standaloneEnabled));
-
-    const enabled = available && state.transportDetectiveEnabled;
-    const showDetectorBadge = available && standaloneEnabled;
-    badge?.classList.toggle("show", showDetectorBadge);
-    badge?.setAttribute("aria-hidden", String(!showDetectorBadge));
-    const metricsEl = $("transportMetrics");
-    const guess = state.transportGuess || { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
-    const stationaryForMs = !state.transportMoving && state.transportStopStartedAt
-      ? Math.max(0, Date.now() - state.transportStopStartedAt)
-      : 0;
-    const waitingForMovement = stationaryForMs >= TRANSPORT_WAITING_BADGE_DELAY_MS;
-    const cleanVehicleLabel = ({
-      walking: "Walking",
-      bus: "Bus",
-      car: "Car",
-      tram: "Tram",
-      train: "Train",
-      unknown: "Thinking…"
-    })[guess.mode] || "Thinking…";
-    const vehicleValue = waitingForMovement ? "Waiting for movement…" : cleanVehicleLabel;
-    const transitCandidate = state.transitCandidate && Date.now() - state.transitCandidate.matchedAt <= TRANSIT_CANDIDATE_MAX_AGE_MS
-      ? state.transitCandidate
-      : null;
-    const lineValue = transitCandidate?.line || "—";
-    if (badge) badge.innerHTML = `
-      <div class="transport-detector-row"><span class="transport-detector-label">Vehicle detector:</span><span class="transport-detector-value">${escapeHtml(vehicleValue)}</span></div>
-      <div class="transport-detector-row"><span class="transport-detector-label">Line detector:</span><span class="transport-detector-value">${escapeHtml(lineValue)}</span></div>`;
-
-    // Detailed confidence, scores and timetable evidence remain available in
-    // Diagnostics / Live Intelligence and exported logs, but are intentionally
-    // removed from the normal driving screen.
-    const metrics = guess.metrics;
-    const showMetrics = false;
-    metricsEl?.classList.toggle("show", false);
-    metricsEl?.setAttribute("aria-hidden", "true");
-    if (status) {
-      status.textContent = state.journeyModeEnabled
-        ? "Included in Super Simple Journey."
-        : (standaloneEnabled ? (guess.reason || "Learning movement pattern…") : "Off.");
-    }
-    updateJourneyUi();
-  }
-
-  function normaliseTransitMode(category = "", name = "") {
-    const cat = String(category || "").trim().toUpperCase();
-    const label = String(name || "").trim().toUpperCase();
-    // transport.opendata.ch commonly uses short Swiss timetable categories.
-    // B = bus, T = tram, S = S-Bahn. Keep the long-form checks as well.
-    if (cat === "T" || cat === "TRAM" || cat.includes("TRAM") || label.startsWith("TRAM ")) return "tram";
-    if (cat === "B" || cat === "BUS" || cat.includes("BUS") || label.startsWith("BUS ")) return "bus";
-    if (["S", "SN", "R", "RE", "IR", "IC", "ICE", "EC", "TGV", "RJ", "RJX", "NJ", "EN"].includes(cat) || /^S\s?\d+/i.test(label)) return "train";
-    return null;
-  }
-
-  function transitLineLabel(journey, mode) {
-    const category = String(journey?.category || "").trim().toUpperCase();
-    const number = String(journey?.number || "").trim();
-    const name = String(journey?.name || "").trim();
-    if (mode === "train" && number && ["S", "SN"].includes(category)) {
-      return number.toUpperCase().startsWith(category) ? number : `${category}${number}`;
-    }
-    return number || name || category || "";
-  }
-
-  function localStationboardDateTime(date = new Date(Date.now() - 5 * 60000)) {
-    const pad = value => String(value).padStart(2, "0");
-    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  }
-
-  async function checkPublicTransportService(coords) {
-    if (!state.experimentalMode || !state.transportDetectiveEnabled) return false;
-    if (!coords || !Number.isFinite(coords.latitude) || !Number.isFinite(coords.longitude)) return false;
-    const step = $("launchStepTransit");
-    if (step) {
-      step.classList.remove("hidden", "complete", "error");
-      step.classList.add("active");
-      step.textContent = "Connecting to public transport data…";
-    }
-    state.transitServiceStatus = "checking";
-    updateLiveIntelligence();
-    const transitServiceStartedAt = performance.now();
-    try {
-      const url = `https://transport.opendata.ch/v1/locations?x=${encodeURIComponent(coords.latitude)}&y=${encodeURIComponent(coords.longitude)}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`locations ${response.status}`);
-      await response.json();
-      state.transitServiceStatus = "connected";
-      if (step) {
-        step.classList.remove("active", "error");
-        step.classList.add("complete");
-        step.textContent = "Public transport data connected";
-      }
-      addDiagnostic({ event: "TRANSIT_SERVICE", outcome: "CONNECTED", latencyMs: Math.round(performance.now() - transitServiceStartedAt) });
-      return true;
-    } catch (error) {
-      state.transitServiceStatus = "error";
-      if (step) {
-        step.classList.remove("active", "complete");
-        step.classList.add("error");
-        step.textContent = "Public transport data unavailable";
-      }
-      addDiagnostic({ event: "TRANSIT_SERVICE", outcome: "LOOKUP_ERROR", reason: String(error?.message || error), online: navigator.onLine });
-      return false;
-    }
-  }
-
-  async function maybeMatchPublicTransport(coords) {
-    if (!state.experimentalMode || !state.transportDetectiveEnabled || state.transitLookupBusy) return;
-    if (!coords || !Number.isFinite(coords.latitude) || !Number.isFinite(coords.longitude)) return;
-    if (state.targetSpeed < 5) return;
-    const now = Date.now();
-    if (now - state.lastTransitLookupAt < TRANSIT_LOOKUP_INTERVAL_MS) return;
-    state.lastTransitLookupAt = now;
-    state.transitLookupBusy = true;
-    addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BEGIN" });
-    try {
-      const locationUrl = `https://transport.opendata.ch/v1/locations?x=${encodeURIComponent(coords.latitude)}&y=${encodeURIComponent(coords.longitude)}`;
-      const locationResponse = await fetch(locationUrl);
-      if (!locationResponse.ok) throw new Error(`locations ${locationResponse.status}`);
-      const locationData = await locationResponse.json();
-      const stations = (locationData.stations || [])
-        .filter(station => station?.id && Number.isFinite(Number(station.distance)) && Number(station.distance) <= TRANSIT_NEARBY_RADIUS_M)
-        .sort((a,b) => Number(a.distance) - Number(b.distance))
-        .slice(0, 2);
-      addDiagnostic({ event: "TRANSIT_QUERY", outcome: "STOPS", count: stations.length, nearestMetres: stations[0] ? Math.round(Number(stations[0].distance)) : null });
-      if (!stations.length) return;
-
-      const candidates = [];
-      const queryTime = encodeURIComponent(localStationboardDateTime());
-      for (const station of stations) {
-        const boardUrl = `https://transport.opendata.ch/v1/stationboard?id=${encodeURIComponent(station.id)}&limit=${TRANSIT_STATIONBOARD_LIMIT}&datetime=${queryTime}`;
-        const boardStartedAt = performance.now();
-        const boardResponse = await fetch(boardUrl);
-        if (!boardResponse.ok) continue;
-        const boardData = await boardResponse.json();
-        const boardJourneys = boardData.stationboard || [];
-        addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BOARD", station: station.name || boardData.station?.name || "", services: boardJourneys.length, latencyMs: Math.round(performance.now() - boardStartedAt) });
-        const boardServiceSummary = [...new Set(boardJourneys.map(journey => {
-          const rawCategory = String(journey?.category || "?").trim() || "?";
-          const mode = normaliseTransitMode(journey?.category, journey?.name);
-          const line = transitLineLabel(journey, mode);
-          return `${rawCategory}:${line || journey?.name || "?"}`;
-        }))].slice(0, 16).join(" · ");
-        addDiagnostic({ event: "TRANSIT_QUERY", outcome: "BOARD_SERVICES", station: station.name || boardData.station?.name || "", summary: boardServiceSummary });
-        for (const journey of boardJourneys) {
-          const mode = normaliseTransitMode(journey.category, journey.name);
-          if (!mode) continue;
-          const timestamp = Number(journey.stop?.departureTimestamp || journey.stop?.arrivalTimestamp || 0) * 1000;
-          if (!timestamp) continue;
-          const timeDifferenceMinutes = Math.abs(timestamp - now) / 60000;
-          if (timeDifferenceMinutes > 10) continue;
-          const stationDistance = Number(station.distance);
-          const distanceScore = Math.max(0, 1 - stationDistance / TRANSIT_NEARBY_RADIUS_M);
-          const timetableScore = Math.max(0, 1 - timeDifferenceMinutes / 10);
-          const classifierScore = (state.transportGuess?.metrics?.scores?.[mode] || 0) / 100;
-          const lineLabel = transitLineLabel(journey, mode);
-          const key = `${mode}|${lineLabel}|${journey.to || ""}`;
-          const evidence = state.transitEvidence.filter(item => now - item.t <= 10 * 60000 && item.key === key);
-          const distinctStations = new Set(evidence.map(item => item.station)).size;
-          const continuityScore = Math.min(1, distinctStations / 2);
-          const confidence = Math.max(0, Math.min(1, distanceScore * .28 + timetableScore * .34 + classifierScore * .18 + continuityScore * .20));
-          candidates.push({
-            key, mode, confidence,
-            line: lineLabel,
-            name: journey.name || "",
-            to: journey.to || "",
-            station: station.name || boardData.station?.name || "",
-            stationDistanceMetres: Math.round(stationDistance),
-            scheduledAt: new Date(timestamp).toISOString(),
-            matchedAt: now
-          });
-        }
-      }
-      candidates.sort((a,b) => b.confidence - a.confidence);
-      const raceSummary = candidates.slice(0, 3).map(candidate => `${candidate.mode} ${candidate.line || candidate.name || "?"} ${Math.round(candidate.confidence * 100)}%`).join(" · ");
-      addDiagnostic({ event: "TRANSIT_QUERY", outcome: "RACE", summary: raceSummary || "no plausible candidates", candidateCount: candidates.length });
-      const best = candidates[0];
-      if (!best || best.confidence < .35) return;
-      state.transitEvidence.push({ t: now, key: best.key, station: best.station });
-      state.transitEvidence = state.transitEvidence.filter(item => now - item.t <= 10 * 60000).slice(-40);
-      const previousKey = state.transitCandidate?.key;
-      state.transitCandidate = best;
-      if (previousKey !== best.key) {
-        addDiagnostic({
-          event: "TRANSIT_MATCH", outcome: "CANDIDATE", mode: best.mode, line: best.line, to: best.to, station: best.station,
-          stationDistanceMetres: best.stationDistanceMetres, scheduledAt: best.scheduledAt, confidence: Math.round(best.confidence * 100)
-        });
-        if (best.confidence >= .60) {
-          addDiagnostic({ event: "MATCH_ACQUIRED", outcome: "ACQUIRED", mode: best.mode, line: best.line, to: best.to, station: best.station, confidence: Math.round(best.confidence * 100) });
-        }
-      }
-      classifyTransport(now);
-    } catch (error) {
-      addDiagnostic({ event: "TRANSIT_MATCH", outcome: "LOOKUP_ERROR", reason: String(error?.message || error) });
-    } finally {
-      state.transitLookupBusy = false;
-    }
-  }
-
-  function classifyTransport(now = Date.now()) {
-    const samples = state.transportSamples.filter(s => now - s.t <= TRANSPORT_WINDOW_MS);
-    state.transportSamples = samples;
-    if (samples.length < 20) {
-      state.transportGuess = { mode: "unknown", confidence: 0, reason: "Learning movement pattern…" };
-      updateTransportUi();
-      return;
-    }
-
-    const speeds = samples.map(s => s.speed).filter(Number.isFinite);
-    const max = Math.max(...speeds, 0);
-    const moving = speeds.filter(v => v >= 3);
-    const avg = moving.length ? moving.reduce((a,b)=>a+b,0) / moving.length : 0;
-    const stops = state.transportStops.filter(t => now - t <= TRANSPORT_WINDOW_MS);
-    state.transportStops = stops;
-    const confirmedRoadRatio = samples.filter(s => s.roadConfirmed).length / samples.length;
-
-    // Walking is intentionally judged over a much shorter window than vehicles.
-    // This lets a train/bus journey cleanly become a walk without the previous
-    // vehicle segment dominating the four-minute transport history.
-    const walkingSamples = samples.filter(s => now - s.t <= WALKING_WINDOW_MS);
-    const walkingSpeeds = walkingSamples.map(s => s.speed).filter(Number.isFinite);
-    const walkingMoving = walkingSpeeds.filter(v => v >= 2.5);
-    const walkingBand = walkingMoving.filter(v => v <= 9);
-    const walkingAvg = walkingMoving.length
-      ? walkingMoving.reduce((a,b)=>a+b,0) / walkingMoving.length
-      : 0;
-    const walkingMax = Math.max(...walkingSpeeds, 0);
-    const walkingSpanMs = walkingSamples.length > 1
-      ? walkingSamples.at(-1).t - walkingSamples[0].t
-      : 0;
-    const walkingConsistency = walkingMoving.length
-      ? walkingBand.length / walkingMoving.length
-      : 0;
-
-    // Score each transport family independently. This makes ambiguous urban
-    // journeys explainable and, crucially, lets walking or a bus beat both
-    // "tram" and generic "road vehicle" when their own evidence is stronger.
-    const clamp01 = value => Math.max(0, Math.min(1, value));
-    const stopScore = clamp01(stops.length / 5);
-    const lowStopScore = 1 - stopScore;
-    const urbanSpeedScore = max <= 60 ? 1 : clamp01(1 - (max - 60) / 35);
-    const trainSpeedScore = max >= 95 ? 1 : clamp01((max - 65) / 45);
-    const lowRoadScore = 1 - confirmedRoadRatio;
-    const moderateAverageScore = avg <= 35 ? 1 : clamp01(1 - (avg - 35) / 30);
-    const walkingDurationScore = clamp01(walkingSpanMs / WALKING_MIN_DURATION_MS);
-    const walkingPaceScore = walkingAvg >= 3 && walkingAvg <= 7.5
-      ? 1
-      : walkingAvg > 0 ? clamp01(1 - Math.abs(walkingAvg - 5.25) / 5.25) : 0;
-    const walkingFastPenalty = walkingMax > 12 ? clamp01((walkingMax - 12) / 12) : 0;
-    const walkingSampleScore = clamp01(walkingMoving.length / 8);
-
-    const scores = {
-      walking: clamp01(
-        walkingDurationScore * .25 + walkingPaceScore * .30 +
-        walkingConsistency * .30 + walkingSampleScore * .15 - walkingFastPenalty * .75
-      ),
-      bus: clamp01(confirmedRoadRatio * .38 + stopScore * .34 + urbanSpeedScore * .18 + moderateAverageScore * .10),
-      car: clamp01(confirmedRoadRatio * .58 + lowStopScore * .27 + (max >= 30 ? .15 : .05)),
-      tram: clamp01(lowRoadScore * .38 + stopScore * .34 + urbanSpeedScore * .20 + (avg <= 32 ? .08 : 0)),
-      train: clamp01(trainSpeedScore * .62 + lowRoadScore * .28 + (avg >= 50 ? .10 : 0))
-    };
-
-    // v13 adds a second evidence layer: a nearby scheduled service can boost the
-    // movement classifier, but cannot fully replace it. This keeps a timetable
-    // coincidence from becoming a confident vehicle identification on its own.
-    const transitCandidate = state.transitCandidate && now - state.transitCandidate.matchedAt <= TRANSIT_CANDIDATE_MAX_AGE_MS
-      ? state.transitCandidate
-      : null;
-    if (transitCandidate && scores[transitCandidate.mode] !== undefined) {
-      scores[transitCandidate.mode] = clamp01(scores[transitCandidate.mode] + transitCandidate.confidence * .55);
-    }
-
-    // A few slow samples while a vehicle queues must not suddenly become walking.
-    // Require a sustained recent pedestrian segment before allowing Walking to win.
-    if (walkingSpanMs < WALKING_MIN_DURATION_MS || walkingMoving.length < 8 || walkingConsistency < .75) {
-      scores.walking *= .35;
-    }
-
-    // Do not call ordinary city traffic a train merely because of one GPS spike.
-    if (max < 80) scores.train *= .35;
-    // Tram needs at least some evidence that the journey is not simply following
-    // ordinary roads. Strong road confirmation is therefore a meaningful penalty.
-    if (confirmedRoadRatio >= .65) scores.tram *= .55;
-    // Bus needs repeated stop cycles; without them a generic road vehicle is safer.
-    if (stops.length < 2) scores.bus *= .65;
-
-    const ranked = Object.entries(scores).sort((a,b) => b[1] - a[1]);
-    let [mode, winningScore] = ranked[0];
-    const runnerUpScore = ranked[1][1];
-    const margin = winningScore - runnerUpScore;
-
-    // Avoid noisy mode flipping. Keep the existing answer unless a challenger has
-    // materially stronger evidence; otherwise say we're still learning.
-    const previousMode = state.transportGuess?.mode;
-    if (previousMode && previousMode !== "unknown" && previousMode !== mode) {
-      const previousScore = scores[previousMode] ?? 0;
-      if (winningScore - previousScore < .12) {
-        mode = previousMode;
-        winningScore = previousScore;
-      }
-    }
-
-    const confidence = clamp01(.42 + winningScore * .48 + Math.max(0, margin) * .20);
-    let reason;
-    if (transitCandidate && transitCandidate.mode === mode && transitCandidate.confidence >= .45) {
-      const lineLabel = transitCandidate.line ? ` ${transitCandidate.line}` : "";
-      reason = `Movement plus timetable evidence near ${transitCandidate.station} favour ${mode}${lineLabel}${transitCandidate.to ? ` toward ${transitCandidate.to}` : ""}.`;
-    } else if (mode === "walking") {
-      reason = `Sustained pedestrian pace around ${Math.round(walkingAvg)} km/h over ${Math.round(walkingSpanMs / 1000)} seconds favours walking.`;
-    } else if (mode === "bus") {
-      reason = `${stops.length} complete stops plus ${Math.round(confirmedRoadRatio * 100)}% confirmed-road evidence favour a bus.`;
-    } else if (mode === "tram") {
-      reason = `${stops.length} complete stops plus limited road confirmation favour a tram.`;
-    } else if (mode === "train") {
-      reason = `High sustained speed with limited road evidence favours a train.`;
-    } else {
-      reason = confirmedRoadRatio > .65
-        ? "Strong road matching with relatively few transit-style stops favours a road vehicle."
-        : "Road-vehicle evidence currently leads, but the journey is still ambiguous.";
-    }
-
-    const scorePct = Object.fromEntries(Object.entries(scores).map(([key, value]) => [key, Math.round(value * 100)]));
-    const confidenceExplanation = `Fit scores: walking ${scorePct.walking}, bus ${scorePct.bus}, car ${scorePct.car}, tram ${scorePct.tram}, train ${scorePct.train}; winner + separation → ${Math.round(confidence * 100)}% confidence`;
-
-    // Very weak/close evidence is better presented as learning than as a false claim.
-    if (winningScore < .46 && margin < .08) {
-      mode = "unknown";
-      state.transportGuess = {
-        mode, confidence: 0,
-        reason: "Signals are too close to call yet.",
-        metrics: {
-          maxKmh: Math.round(max), averageMovingKmh: Math.round(avg), recentStops: stops.length,
-          confirmedRoadPct: Math.round(confirmedRoadRatio * 100), scores: scorePct, confidenceExplanation, transitCandidate
-        }
-      };
-      updateTransportUi();
-      return;
-    }
-
-    state.transportGuess = {
-      mode,
-      confidence,
-      reason,
-      metrics: {
-        maxKmh: Math.round(max),
-        averageMovingKmh: Math.round(avg),
-        recentStops: stops.length,
-        confirmedRoadPct: Math.round(confirmedRoadRatio * 100),
-        scores: scorePct,
-        confidenceExplanation,
-        transitCandidate
-      }
-    };
-
-    // Treat a confidently detected walk as a new journey segment. This prevents
-    // the previous train/bus/tram history from lingering while the user walks away.
-    if (mode === "walking" && previousMode && previousMode !== "walking" && previousMode !== "unknown") {
-      state.transportSamples = walkingSamples;
-      state.transportStops = state.transportStops.filter(t => now - t <= WALKING_WINDOW_MS);
-    }
-
-    if (state.diagnosticsEnabled && previousMode !== mode) {
-      addDiagnostic({
-        event: "TRANSPORT_GUESS",
-        outcome: mode.toUpperCase(),
-        confidence: Math.round(confidence * 100),
-        details: {
-          maxKmh: Math.round(max),
-          averageMovingKmh: Math.round(avg),
-          recentStops: stops.length,
-          confirmedRoadRatio: Math.round(confirmedRoadRatio * 100),
-          walkingScore: scorePct.walking, busScore: scorePct.bus, carScore: scorePct.car, tramScore: scorePct.tram, trainScore: scorePct.train
-        }
-      });
-    }
-    updateTransportUi();
-  }
-
-  function recordTransportSample(speedKmh) {
-    if (!state.transportDetectiveEnabled || !state.experimentalMode || !Number.isFinite(speedKmh)) return;
-    const now = Date.now();
-    const moving = speedKmh >= 3;
-    state.transportSamples.push({
-      t: now,
-      speed: speedKmh,
-      roadConfirmed: Boolean(roadBrain.getState().accepted && roadBrain.freshnessForPosition(state.lastStatsPosition).fresh)
-    });
-
-    if (moving && !state.transportMoving) {
-      state.transportMoving = true;
-      if (state.transportStopStartedAt && now - state.transportStopStartedAt >= 6000) {
-        state.transportStops.push(state.transportStopStartedAt);
-      }
-      state.transportStopStartedAt = null;
-    } else if (!moving && state.transportMoving) {
-      state.transportMoving = false;
-      state.transportStopStartedAt = now;
-    } else if (!moving && !state.transportStopStartedAt) {
-      state.transportStopStartedAt = now;
-    }
-
-    classifyTransport(now);
-  }
-
   function applyExperimentalSettings() {
     const enabled = state.experimentalMode;
     $("experimentalSwitch").classList.toggle("on", enabled);
     $("experimentalThemeSetting").classList.toggle("show", enabled);
     $("experimentalThemeSetting").setAttribute("aria-hidden", String(!enabled));
-    updateTransportUi();
-    updateJourneyUi(true);
     $("visualClassicButton").classList.toggle("active", state.visualTheme === "classic");
     $("visualModernButton").classList.toggle("active", state.visualTheme === "modern");
     document.body.classList.toggle("modern-theme", enabled && state.visualTheme === "modern");
@@ -4106,83 +3163,18 @@
     }
   }
 
-  function hasStrongRailTransitContext(now = Date.now()) {
-    const candidate = state.transitCandidate;
-    const candidateFresh = candidate && now - candidate.matchedAt <= TRANSIT_CANDIDATE_MAX_AGE_MS;
-    if (candidateFresh && (candidate.mode === "train" || candidate.mode === "tram") && candidate.confidence >= .55) {
-      return candidate.mode;
-    }
-    const guess = state.transportGuess;
-    if (guess && (guess.mode === "train" || guess.mode === "tram") && guess.confidence >= .75) return guess.mode;
-    return null;
-  }
-
-  function median(values) {
-    const sorted = values.filter(Number.isFinite).slice().sort((a,b) => a-b);
-    if (!sorted.length) return null;
-    const middle = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
-  }
-
-  function deriveTransitLongBaselineSpeed(coords, sampleTime) {
-    const now = Date.now();
-    const railMode = hasStrongRailTransitContext(now);
-    const accuracy = Number(coords?.accuracy);
-    const usable = Number.isFinite(coords?.latitude) && Number.isFinite(coords?.longitude) &&
-      Number.isFinite(accuracy) && accuracy <= TRANSIT_SPEED_RECOVERY_MAX_ACCURACY_M;
-
-    state.transitSpeedRecoverySamples = state.transitSpeedRecoverySamples
-      .filter(sample => sampleTime - sample.timestamp <= TRANSIT_SPEED_RECOVERY_WINDOW_MS);
-
-    if (usable) {
-      state.transitSpeedRecoverySamples.push({
-        latitude: coords.latitude, longitude: coords.longitude, accuracy, timestamp: sampleTime
-      });
-      state.transitSpeedRecoverySamples = state.transitSpeedRecoverySamples.slice(-40);
-    }
-
-    if (!railMode || !usable || state.transitSpeedRecoverySamples.length < 3) return null;
-
-    const current = state.transitSpeedRecoverySamples.at(-1);
-    const estimates = [];
-    for (const older of state.transitSpeedRecoverySamples.slice(0, -1)) {
-      const dtMs = current.timestamp - older.timestamp;
-      if (dtMs < TRANSIT_SPEED_RECOVERY_MIN_BASELINE_MS || dtMs > TRANSIT_SPEED_RECOVERY_WINDOW_MS) continue;
-      const metres = distanceMetres(older, current);
-      const uncertainty = Math.max(older.accuracy, current.accuracy);
-      if (metres < Math.max(60, uncertainty * .55)) continue;
-      const kmh = metres / (dtMs / 1000) * 3.6;
-      if (kmh >= 5 && kmh <= 180) estimates.push(kmh);
-    }
-    if (estimates.length < 2) return null;
-
-    const recovered = median(estimates);
-    const deviations = estimates.map(value => Math.abs(value - recovered));
-    const medianDeviation = median(deviations) ?? 0;
-    if (!Number.isFinite(recovered) || medianDeviation > Math.max(18, recovered * .45)) return null;
-
-    return { kmh: recovered, mode: railMode, estimates: estimates.length, medianDeviation };
-  }
-
   function onPosition(position) {
     const c = position.coords;
     if (startupGpsPending) {
-      if (state.experimentalMode && state.transportDetectiveEnabled && state.transitServiceStatus === "unchecked") {
-        checkPublicTransportService(c);
-      }
       completeGpsConnection({ startup: true });
     } else if ($("gpsConnectOverlay").classList.contains("open")) completeGpsConnection({ startup: false });
     const sampleTime = position.timestamp;
-    // Transport recovery remains external and runs only when native velocity is absent.
-    const nativeSpeedPresent = typeof c.speed === "number" && c.speed >= 0;
-    const transitRecovery = nativeSpeedPresent ? null : deriveTransitLongBaselineSpeed(c, sampleTime);
     const speedResult = speedBrain.process({
       latitude: c.latitude,
       longitude: c.longitude,
       timestamp: sampleTime,
       accuracy: c.accuracy,
       speedMps: c.speed,
-      transitRecoveryKmh: transitRecovery?.kmh,
       watchActive: state.watchId !== null
     });
     const {
@@ -4213,8 +3205,6 @@
       decision,
       reasons,
       driverUiActive: state.driverModeActive,
-      transitRecoveryMode: transitRecovery?.mode || "",
-      transitRecoveryEstimates: transitRecovery?.estimates ?? null
     });
 
     if (state.statisticsEnabled) {
@@ -4232,8 +3222,6 @@
       state.lastStatsPosition = null;
     }
 
-    recordTransportSample(state.targetSpeed);
-    maybeMatchPublicTransport(c);
 
     if (state.roadServiceStatus === "unchecked") validateRoadService(c);
 
@@ -4421,9 +3409,6 @@
     if (!startup) $("gpsConnectOverlay").classList.remove("open");
     if (startup) {
       $("launchStepLocation").textContent = "Finding your location…";
-      state.transitServiceStatus = "unchecked";
-      const transitStep = $("launchStepTransit");
-      if (transitStep) transitStep.classList.toggle("hidden", !(state.experimentalMode && state.transportDetectiveEnabled));
       setLaunchSteps("complete", "active", "");
     } else {
       statusTarget.textContent = "Acquiring satellites…";
@@ -4598,43 +3583,6 @@
     state.theme = "light";
     localStorage.setItem("speedoTheme", state.theme);
     applyTheme();
-  });
-
-  function clearTransportExperimentState() {
-    state.transportSamples = [];
-    state.transportStops = [];
-    state.transportMoving = false;
-    state.transportStopStartedAt = null;
-    state.transportGuess = { mode: "unknown", confidence: 0, reason: "Not enough movement yet." };
-    state.transitCandidate = null;
-    state.transitEvidence = [];
-    state.transitSpeedRecoverySamples = [];
-  }
-
-  $("transportDetectiveSwitch").addEventListener("click", () => {
-    const standaloneWasEnabled = state.transportDetectiveEnabled && !state.journeyModeEnabled;
-    state.journeyModeEnabled = false;
-    localStorage.setItem("journeyModeEnabled", "false");
-    resetJourneySession();
-
-    state.transportDetectiveEnabled = !standaloneWasEnabled;
-    localStorage.setItem("transportDetectiveEnabled", String(state.transportDetectiveEnabled));
-    if (!state.transportDetectiveEnabled) clearTransportExperimentState();
-
-    updateTransportUi();
-    showToast(state.transportDetectiveEnabled ? "Transport Detective on" : "Transport Detective off");
-  });
-
-  $("journeyModeSwitch").addEventListener("click", () => {
-    const turningOn = !state.journeyModeEnabled;
-    state.journeyModeEnabled = turningOn;
-    state.transportDetectiveEnabled = turningOn;
-    localStorage.setItem("journeyModeEnabled", String(state.journeyModeEnabled));
-    localStorage.setItem("transportDetectiveEnabled", String(state.transportDetectiveEnabled));
-    resetJourneySession();
-    if (!turningOn) clearTransportExperimentState();
-    updateTransportUi();
-    showToast(turningOn ? "Super Simple Journey on" : "Super Simple Journey off");
   });
 
   $("experimentalSwitch").addEventListener("click", () => {
@@ -4881,19 +3829,6 @@
     showToast("Diagnostic archive cleared");
   });
 
-  document.querySelectorAll("[data-ground-truth]").forEach(button => {
-    button.addEventListener("click", () => {
-      const actualMode = button.dataset.groundTruth;
-      const predictedMode = state.transportGuess?.mode || "unknown";
-      const predictedConfidence = Math.round((state.transportGuess?.confidence || 0) * 100);
-      addDiagnostic({
-        event: "GROUND_TRUTH", outcome: "LABELLED", actualMode, predictedMode, predictedConfidence,
-        transitLine: state.transitCandidate?.line || "", transitDestination: state.transitCandidate?.to || ""
-      });
-      showToast(`Saved actual mode: ${actualMode}`);
-    });
-  });
-
   async function disconnectDrive() {
     checkpointUsageTime();
     state.driveSessionActive = false;
@@ -4912,7 +3847,6 @@
     state.points = [];
     state.lastAcceptedSpeed = 0;
     speedBrain.reset();
-    state.transitSpeedRecoverySamples = [];
     state.lookupBusy = false;
     state.lastLookupAt = 0;
     state.lastLookupPosition = null;
@@ -5005,7 +3939,6 @@
   setTimeout(showInstallCard, 4600);
   applyTheme();
   applyExperimentalSettings();
-  setInterval(() => updateJourneyUi(true), 1000);
   applyStatisticsSettings();
   try { updateDiagnosticsDisplay(); } catch (_) {}
   applyVisibility();

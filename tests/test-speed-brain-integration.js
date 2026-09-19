@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-// Execute the generated app's actual callback, transport recovery, rendering and
+// Execute the generated app's actual callback, rendering and
 // reset functions. Only platform/UI/network effects are substituted. This is not
 // a full DOM or physical GPS test; the frozen profile suite owns algorithm replay.
 function functionSource(html, name) {
@@ -32,8 +32,7 @@ function harness(html) {
     watchId: 1, lastAcceptedSpeed: 0, targetSpeed: 0, displayedSpeed: 0,
     driverModeActive: false, driverExitTimer: null, lastDriverUiLogState: false,
     statisticsEnabled: true, stats: { maxSpeed: 0, metres: 0, trips: 0 },
-    points: [], lastStatsPosition: null, transitSpeedRecoverySamples: [],
-    transitCandidate: null, transportGuess: { mode: 'unknown', confidence: 0 },
+    points: [], lastStatsPosition: null,
     roadServiceStatus: 'ready', mode: 'manual', apiKey: 'test-key', limit: null
   };
   const sandbox = {
@@ -45,7 +44,6 @@ function harness(html) {
     roadEl: element('road'), startEl: element('start'),
     addDiagnostic: entry => { logs.push(entry); effects.push({ type: entry.event || 'SPEED', accepted: state.lastAcceptedSpeed, target: state.targetSpeed }); },
     saveStats: () => { saves.push({ ...state.stats }); effects.push({ type: 'SAVE', accepted: state.lastAcceptedSpeed, target: state.targetSpeed }); },
-    recordTransportSample: speed => effects.push({ type: 'TRANSPORT', speed }),
     setTimeout: (fn, delay) => { const id = nextTimer++; timers.set(id, { fn, delay, at: now + delay }); return id; },
     clearTimeout: id => timers.delete(id), requestAnimationFrame: () => {},
     shouldLookup: () => false,
@@ -53,7 +51,7 @@ function harness(html) {
     completeGpsConnection: () => { sandbox.startupGpsPending = false; effects.push({ type: 'CONNECTED' }); },
     releaseWakeLock: async () => {}
   };
-  for (const name of ['onError', 'applyVisibility', 'maybeMatchPublicTransport', 'validateRoadService', 'setAutomaticStatus', 'lookupSpeedLimit', 'checkPublicTransportService', 'requestWakeLock', 'audioContext', 'roadServiceFailure', 'setLaunchSteps', 'finishStartupWithoutGps', 'setMatchStage', 'maintainWakeLock', 'checkpointUsageTime', 'setLimit', 'showToast', 'updateSpeedDial', 'handleOverspeed']) sandbox[name] = () => {};
+  for (const name of ['onError', 'applyVisibility', 'validateRoadService', 'setAutomaticStatus', 'lookupSpeedLimit', 'requestWakeLock', 'audioContext', 'roadServiceFailure', 'setLaunchSteps', 'finishStartupWithoutGps', 'setMatchStage', 'maintainWakeLock', 'checkpointUsageTime', 'setLimit', 'showToast', 'updateSpeedDial', 'handleOverspeed']) sandbox[name] = () => {};
   // iOS packaging substitutes this platform boundary for browser geolocation.
   sandbox.window.__SPEEDO_NATIVE_GEOLOCATION__ = sandbox.navigator.geolocation;
   vm.createContext(sandbox);
@@ -67,8 +65,8 @@ function harness(html) {
   assert.ok(speedInitialization, 'generated application creates its session Speed Brain');
   const roadInitialization = html.match(/  const roadBrain = window\.FrenanoRoadBrain\.createRoadBrain\([^\n]*\);/);
   assert.ok(roadInitialization, 'generated application creates its session Road Brain');
-  const constants = [...html.matchAll(/^  const (?:DRIVER_MODE_\w+|TRANSIT_CANDIDATE_MAX_AGE_MS|TRANSIT_SPEED_RECOVERY_\w+) = .+;/gm)].map(m => m[0]);
-  const functions = ['onPosition', 'distanceMetres', 'roundDiagnostic', 'hasStrongRailTransitContext', 'median', 'deriveTransitLongBaselineSpeed', 'applyDriverMode', 'logDriverUiChange', 'startGPS', 'disconnectDrive', 'animateSpeed', 'applySpeedBrainDriverTransition'];
+  const constants = [...html.matchAll(/^  const DRIVER_MODE_\w+ = .+;/gm)].map(m => m[0]);
+  const functions = ['onPosition', 'distanceMetres', 'roundDiagnostic', 'applyDriverMode', 'logDriverUiChange', 'startGPS', 'disconnectDrive', 'animateSpeed', 'applySpeedBrainDriverTransition'];
   vm.runInContext([...constants, speedInitialization[0], roadInitialization[0], ...functions.map(name => functionSource(html, name))].join('\n'), sandbox);
   return { state, logs, effects, saves, timers, element, sandbox,
     sample(kmh, timestamp = 0, latitude = 0, accuracy = 1) {
@@ -88,7 +86,7 @@ async function runIntegration(html) {
   let h = harness(html);
   let d = h.sample(36.4);
   assert.equal(h.state.stats.maxSpeed, 36);
-  assert.deepEqual(h.effects.map(e => e.type), ['SAVE', 'DRIVER_UI_CHANGE', 'SPEED', 'TRANSPORT']);
+  assert.deepEqual(h.effects.map(e => e.type), ['SAVE', 'DRIVER_UI_CHANGE', 'SPEED']);
   assert.equal(h.effects[1].target, 36.4);
   assert.equal(h.effects[1].accepted, 36.4);
   assert.equal(d.speedDecision, 'ACCEPTED');
@@ -147,11 +145,9 @@ async function runIntegration(html) {
 
   h = harness(html);
   h.sample(10); h.sample(6, 1000);
-  h.state.transitSpeedRecoverySamples = [{ timestamp: 0 }];
   await h.sandbox.startGPS();
   assert.equal(h.timers.size, 0, 'startGPS clears actual timer');
   assert.equal(h.state.targetSpeed, 0);
-  assert.equal(h.state.transitSpeedRecoverySamples.length, 1, 'Brain reset does not reset transport history');
   d = h.sample(10, 2000);
   assert.equal(d.derivedKmh, null, 'startGPS resets speed baseline');
   assert.equal(h.state.driverModeActive, true, 'startGPS resets logical driver state');
@@ -163,39 +159,29 @@ async function runIntegration(html) {
   release();
   await disconnecting;
   assert.equal(h.timers.size, 0, 'disconnect clears actual timer');
-  assert.equal(h.state.transitSpeedRecoverySamples.length, 0);
   h.state.watchId = 1;
   d = h.sample(10, 4000);
   assert.equal(d.derivedKmh, null);
   assert.equal(h.state.driverModeActive, true, 'disconnect resets logical driver state');
 
-  // Real external recovery buffer/context/median function, never fake recovery.
+  // Position-derived starts require three consistent segments before display.
   h = harness(html);
-  h.state.transitCandidate = { mode: 'train', confidence: .6, matchedAt: 1000000 };
-  h.sample(null, 0, 0, 100);
-  h.sample(null, 10000, .001, 100);
-  d = h.sample(null, 20000, .002, 100);
-  assert.equal(d.speedSource, 'TRANSIT_LONG_BASELINE');
-  assert.equal(d.transitRecoveryMode, 'train');
-  assert.equal(d.transitRecoveryEstimates, 2);
-  assert.equal(d.displayedKmh, 40);
+  h.sample(null, 0, 0, 1);
+  d = h.sample(null, 5000, .0005, 1);
+  assert.equal(d.speedSource, 'POSITION_DERIVED');
   assert.equal(d.derivedKmh, 40);
-  assert.deepEqual(Array.from(d.reasons), ['POOR_POSITION_ACCURACY', 'TRANSIT_LONG_BASELINE_RECOVERY']);
-  const buffer = JSON.stringify(h.state.transitSpeedRecoverySamples);
-  h.sample(40, 30000, .003, 100);
-  assert.equal(JSON.stringify(h.state.transitSpeedRecoverySamples), buffer, 'native speed skips recovery and buffer insertion/pruning');
-  d = h.sample(Infinity, 40000, .004, 100);
+  assert.equal(d.displayedKmh, 0);
+  assert.ok(d.reasons.includes('START_FROM_STATIONARY_UNCONFIRMED'));
+  assert.ok(d.reasons.includes('AWAITING_CONFIRMATION'));
+  d = h.sample(null, 10000, .001, 1);
+  assert.equal(d.displayedKmh, 0);
+  d = h.sample(null, 15000, .0015, 1);
+  assert.equal(d.speedDecision, 'ACCEPTED_CONFIRMED');
+  assert.equal(d.displayedKmh, 40);
+  d = h.sample(40, 20000, .002, 1);
   assert.equal(d.speedSource, 'NATIVE_GPS');
+  d = h.sample(Infinity, 25000, .0025, 1);
   assert.equal(d.rawKmh, null, 'nonfinite diagnostic rounding stays external');
-  assert.equal(JSON.stringify(h.state.transitSpeedRecoverySamples), buffer, 'Infinity is native-present');
-  h.wait(120001);
-  d = h.sample(null, 50000, .005, 100);
-  assert.equal(d.transitRecoveryMode, '', 'stale rail candidate does not recover');
-  assert.equal(h.state.transitSpeedRecoverySamples.length, 2, 'missing-native callback prunes old buffer');
-  h.state.transportGuess = { mode: 'tram', confidence: .8 };
-  h.sample(null, 60000, .006, 100);
-  d = h.sample(null, 70000, .007, 100);
-  assert.equal(d.transitRecoveryMode, 'tram', 'strong classifier context enables actual recovery');
 
   h = harness(html);
   h.sandbox.onPosition({ timestamp: 0, coords: { latitude: 0, longitude: 0, speed: 10 } });
@@ -213,9 +199,9 @@ async function runIntegration(html) {
   h = harness(html);
   h.sandbox.startupGpsPending = true;
   h.sample(10);
-  assert.deepEqual(h.effects.map(e => e.type), ['STARTUP_GPS_FIRST_CALLBACK', 'CONNECTED', 'SAVE', 'DRIVER_UI_CHANGE', 'SPEED', 'TRANSPORT']);
+  assert.deepEqual(h.effects.map(e => e.type), ['STARTUP_GPS_FIRST_CALLBACK', 'CONNECTED', 'SAVE', 'DRIVER_UI_CHANGE', 'SPEED']);
   assert.ok(html.includes('const speedBrain = window.FrenanoSpeedBrain.createSpeedBrain({ profile: "frenano-app-v1" });'), 'live callback must use one named-profile Brain');
-  console.log('PASS live Speed Brain adapter: statistics, diagnostics/order, timers/reset, actual rail recovery, startup, smoothing/mph');
+  console.log('PASS live Speed Brain adapter: statistics, diagnostics/order, timers/reset, GPS-derived fallback, startup, smoothing/mph');
 }
 
 module.exports = { runIntegration };

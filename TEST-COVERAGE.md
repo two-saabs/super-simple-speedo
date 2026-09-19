@@ -17,7 +17,7 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Derived confirmation recovery | ✅ | Fixture: `08-confirm-hold-recover.json`. |
 | Diagnostics schema and persistence | ✅ | Regression contracts validate timestamps, schema versioning, event creation, storage, trimming, session markers and export behaviour. The privacy suite executes the generated sanitised support formatter with sensitive sentinel values. |
 | Road Brain unit coverage | ✅ | `tests/test-road-brain.js` protects road-name sanitisation, moving and stationary confirmation, quality rejection, invalid road classes and limits, retained accepted results, no-limit behaviour, three-entry candidate history, reset behaviour and Road Brain v1.0.0. |
-| Road Brain adapter/integration coverage | ✅ contract | `tests/test-road-brain-integration.js` protects browser-runtime injection, the neutral Geoapify-to-Brain observation boundary, canonical decision mapping, single Brain ownership, Transport consumption of canonical evidence and web/iOS build integration. |
+| Road Brain adapter/integration coverage | ✅ contract | `tests/test-road-brain-integration.js` protects browser-runtime injection, the neutral Geoapify-to-Brain observation boundary, canonical decision mapping, single Brain ownership, absence of removed Transport consumers and web/iOS build integration. |
 | Road Brain spatial freshness coverage | ✅ | Unit and integration contracts protect the 60 m spatial-freshness boundary and require the application/build transform to delegate freshness decisions to Road Brain rather than duplicating the threshold. |
 | Road lookup / road freshness | ✅ contract | Regression/build contracts protect confirmed-road state, stale-road distance behaviour, candidate roads and speed-limit UI state. |
 | Geoapify proxy | ✅ contract | CI checks server-side key usage, reverse/map-matching actions and CORS contract. |
@@ -27,12 +27,9 @@ This document tracks *what* Frenano protects with automated tests. It complement
 | Native iOS startup | ✅ package | iOS CI verifies native packaging and automatic startup without the web button. |
 | Frenano branding/assets | ✅ | CI checks required production PNGs and built output branding. |
 | Settings/support UI | ✅ contract | Regression/build checks protect settings sections, support address, diagnostic sharing and hidden experimental controls. |
-| Generated Speed Brain integration | ✅ contract | The built app's Brain runtime and live GPS callback are executed together to check statistics, diagnostics ordering, timers/reset, transit recovery, startup and speed presentation. |
-| Transport classifier | ✅ contract | Regression contracts cover walking, bus, car, tram and train scoring plus hysteresis. |
-| Journey mode | ✅ contract | Regression contracts cover segment creation, waiting delay and transport-engine dependency. |
-| Swiss public-transport matching | ✅ contract | Regression contracts protect stationboard/location API integration, timetable evidence and transit-match diagnostics. |
+| Generated Speed Brain integration | ✅ contract | The built app's Brain runtime and live GPS callback are executed together to check statistics, diagnostics ordering, timers/reset, GPS-derived fallback, startup and speed presentation. |
 | Native iOS UI interactions | 🟡 limited | UI-test source exists, but native interaction coverage is still much smaller than the JavaScript/build contract suite. |
-| Live external road/timetable services | 🟡 integration/manual | CI validates our contracts; real provider availability and real-world matching still require field testing. Live Geoapify correctness is not covered by deterministic CI and remains a field/integration concern. |
+| Live external road service | 🟡 integration/manual | CI validates our contracts; real provider availability and real-world matching still require field testing. Live Geoapify correctness is not covered by deterministic CI and remains a field/integration concern. |
 
 ## Behaviour scenarios
 
@@ -46,10 +43,11 @@ Next scenarios worth adding from real field logs:
 4. Stale speed-limit confirmation after moving away from a matched road.
 5. Walking sequence.
 6. Bus stop/start sequence.
-7. Tram sequence with strong road proximity.
-8. Train sequence with weak road evidence and timetable evidence.
+7. Repeated stops with poor GPS accuracy.
+8. Missing native velocity with consistent position-derived movement.
 9. Sudden temporary poor accuracy during an otherwise clean journey.
-10. Long-baseline transit-speed recovery.
+
+Speed Brain compatibility inputs (including historical recovery input) remain frozen; the app no longer produces transit recovery evidence.
 
 ## Code coverage
 

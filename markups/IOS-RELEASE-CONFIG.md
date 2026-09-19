@@ -14,8 +14,7 @@ This file records the agreed release identity and the values to use when creatin
 ## Release behaviour
 
 - Stable App Store build only.
-- Experimental Journey / Transport Detective UI remains hidden and inactive.
-- Swiss public-transport API calls remain blocked in the stable build.
+- Transport/Journey UI, runtime and Swiss timetable requests are removed from all builds.
 - Privacy-safe **Help & Diagnostics** is included.
 - Diagnostic sharing is user initiated only; nothing is uploaded automatically.
 - Geoapify access uses the secure Frenano server proxy; the API key must not be packaged in iOS.

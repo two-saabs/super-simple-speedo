@@ -20,11 +20,34 @@ const forbiddenTransportJourneyMarkers = [
   'recordTransportSample',
   'resetJourneySession',
   'Super Simple Journey',
-  'Transport Detective'
+  'Transport Detective',
+  'transport.opendata.ch',
+  'launchStepTransit',
+  'transitCandidate',
+  'transitEvidence',
+  'transitSpeedRecoverySamples',
+  'deriveTransitLongBaselineSpeed',
+  'hasStrongRailTransitContext',
+  'classifyTransport',
+  'observeJourney',
+  'liveIntelligence',
+  'hypothesisRace',
+  'groundTruth',
+  'data-ground-truth',
+  'GROUND_TRUTH',
+  'TRANSIT_QUERY',
+  'TRANSIT_MATCH',
+  'TRANSPORT_GUESS',
+  'experimental-choice-card',
+  'experimental-transport-setting'
 ];
 
+const runtimeSources = [template, ...['build.js', 'service-worker.js', '_headers'].map(file => fs.readFileSync(path.join(root, file), 'utf8')),
+  ...fs.readdirSync(path.join(root, 'build')).filter(file => file.endsWith('.js'))
+    .map(file => fs.readFileSync(path.join(root, 'build', file), 'utf8'))].join('\n');
+
 for (const marker of forbiddenTransportJourneyMarkers) {
-  assert.ok(!template.includes(marker), `removed Transport/Journey marker must stay absent: ${marker}`);
+  assert.ok(!runtimeSources.includes(marker), `removed Transport/Journey marker must stay absent: ${marker}`);
 }
 
 console.log('Dead-feature purge contract passed: Transport/Journey is absent.');

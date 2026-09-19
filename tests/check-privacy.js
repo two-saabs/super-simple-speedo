@@ -21,10 +21,7 @@ console.log('\nSuper Simple Speedo production privacy gate\n');
 
 check(/const experimentalFeatures = buildProfile\.experimentalFeatures === true/.test(build), 'build profile controls experimental features');
 check(/if \(!EXPERIMENTAL_FEATURES\)/.test(build), 'stable release guard exists');
-check(/includes\("transport\.opendata\.ch"\)/.test(build) && /Experimental transport API disabled in stable build/.test(build), 'stable build blocks Swiss PT network calls');
 check(/experimentalMode: EXPERIMENTAL_FEATURES &&/.test(build), 'experimental mode cannot activate in stable build');
-check(/transportDetectiveEnabled: EXPERIMENTAL_FEATURES &&/.test(build), 'transport detective cannot activate in stable build');
-check(/journeyModeEnabled: EXPERIMENTAL_FEATURES &&/.test(build), 'journey mode cannot activate in stable build');
 
 check(/no\s+account/i.test(template), 'no-account promise remains present');
 check(/no\s+ads/i.test(template), 'no-ads promise remains present');
@@ -120,6 +117,8 @@ if (reportMatch) {
 
 check(/DIAGNOSTIC_MAX_ENTRIES = 300/.test(support), 'stable recent diagnostic window is capped at 300 events');
 check(/DIAGNOSTIC_ARCHIVE_DAYS = 1/.test(support), 'stable diagnostic archive retention is one day');
+
+check(!/transport\.opendata\.ch/.test(template + build), 'no transport endpoint remains in runtime or build');
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'}: ${failures.length} privacy failure(s)`);
 process.exit(failures.length ? 1 : 0);

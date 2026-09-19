@@ -33,7 +33,7 @@ for (const token of ['MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION', 'START_F
 }
 requireCondition('speed callback delegates distance math to Brain', !speedCallback.slice(0, speedCallback.indexOf('    if (state.statisticsEnabled)')).includes('distanceMetres('));
 requireCondition('Brain owns speed distance radius', canonicalBrain.includes('6371000'));
-requireCondition('template retains shared Road/Transport distance helper', template.includes('const R = 6371000;'));
+requireCondition('template retains shared road lookup/statistics distance helper', template.includes('const R = 6371000;'));
 requireCondition('application creates exactly one named-profile Brain',
   (template.match(/window\.FrenanoSpeedBrain\.createSpeedBrain/g) || []).length === 1 &&
   template.includes('createSpeedBrain({ profile: "frenano-app-v1" })'));

@@ -181,8 +181,8 @@ function injectSupportDiagnostics(html, { appVersion, buildChannel, experimental
 
   html = replaceRequired(
     html,
-    '  function liveIntelligenceLine(item) {',
-    `${supportCode}  function liveIntelligenceLine(item) {`,
+    '  function updateDiagnosticsDisplay() {',
+    `${supportCode}  function updateDiagnosticsDisplay() {`,
     'sanitised support report code insertion'
   );
 

@@ -15,7 +15,6 @@ const result = brain.process({
   longitude: position.coords.longitude,
   accuracy: position.coords.accuracy,
   speedMps: position.coords.speed,
-  transitRecoveryKmh: recovery?.kmh,
   watchActive: state.watchId !== null
 });
 ```
@@ -46,16 +45,17 @@ confirmation uses previous accepted speed strictly below 6; entry remains >=10.
 Distance preserves the original `toRad(b.latitude - a.latitude)` and
 `2 * R * asin(sqrt(h))` arithmetic without numeric clamping or new tolerances.
 
-`transitRecoveryKmh` is optional existing external recovery evidence. Absent,
-undefined or null means no recovery. The adapter calls the unchanged transport
-recovery function **only when native speed is absent by the rule above**. Its
-rail context, timestamps, buffers, mode and estimate count stay outside Brain.
+`transitRecoveryKmh` remains an optional Speed Brain compatibility input. Absent,
+undefined or null means no recovery. Since the 2026-09-19 Transport/Journey purge,
+the live app no longer supplies this input: its rail-context adapter and buffers
+are removed. The following recovery semantics describe the unchanged Brain API
+and frozen historical fixtures, not a live Frenano feature.
 Native speed has first priority, recovery second, ordinary derived speed third.
 Recovery retains `TRANSIT_LONG_BASELINE`, its recovery reason, contradiction
 exemption, two-confirmation behavior when confirmation is needed, and bypass of
 derived-only start/stop/uncertainty/direction checks. Ordinary segment diagnostics
 and original reason ordering remain, including `SPEED_NOT_AVAILABLE` on a first
-recovered sample. Transport buffer resets are independent of Brain reset.
+recovered sample.
 
 ## Result and driver callback lifecycle
 
@@ -126,5 +126,6 @@ Run `node tests/test-speed-engine.js`: this replays all eight unchanged legacy
 fixtures through both interfaces and the focused application-profile suite.
 The latter covers 59 scenarios / 177 events, exact distance/decision/reason values,
 delayed callbacks, malformed observations, independent sessions and privacy.
-Transport buffer computation and the real live adapter/build/statistics/DOM
-integration are separate Task4 checks; these fixtures do not claim that coverage.
+The live adapter/build/statistics/DOM integration is checked separately, including
+GPS-derived fallback and confirmation. Transport buffer integration checks were
+removed with the subsystem; these frozen fixtures retain Brain compatibility coverage.

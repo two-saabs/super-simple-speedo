@@ -1,5 +1,7 @@
 # Speed Brain v1.0.0 Implementation Plan
 
+> Historical implementation document. Transport/Journey preservation or integration requirements below are superseded by the 2026-09-19 purge; they do not require restoring the removed subsystem.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Extract Frenano's existing speed intelligence into a self-contained, deterministic, independently versioned Speed Brain v1.0.0 with zero intentional speed-behaviour change.

@@ -38,7 +38,6 @@ function applySimpleStartup(html) {
     <div class="launch-checklist hidden" id="launchChecklist" aria-hidden="true">
       <div class="launch-step" id="launchStepStart"></div>
       <div class="launch-step" id="launchStepLocation"></div>
-      <div class="launch-step hidden" id="launchStepTransit"></div>
       <div class="launch-step" id="launchStepReady"></div>
     </div>
     <div id="launchSatelliteTrack" class="hidden" aria-hidden="true"></div>

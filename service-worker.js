@@ -41,7 +41,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(request.url);
 
   // Never cache location-bearing or cross-origin API requests.
-  if (url.origin !== self.location.origin || url.hostname === "api.geoapify.com" || url.hostname === "transport.opendata.ch") return;
+  if (url.origin !== self.location.origin || url.hostname === "api.geoapify.com") return;
 
   // Brand and website imagery are network-first so releases cannot be trapped behind old assets.
   if (url.pathname.startsWith("/images/")) {

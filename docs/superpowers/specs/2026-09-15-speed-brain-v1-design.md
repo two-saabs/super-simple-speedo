@@ -1,5 +1,7 @@
 # Speed Brain v1.0.0 Design
 
+> Historical implementation document. Transport/Journey preservation or integration requirements below are superseded by the 2026-09-19 purge; they do not require restoring the removed subsystem.
+
 Date: 2026-09-15
 Status: Approved design; implementation not started
 Scope: Architectural extraction of Frenano's existing speed intelligence

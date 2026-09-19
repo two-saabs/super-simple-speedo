@@ -78,6 +78,9 @@ jobs:
       - name: Check removed-feature contracts
         run: node tests/check-dead-feature-purge.js
 
+      - name: Check visible elements contract
+        run: node tests/check-visible-elements.js
+
       - name: Check build ownership contracts
         run: node tests/check-build-ownership.js
 

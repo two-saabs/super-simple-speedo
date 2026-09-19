@@ -52,14 +52,8 @@ assert.ok(automaticStatusSource.includes('roadBrain.freshnessForPosition('), 'au
 assert.ok(automaticStatusSource.includes('"Last confirmed"'), 'automatic road UI distinguishes stale retained evidence from current confirmation');
 assert.ok(!automaticStatusSource.includes('const hasLastConfirmed = Boolean(accepted);'), 'automatic road UI does not equate any historical accepted road with current confirmation');
 
-const transportSampleStart = appSource.indexOf('  function recordTransportSample(speedKmh) {');
-const transportSampleEnd = appSource.indexOf('\n  function applyExperimentalSettings()', transportSampleStart);
-assert.ok(transportSampleStart >= 0 && transportSampleEnd > transportSampleStart, 'generated app retains Transport sample adapter');
-const transportSampleSource = appSource.slice(transportSampleStart, transportSampleEnd);
-assert.ok(transportSampleSource.includes('roadBrain.getState().accepted'), 'Transport reads canonical accepted road evidence from Road Brain');
-assert.ok(transportSampleSource.includes('roadBrain.freshnessForPosition('), 'Transport requires accepted road evidence to be spatially fresh for the current position');
-assert.ok(!transportSampleSource.includes('roadConfirmed: Boolean(roadBrain.getState().accepted)'), 'Transport does not treat any historical accepted road as currently confirmed');
-assert.ok(!transportSampleSource.includes('state.acceptedAutoRoad'), 'Transport does not infer road confirmation from copied app state');
+assert.ok(!appSource.includes('recordTransportSample'), 'generated road adapter has no removed Transport consumer');
+
 
 assert.ok(/path\.join\(distDir,\s*["']app["'],\s*["']index\.html["']\)/.test(iosSource), 'iOS packages shared web build');
 assert.ok(!iosSource.includes('brains/road-brain.js'), 'iOS builder does not duplicate Road Brain source');

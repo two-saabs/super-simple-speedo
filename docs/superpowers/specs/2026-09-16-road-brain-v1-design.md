@@ -1,5 +1,7 @@
 # Road Brain v1 Design
 
+> Historical implementation document. Transport/Journey preservation or integration requirements below are superseded by the 2026-09-19 purge; they do not require restoring the removed subsystem.
+
 **Status:** Frozen for extraction
 
 ## Goal

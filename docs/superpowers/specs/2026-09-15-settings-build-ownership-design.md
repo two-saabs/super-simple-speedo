@@ -1,5 +1,7 @@
 # Settings Build Ownership Cleanup Design
 
+> Historical implementation document. Transport/Journey preservation or integration requirements below are superseded by the 2026-09-19 purge; they do not require restoring the removed subsystem.
+
 ## Goal
 
 Reduce hidden coupling in Frenano's build-time HTML transformation chain without changing the generated user experience or the Speed, Road, or Transport algorithms.
