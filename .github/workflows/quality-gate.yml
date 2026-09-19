@@ -97,6 +97,7 @@ jobs:
         run: |
           node tests/check-settings-ownership.js
           node tests/check-settings-native.js
+          node tests/check-permission-refresh.js
 
       - name: Check build ownership contracts
         run: node tests/check-build-ownership.js
@@ -131,6 +132,7 @@ jobs:
         run: |
           node tests/check-settings-ui.js dist/app/index.html
           node tests/check-settings-native.js dist/app/index.html
+          node tests/check-permission-refresh.js dist/app/index.html
           node tests/check-visible-elements.js dist/app/index.html
           node tests/check-road-card.js dist/app/index.html
           node tests/check-usage-statistics.js dist/app/index.html
@@ -179,6 +181,7 @@ jobs:
       - name: Verify iOS package contract
         run: |
           node tests/check-settings-native.js dist/index.html
+          node tests/check-permission-refresh.js dist/index.html
           node tests/check-visible-elements.js dist/index.html
           node tests/check-road-card.js dist/index.html
           node tests/check-usage-statistics.js dist/index.html

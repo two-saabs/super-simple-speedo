@@ -4062,5 +4062,26 @@
   wrapWebGeolocation();if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initializeSettings,{once:true});else initializeSettings();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshPermissionStatus();});window.addEventListener('pageshow',refreshPermissionStatus);
 })();
 </script>
+<script id="ios-location-state-refresh-v1">
+  (()=>{
+    async function syncNativeLocationRow(){
+      if(!window.__SPEEDO_NATIVE_IOS__) return;
+      let status='unknown';
+      try{ status=(await window.__SPEEDO_NATIVE_PERMISSIONS__?.refresh?.())||'unknown'; }catch(_){}
+      const row=document.getElementById('locationPermissionStatus');
+      const label=document.getElementById('locationPermissionLabel');
+      if(!row||!label)return;
+      row.classList.remove('granted','denied');
+      if(status==='granted'){row.classList.add('granted');label.textContent='On — Frenano can use your location';}
+      else if(status==='denied'){row.classList.add('denied');label.textContent='Off in Settings';}
+      else if(status==='prompt'||status==='prompt-with-rationale'){label.textContent='Off — location is needed to measure your speed';}
+      else label.textContent='Checking location…';
+    }
+    const settings=document.getElementById('settingsButton')||document.querySelector('[data-open-settings]');
+    settings?.addEventListener('click',()=>{syncNativeLocationRow();setTimeout(syncNativeLocationRow,180);});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){syncNativeLocationRow();setTimeout(syncNativeLocationRow,180);}});
+    window.addEventListener('focus',()=>setTimeout(syncNativeLocationRow,80));
+  })();
+  </script>
 </body>
 </html>

@@ -63,9 +63,10 @@ async function run(){
  for(const [ua,help] of [['iPhone','In Safari, open Website Settings for Frenano and choose Location. You can also review Safari location access in iPhone Settings.'],['Android','Open your browser’s site settings for Frenano and choose Location.'],['desktop','Open your browser’s site permissions for Frenano and choose Location.']]){
   const h=await settingsHarness(html,{ua});assert.equal(h.$('locationPermissionHelp').textContent,help);h.close();
  }
- // This independent Onboarding lifecycle intentionally remains separate. It updates
+ // This independent Settings refresh lifecycle intentionally remains separate. It updates
  // the row but not Manage/Open Settings; do not consolidate it in this migration.
- if(html.includes('id="ios-location-state-refresh-v1"')){
+ assert.ok(html.includes('id="ios-location-state-refresh-v1"'),'native Settings owns the ongoing refresh runtime');
+ {
   const h=await settingsHarness(html,{native:true});h.setNativeStatus('denied');h.$('settingsButton').click();await h.settle();
   assert.equal(h.calls.refresh,3);assert.equal(h.$('locationPermissionLabel').textContent,'Off in Settings');assert.equal(h.$('locationPermissionAction').textContent,'Manage');
   assert.deepEqual(h.timers.map(t=>t.delay),[180]);await h.timers.shift().fn();await h.settle();assert.equal(h.calls.refresh,4);

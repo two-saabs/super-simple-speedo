@@ -27,6 +27,9 @@ const help = fs.existsSync(helpPath) ? fs.readFileSync(helpPath, 'utf8') : '';
 requireCondition('Speed Brain has one canonical algorithm owner', fs.existsSync(brainPath));
 requireCondition('Speed Brain browser runtime has a focused build owner', fs.existsSync(runtimePath));
 const buildSource = fs.readFileSync('build.js', 'utf8');
+const onboarding = fs.readFileSync('build/positive-onboarding.js', 'utf8');
+requireCondition('Settings template owns exactly one iOS permission refresh runtime', (template.match(/id="ios-location-state-refresh-v1"/g) || []).length === 1);
+requireCondition('Positive Onboarding no longer owns permission synchronisation', !/__SPEEDO_NATIVE_PERMISSIONS__|locationPermission|ios-location-state-refresh|syncNativeLocationRow/.test(onboarding));
 requireCondition('Visible Elements transform module is retired', !fs.existsSync('build/visible-elements.js'));
 requireCondition('builder no longer imports or invokes Visible Elements transform',
   !/applyVisibleElements|visible-elements/.test(buildSource));

@@ -1,8 +1,9 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { JSDOM } = require('jsdom');
-const settle = async () => { for (let i=0;i<8;i++) await Promise.resolve(); };
-async function settingsHarness(html, { native=false, status='prompt', ready='loading', ua='desktop', queryFails=false, noPermissions=false, nativeFails=false }={}) {
+// Drain both DOM-realm and platform-stub promise chains before assertions.
+const settle = () => new Promise(resolve => setImmediate(resolve));
+async function settingsHarness(html, { native=false, status='prompt', ready='loading', ua='desktop', queryFails=false, noPermissions=false, nativeFails=false, beforeScripts=()=>{} }={}) {
   const dom = new JSDOM(html, { url:'https://frenano.app/app/', runScripts:'outside-only', pretendToBeVisual:true });
   const w=dom.window, d=w.document, $=id=>d.getElementById(id), timers=[], calls={refresh:0,open:0,query:0};
   // Let jsdom finish its own parsing events before explicitly testing either readiness path.
@@ -18,12 +19,13 @@ async function settingsHarness(html, { native=false, status='prompt', ready='loa
   Object.defineProperty(w.navigator,'geolocation',{value:geo});w.__SPEEDO_NATIVE_GEOLOCATION__=geo;
   w.__SPEEDO_NATIVE_PERMISSIONS__={refresh:async()=>{calls.refresh++;if(nativeFails)throw Error('unavailable');return nativeStatus;},openSettings:async()=>{calls.open++;}};
   w.setTimeout=(fn,delay)=>{timers.push({fn,delay});return timers.length;};w.clearTimeout=()=>{};
+  beforeScripts(w);
   // Exercise actual application accordion and close functions, without starting GPS/network loops.
   function functionSource(name) {const start=html.indexOf(`  function ${name}(`);assert.ok(start>=0,name);return html.slice(start,html.indexOf('\n  }',start)+4);}
   w.eval(`const $=id=>document.getElementById(id); const settingsModal=$('settingsModal'); ${['collapseAllSettingsSections','wireSettingsSections','openModal','closeModal'].map(functionSource).join('\n')}\nwireSettingsSections();collapseAllSettingsSections();$('settingsButton').addEventListener('click',()=>openModal(settingsModal));$('closeSettings').addEventListener('click',()=>closeModal(settingsModal));`);
   const ids=['speed-display-units-script','settings-redesign-v2-script','frenano-startup-flow-v5','ios-location-state-refresh-v1'];
-  for(const id of ids){const script=$(id);if(script)w.eval(script.textContent);}
-  if(ready==='loading')d.dispatchEvent(new w.Event('DOMContentLoaded'));
+  for(const script of d.querySelectorAll('script[id]'))if(ids.includes(script.id))w.eval(script.textContent);
+  if(ready==='loading')d.dispatchEvent(new w.Event('DOMContentLoaded',{bubbles:true}));
   await settle();
   return {w,d,$,calls,timers,permission,geo,dom,settle,
     setNativeStatus(value){nativeStatus=value;},

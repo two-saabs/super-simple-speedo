@@ -55,8 +55,8 @@ Permissions API change listener, two initialization refresh calls, pageshow and
 visible-document refresh. Native Manage/Open Settings forwards to the same
 bridge API. Browser help stays user-agent-specific and toggles in place.
 
-`build/positive-onboarding.js` retains its separate native row refresh script
-unchanged: Settings click refreshes now and after 180 ms, visibility refreshes
+The separate `ios-location-state-refresh-v1` script now lives unchanged in
+`index.template.html` under Settings ownership: Settings click refreshes now and after 180 ms, visibility refreshes
 now and after 180 ms, and focus refreshes after 80 ms. It updates the row/label
 but not the action text. `native-ios.js` and its lifecycle are unchanged. These
 paths are intentionally not consolidated here.
@@ -70,3 +70,12 @@ Explicit assertions also verify configured version text. CSS is compared exactly
 Permission transitions, error paths, Close, diagnostics sharing and no automatic
 sharing are exercised. The complete quality gate includes web and iOS packaging;
 its native UI suite step checks suite contracts, not a live simulator run.
+
+The refresh ownership relocation is characterised by
+`tests/check-permission-refresh.js`, which executes the real native adapter with
+controlled Capacitor APIs and a virtual clock. Including its legacy hooks,
+initialization performs three permission checks, Settings-open performs three
+(immediate, 0 ms, 180 ms), visible-document return performs four (three immediate,
+one at 180 ms), and focus performs one at 80 ms. Positive Onboarding retains only
+its existing markup and style transforms. Refresh does not request permission;
+permission requesting remains in native location-watch startup.

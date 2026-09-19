@@ -16,4 +16,7 @@ assert.doesNotMatch(runtime,/createElement|innerHTML|installLocationSetting|deco
 assert.doesNotMatch(startup,/installSettingsClose|settings-top-close|#settingsModal/,'Startup no longer owns Settings Close');
 assert.doesNotMatch(support,/supportSection|data-settings-section|<button/,'diagnostic injection no longer owns Settings markup');
 assert.ok(runtime.includes('const APP_VERSION = "__APP_VERSION__";'),'existing version placeholder is the only Settings build-data boundary');
+const onboarding=fs.readFileSync('build/positive-onboarding.js','utf8');
+assert.equal(d.querySelectorAll('script#ios-location-state-refresh-v1').length,1,'ongoing iOS permission refresh is native Settings runtime');
+assert.doesNotMatch(onboarding,/__SPEEDO_NATIVE_PERMISSIONS__|locationPermission|ios-location-state-refresh|syncNativeLocationRow/,'Positive Onboarding cannot own ongoing Settings permission synchronisation');
 console.log('PASS Settings native ownership: static controls, content, CSS/runtime owner and existing version boundary');

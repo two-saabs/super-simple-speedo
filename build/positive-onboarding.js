@@ -32,29 +32,7 @@ function applyPositiveOnboarding(html) {
   @media(max-height:760px){ .frenano-location-intro.first-run .location-intro-detail{margin-top:10px}.frenano-location-intro.first-run .location-intro-core h1{font-size:38px}.location-intro-promises{margin-top:12px;gap:6px 14px}.location-intro-promise{min-height:58px;padding:7px 0;grid-template-columns:31px minmax(0,1fr);gap:8px}.location-intro-promise-icon{width:29px;height:29px}.location-intro-promise-icon svg{width:27px;height:27px}.location-intro-promise strong{font-size:13px}.location-intro-promise-copy>span{font-size:10px}.location-intro-permission{margin-top:10px;padding:10px 12px}.location-intro-guidance{margin-top:8px;font-size:11px}.frenano-location-intro.first-run .location-enable-button{margin-top:10px} }
   </style>`;
 
-  const js = `<script id="ios-location-state-refresh-v1">
-  (()=>{
-    async function syncNativeLocationRow(){
-      if(!window.__SPEEDO_NATIVE_IOS__) return;
-      let status='unknown';
-      try{ status=(await window.__SPEEDO_NATIVE_PERMISSIONS__?.refresh?.())||'unknown'; }catch(_){}
-      const row=document.getElementById('locationPermissionStatus');
-      const label=document.getElementById('locationPermissionLabel');
-      if(!row||!label)return;
-      row.classList.remove('granted','denied');
-      if(status==='granted'){row.classList.add('granted');label.textContent='On — Frenano can use your location';}
-      else if(status==='denied'){row.classList.add('denied');label.textContent='Off in Settings';}
-      else if(status==='prompt'||status==='prompt-with-rationale'){label.textContent='Off — location is needed to measure your speed';}
-      else label.textContent='Checking location…';
-    }
-    const settings=document.getElementById('settingsButton')||document.querySelector('[data-open-settings]');
-    settings?.addEventListener('click',()=>{syncNativeLocationRow();setTimeout(syncNativeLocationRow,180);});
-    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){syncNativeLocationRow();setTimeout(syncNativeLocationRow,180);}});
-    window.addEventListener('focus',()=>setTimeout(syncNativeLocationRow,80));
-  })();
-  </script>`;
   html = html.replace('</head>', `${css}\n</head>`);
-  html = html.replace('</body>', `${js}\n</body>`);
   return html;
 }
 
