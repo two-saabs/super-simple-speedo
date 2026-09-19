@@ -50,8 +50,12 @@ requireCondition('obsolete speed filtering state and driver decision function re
   !/pendingSpeedCandidate|lastGpsSample|lastSpeedTimestamp|function updateDriverMode/.test(template));
 const compatibilityEngine = fs.readFileSync('speed-engine.js', 'utf8');
 requireCondition('legacy speed-engine is only a facade', compatibilityEngine.includes('require("./brains/speed-brain")'));
-requireCondition('usage statistics has a focused build owner', fs.existsSync(statisticsPath));
-const statistics = fs.readFileSync(statisticsPath, 'utf8');
+requireCondition('Usage Statistics transform module is retired', !fs.existsSync(statisticsPath));
+requireCondition('builder no longer imports or invokes Usage Statistics transform',
+  !/applyUsageStatistics|usage-statistics/.test(buildSource));
+const statistics = template;
+requireCondition('template owns statistics defaults and reset fields',
+  (statistics.match(/maxSpeed: 0, roadsIdentified: 0/g) || []).length === 2);
 requireCondition('usage statistics does not depend on copied Road Brain accepted state',
   !statistics.includes('state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road)'));
 requireCondition('usage statistics observes confirmed Road Brain decisions',

@@ -84,6 +84,9 @@ jobs:
       - name: Check native Road Card contract
         run: node tests/check-road-card.js
 
+      - name: Check native Usage Statistics contract
+        run: node tests/check-usage-statistics.js
+
       - name: Check build ownership contracts
         run: node tests/check-build-ownership.js
 
@@ -118,6 +121,7 @@ jobs:
           node tests/check-settings-ui.js dist/app/index.html
           node tests/check-visible-elements.js dist/app/index.html
           node tests/check-road-card.js dist/app/index.html
+          node tests/check-usage-statistics.js dist/app/index.html
 
       - name: Check release-channel contracts
         run: node tests/check-channel-contract.js
@@ -166,6 +170,7 @@ jobs:
         run: |
           node tests/check-visible-elements.js dist/index.html
           node tests/check-road-card.js dist/index.html
+          node tests/check-usage-statistics.js dist/index.html
           test -f dist/index.html
           test -f dist/native-ios.bundle.js
           grep -q 'window.__SPEEDO_NATIVE_IOS__ = true' dist/index.html

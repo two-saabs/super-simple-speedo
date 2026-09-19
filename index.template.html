@@ -1907,7 +1907,7 @@
     wakeLockNeedsGesture: false,
     roadServiceStatus: "unchecked",
     roadServiceMessage: "",
-    stats: loadJsonObject("speedoStats", { trips: 0, milliseconds: 0, metres: 0, apiBytes: 0, apiRequests: 0, apiResponses: 0, apiResponseBytes: 0 }),
+    stats: loadJsonObject("speedoStats", { trips: 0, milliseconds: 0, metres: 0, apiBytes: 0, apiRequests: 0, apiResponses: 0, apiResponseBytes: 0, maxSpeed: 0, roadsIdentified: 0 }),
     sessionNetwork: { bytes: 0, requests: 0, responses: 0, responseBytes: 0 },
     driveStartedAt: null,
     driveSessionActive: false,
@@ -2465,8 +2465,11 @@
   function updateStatsDisplay() {
     const liveMs = state.statisticsEnabled && state.driveStartedAt ? Date.now() - state.driveStartedAt : 0;
     $("statTrips").textContent = formatStat(state.stats.trips || 0);
-    $("statDistance").textContent = formatStat(state.stats.metres / 1000, 1);
+    const metres = Math.max(0, Number(state.stats.metres) || 0);
+    $("statDistance").textContent = metres < 1000 ? `${Math.round(metres)} m` : `${formatStat(metres / 1000, 1)} km`;
     $("statHours").textContent = formatStat((state.stats.milliseconds + liveMs) / 3600000, 1);
+    $("statMaxSpeed").textContent = formatStat(state.stats.maxSpeed || 0);
+    $("statRoadsIdentified").textContent = formatStat(state.stats.roadsIdentified || 0);
     $("statSessionData").textContent = formatBytes(state.stats.apiBytes || 0);
     $("statApiRequests").textContent = formatStat(state.stats.apiRequests || 0);
     const averageResponse = state.stats.apiResponses
@@ -3079,6 +3082,10 @@
       const acceptedRoad = acceptedRoadState?.road ? displayRoadName(acceptedRoadState.road) : null;
 
       if (roadOutcome === "CONFIRMED" && acceptedLimit !== null) {
+        if (state.statisticsEnabled && acceptedRoad && previousConfirmedRoad !== acceptedRoad) {
+          state.stats.roadsIdentified = (state.stats.roadsIdentified || 0) + 1;
+          saveStats();
+        }
         setLimit(acceptedLimit, "Automatic limit from:", acceptedRoad, {
           chime: previousConfirmedLimit !== null && previousConfirmedLimit !== acceptedLimit,
           previous: previousConfirmedLimit
@@ -3187,6 +3194,11 @@
     } = speedResult;
 
     state.lastAcceptedSpeed = speedResult.acceptedKmh;
+    if ((decision === "ACCEPTED" || decision === "ACCEPTED_CONFIRMED") &&
+        state.statisticsEnabled && speedResult.acceptedKmh > (state.stats.maxSpeed || 0)) {
+      state.stats.maxSpeed = Math.round(speedResult.acceptedKmh);
+      saveStats();
+    }
     state.targetSpeed = displayedKmh;
     applySpeedBrainDriverTransition(speedResult);
 
@@ -3719,7 +3731,7 @@
   });
 
   $("resetStats").addEventListener("click", () => {
-    state.stats = { trips: 0, milliseconds: 0, metres: 0, apiBytes: 0, apiRequests: 0, apiResponses: 0, apiResponseBytes: 0 };
+    state.stats = { trips: 0, milliseconds: 0, metres: 0, apiBytes: 0, apiRequests: 0, apiResponses: 0, apiResponseBytes: 0, maxSpeed: 0, roadsIdentified: 0 };
     state.sessionNetwork = { bytes: 0, requests: 0, responses: 0, responseBytes: 0 };
     state.driveStartedAt = state.statisticsEnabled && state.watchId !== null ? Date.now() : null;
     state.driveSessionActive = state.watchId !== null;
