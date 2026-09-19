@@ -6,35 +6,6 @@ function replaceRequired(source, before, after, label) {
 }
 
 function injectSupportDiagnostics(html, { appVersion, buildChannel, experimentalFeatures, speedBrainVersion }) {
-  const supportSection = `
-    <div class="settings-section" data-settings-section="help-and-diagnostics">
-      <button class="settings-section-header" type="button" aria-expanded="false">
-        <div class="settings-section-title">Help & Diagnostics</div>
-        <span class="settings-section-chevron" aria-hidden="true">›</span>
-      </button>
-      <div class="settings-section-body">
-        <div class="setting">
-          <div class="setting-title">Share diagnostic log</div>
-          <div class="setting-note" style="margin-top:8px;line-height:1.5;">
-            Creates a small support report on your device. It leaves out coordinates, road names, stations, public-transport lines and destinations, API keys, and persistent identifiers.
-          </div>
-          <div class="setting-note" style="margin-top:10px;line-height:1.5;">
-            Nothing is uploaded automatically. You choose whether and how to share it.
-          </div>
-          <button class="wide-button secondary" id="shareSupportDiagnostics" style="margin-top:14px;">Share diagnostic log</button>
-          <div class="diagnostics-format-note" id="supportDiagnosticsStatus">Recent technical events only · local to this device</div>
-        </div>
-      </div>
-    </div>
-`;
-
-  html = replaceRequired(
-    html,
-    '    <div class="settings-section" data-settings-section="advanced-and-experimental-features">',
-    `${supportSection}    <div class="settings-section" data-settings-section="advanced-and-experimental-features">`,
-    'Help & Diagnostics settings insertion'
-  );
-
   const supportCode = `
   const SUPPORT_REPORT_MAX_EVENTS = 150;
 

@@ -39,6 +39,12 @@ canonicalSpeedBrainDiagnostics
   ? pass('support diagnostics source the Speed Brain header from the canonical version')
   : fail('support diagnostics source the Speed Brain header from the canonical version');
 
+// The free promise ships in Onboarding; Settings no longer contains discarded
+// pre-transform About copy. Built branding gates also assert this exact output.
+/>Completely free</.test(read(path.join(root, 'build/positive-onboarding.js')))
+  ? pass('shipped Onboarding retains the free promise')
+  : fail('shipped Onboarding retains the free promise');
+
 const contracts = [
   ['live speed callback delegates to Speed Brain', /speedBrain\.process\(/],
   ['live speed session uses frozen application profile', /window\.FrenanoSpeedBrain\.createSpeedBrain\(\{ profile: "frenano-app-v1" \}\)/],
@@ -84,7 +90,6 @@ const contracts = [
   ['clear-log control remains wired', /clearDiagnostics[^\n]*addEventListener/],
   ['privacy section remains present', /\bPrivacy\b/i],
   ['about section remains present', /\bAbout\b/i],
-  ['free promise remains present', /(?:free\s+forever|always\s+free)/i],
   ['no-ads promise remains present', /no\s+ads/i],
   ['no-account promise remains present', /no\s+account/i],
   ['driver responsibility wording remains present', /responsibility\s+of\s+the\s+driver/i]

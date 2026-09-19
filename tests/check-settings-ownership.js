@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+'use strict';
+const assert=require('node:assert/strict');const fs=require('node:fs');const {JSDOM}=require('jsdom');
+const template=fs.readFileSync('index.template.html','utf8');
+const build=fs.readFileSync('build.js','utf8'),startup=fs.readFileSync('build/startup-simple.js','utf8'),support=fs.readFileSync('build/support-diagnostics.js','utf8');
+assert.ok(!fs.existsSync('build/settings-redesign.js'),'Settings redesign module is retired');
+assert.doesNotMatch(build,/applySettingsRedesign|settings-redesign/,'builder retires the redesign transform');
+const d=new JSDOM(template).window.document;
+const modal=d.getElementById('settingsModal');
+for(const id of ['locationPermissionSetting','locationPermissionAction','locationPermissionHelp','shareSupportDiagnostics','supportDiagnosticsStatus','statMaxSpeed','statRoadsIdentified','unitKmhButton','unitMphButton'])assert.ok(modal.querySelector('#'+id),id+' is native markup');
+assert.equal(modal.querySelector('.settings-top-close').getAttribute('aria-label'),'Close settings');
+assert.ok(modal.querySelector('.settings-footer .version'),'footer is native markup');
+assert.equal(modal.querySelector('[data-settings-section="display"] .settings-section-title').textContent,'Appearance & Display');
+const runtime=d.getElementById('settings-redesign-v2-script').textContent;
+assert.doesNotMatch(runtime,/createElement|innerHTML|installLocationSetting|decorateSettings|simplifyHelpCopy/,'Settings runtime only wires native markup');
+assert.doesNotMatch(startup,/installSettingsClose|settings-top-close|#settingsModal/,'Startup no longer owns Settings Close');
+assert.doesNotMatch(support,/supportSection|data-settings-section|<button/,'diagnostic injection no longer owns Settings markup');
+assert.ok(runtime.includes('const APP_VERSION = "__APP_VERSION__";'),'existing version placeholder is the only Settings build-data boundary');
+console.log('PASS Settings native ownership: static controls, content, CSS/runtime owner and existing version boundary');

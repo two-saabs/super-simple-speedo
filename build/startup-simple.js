@@ -99,9 +99,6 @@ function applySimpleStartup(html) {
   #launchSatelliteTrack,#launchChecklist,#launchDisclaimer,#launchStatus,#launchProgress { display:none !important; }
   @keyframes frenanoReveal { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
 
-  #settingsModal .sheet { position:relative; }
-  #settingsModal h2 { padding-right:86px; }
-  #settingsModal .settings-top-close { position:absolute; top:18px; right:18px; z-index:4; min-width:66px; min-height:38px; padding:0 14px; border:1px solid var(--soft-border); border-radius:12px; background:var(--soft); color:var(--fg); font-size:13px; font-weight:780; cursor:pointer; }
 
   @media (max-height:760px) {
     .frenano-location-intro.first-run .location-intro-core { padding-top:max(46px,calc(env(safe-area-inset-top) + 34px)); }
@@ -144,18 +141,6 @@ function applySimpleStartup(html) {
     window.clearTimeout(exitTimer);
     exitTimer = window.setTimeout(hideLaunch, 360);
   }
-  function installSettingsClose() {
-    const modal = document.getElementById('settingsModal');
-    const sheet = modal?.querySelector('.sheet');
-    if (!modal || !sheet || sheet.querySelector('.settings-top-close')) return;
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'settings-top-close';
-    button.textContent = 'Close';
-    button.setAttribute('aria-label','Close settings');
-    button.addEventListener('click', () => document.getElementById('closeSettings')?.click());
-    sheet.prepend(button);
-  }
 
   window.__frenanoLocationIntroAccepted = () => {
     try { localStorage.setItem(KEY,'1'); } catch (_) {}
@@ -163,7 +148,6 @@ function applySimpleStartup(html) {
     beginExit();
   };
 
-  installSettingsClose();
 
   let seen = false;
   try { seen = localStorage.getItem(KEY) === '1'; } catch (_) {}

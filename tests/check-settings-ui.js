@@ -25,23 +25,23 @@ function forbidText(name, text) {
 // Golden Settings contract for the currently approved Frenano UI.
 // Intentional product-copy/UI changes should update this file consciously.
 requireText('Settings owner contains final card presentation', 'id="settings-polish-v2"');
-requireText('Settings redesign remains the single Settings owner', 'id="settings-redesign-v2"');
+requireText('Native Settings retains its characterised style marker', 'id="settings-redesign-v2"');
 requireText('Help and privacy section title is final', '>Help & privacy<');
 requireText('Feedback heading is canonical at source', '<div class="setting-title" style="font-size:19px;">Feedback?</div>');
 requireText('Feedback invitation is canonical at source', 'Questions, ideas or suggestions are always welcome — <a href="mailto:support@frenano.app"');
 requireText('Support email is visibly literal', '>support@frenano.app</a>');
 requireText('Support email remains a mail link', 'href="mailto:support@frenano.app"');
 requireText('Diagnostic action remains available', 'id="shareSupportDiagnostics"');
-requireText('Diagnostic privacy reassurance remains', "diagnostics.textContent='Nothing is uploaded automatically.'");
+requireText('Diagnostic privacy reassurance remains', '>Nothing is uploaded automatically.</div>');
 requireText('Privacy policy remains linked', 'https://frenano.app/privacy.html');
-requireText('Location setting remains installed', "setting.id='locationPermissionSetting'");
+requireText('Location setting is native markup', 'id="locationPermissionSetting"');
 requireText('Location title remains visible', '>Location</div>');
 requireText('Native location action remains Manage', "native?'Manage':'How to change'");
 requireText('Native denied location action remains Open Settings', "permissionStatus==='denied'?'Open Settings':'Manage'");
 requireText('Units setting remains available', '>Units</div>');
 requireText('km/h unit choice remains available', 'id="unitKmhButton"');
 requireText('mph unit choice remains available', 'id="unitMphButton"');
-requireText('Appearance and Display heading remains final', "title.textContent='Appearance & Display'");
+requireText('Appearance and Display heading remains final', '>Appearance & Display</div>');
 requireText('Settings footer remains Frenano Swiss identity', 'Frenano · Made in Switzerland');
 requireText('Native version footer remains App Store plus build version', "'Version 1.0 · Build '+APP_VERSION");
 forbidText('Obsolete Need help copy is absent', '>Need help?<');

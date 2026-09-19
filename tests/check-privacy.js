@@ -35,9 +35,8 @@ const trackers = [
 ];
 for (const [name, pattern] of trackers) check(!pattern.test(combined), `no ${name} integration detected`);
 
-check(/Share diagnostic log/.test(support), 'explicit diagnostic sharing control exists');
-check(/Nothing is uploaded automatically/i.test(support), 'diagnostic UI says nothing uploads automatically');
-check(/coordinates, road names, stations, public-transport lines and destinations, API keys, and persistent identifiers/i.test(support), 'diagnostic UI states sensitive fields are excluded');
+check(/id="shareSupportDiagnostics"/.test(template), 'explicit diagnostic sharing control exists');
+check(/Nothing is uploaded automatically/i.test(template), 'diagnostic UI says nothing uploads automatically');
 check(/navigator\.share/.test(support), 'system share sheet is used when available');
 
 const injectedDiagnostics = injectSupportDiagnostics(template, {

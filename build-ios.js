@@ -90,8 +90,8 @@ html = html.replaceAll("navigator.geolocation", "window.__SPEEDO_NATIVE_GEOLOCAT
 // switches to native permission behaviour at runtime via __SPEEDO_NATIVE_IOS__
 // and __SPEEDO_NATIVE_PERMISSIONS__, so iOS packaging must not inject a second
 // legacy location-permission block. Match semantic markers rather than source
-// whitespace because the Settings owner is emitted as one consolidated script.
-if (!html.includes("setting.id='locationPermissionSetting'") ||
+// whitespace: the Location row is native markup with native-aware event wiring.
+if (!html.includes('id="locationPermissionSetting"') ||
     !html.includes("window.__SPEEDO_NATIVE_PERMISSIONS__?.openSettings?.()")) {
   console.error("iOS build failed: canonical native-aware location settings were not found.");
   process.exit(1);

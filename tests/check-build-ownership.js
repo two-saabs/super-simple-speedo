@@ -19,12 +19,13 @@ function pass(message) { console.log(`PASS  ${message}`); }
 function fail(message) { failures.push(message); console.error(`FAIL  ${message}`); }
 function requireCondition(name, condition) { condition ? pass(name) : fail(name); }
 
-const settings = fs.readFileSync(settingsPath, 'utf8');
+const template = fs.readFileSync('index.template.html', 'utf8');
+const settings = template.match(/<script id="settings-redesign-v2-script">([\s\S]*?)<\/script>/)?.[1] || '';
+requireCondition('Settings redesign transform is retired', !fs.existsSync(settingsPath));
 const polish = fs.existsSync(polishPath) ? fs.readFileSync(polishPath, 'utf8') : '';
 const help = fs.existsSync(helpPath) ? fs.readFileSync(helpPath, 'utf8') : '';
 requireCondition('Speed Brain has one canonical algorithm owner', fs.existsSync(brainPath));
 requireCondition('Speed Brain browser runtime has a focused build owner', fs.existsSync(runtimePath));
-const template = fs.readFileSync('index.template.html', 'utf8');
 const buildSource = fs.readFileSync('build.js', 'utf8');
 requireCondition('Visible Elements transform module is retired', !fs.existsSync('build/visible-elements.js'));
 requireCondition('builder no longer imports or invokes Visible Elements transform',
@@ -60,19 +61,19 @@ requireCondition('usage statistics does not depend on copied Road Brain accepted
   !statistics.includes('state.acceptedAutoRoad = displayRoadName(roadDecision.accepted.road)'));
 requireCondition('usage statistics observes confirmed Road Brain decisions',
   statistics.includes('roadOutcome === "CONFIRMED"') && statistics.includes('previousConfirmedRoad !== acceptedRoad'));
-requireCondition('Settings redesign does not own statistics state', !settings.includes('maxSpeed: 0, roadsIdentified: 0'));
-requireCondition('Settings redesign does not record maximum speed', !settings.includes('candidateKmh > (state.stats.maxSpeed || 0)'));
-requireCondition('Settings redesign does not count identified roads', !settings.includes('state.stats.roadsIdentified = (state.stats.roadsIdentified || 0) + 1'));
+requireCondition('Settings runtime does not own statistics state', !settings.includes('maxSpeed: 0, roadsIdentified: 0'));
+requireCondition('Settings runtime does not record maximum speed', !settings.includes('candidateKmh > (state.stats.maxSpeed || 0)'));
+requireCondition('Settings runtime does not count identified roads', !settings.includes('state.stats.roadsIdentified = (state.stats.roadsIdentified || 0) + 1'));
 
 requireCondition('Speed Display Units transform module is retired', !fs.existsSync(speedDisplayPath));
 requireCondition('builder no longer imports or invokes Speed Display Units transform',
   !/applySpeedDisplayUnits|speed-display-units/.test(buildSource));
-requireCondition('Settings redesign does not convert displayed speed', !settings.includes('shown * 0.621371'));
-requireCondition('Settings redesign does not convert displayed speed limits', !settings.includes('nextLimit * 0.621371'));
-requireCondition('Settings redesign does not own dial maximum conversion', !settings.includes('const base = mphMode ? 160.9344 : 160'));
-requireCondition('Settings redesign does not own dial tick conversion', !settings.includes('const tickStep = mphMode ? 16.09344 : 10'));
-requireCondition('Settings redesign does not own speed unit preference', !settings.includes("const unitKey = 'speedUnits'"));
-requireCondition('Settings redesign does not install unit controls', !settings.includes('function installUnitsSetting'));
+requireCondition('Settings runtime does not convert displayed speed', !settings.includes('shown * 0.621371'));
+requireCondition('Settings runtime does not convert displayed speed limits', !settings.includes('nextLimit * 0.621371'));
+requireCondition('Settings runtime does not own dial maximum conversion', !settings.includes('const base = mphMode ? 160.9344 : 160'));
+requireCondition('Settings runtime does not own dial tick conversion', !settings.includes('const tickStep = mphMode ? 16.09344 : 10'));
+requireCondition('Settings runtime does not own speed unit preference', !settings.includes("const unitKey = 'speedUnits'"));
+requireCondition('Settings runtime does not install unit controls', !settings.includes('function installUnitsSetting'));
 const speedDisplay = template;
 const nativeMarkup = template.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '');
 requireCondition('Speed display owner owns speed unit preference', speedDisplay.includes("const unitKey = 'speedUnits'"));
@@ -82,7 +83,7 @@ requireCondition('Units runtime no longer dynamically installs the setting',
   !/installUnitsSetting|body\.insertBefore\(units/.test(speedDisplay));
 
 for (const algorithmSymbol of ['processSpeedSample', 'haversineMetres', 'MOVEMENT_CONTRADICTION', 'AWAITING_CONFIRMATION']) {
-  requireCondition(`Settings redesign does not own ${algorithmSymbol}`, !settings.includes(algorithmSymbol));
+  requireCondition(`Settings runtime does not own ${algorithmSymbol}`, !settings.includes(algorithmSymbol));
   requireCondition(`Speed display units does not own ${algorithmSymbol}`, !speedDisplay.includes(algorithmSymbol));
 }
 
@@ -155,15 +156,13 @@ if (fs.existsSync(runtimePath)) {
   requireCondition('runtime injection fails closed without an enclosing application script', missingScriptRejected);
 }
 
-// Task 4 target: all Settings presentation, location controls, help/privacy
-// presentation and footer have one owner. Focused non-Settings behavior remains
-// outside this transform.
-requireCondition('Settings redesign owns final location controls', settings.includes('function installLocationSetting'));
-requireCondition('Settings redesign owns final Settings footer', settings.includes("footer.className = 'settings-footer'"));
-requireCondition('Settings redesign owns final diagnostic help copy', settings.includes('Share a privacy-safe diagnostic log to help us understand what happened.'));
-requireCondition('Settings redesign owns Help & privacy presentation', settings.includes('Help & privacy'));
-requireCondition('Settings redesign owns feedback presentation', settings.includes('Questions, ideas or suggestions are always welcome'));
-requireCondition('Settings redesign owns privacy-policy presentation', settings.includes('Read privacy policy'));
+// Settings markup and runtime are native; algorithms retain their canonical owners.
+requireCondition('Template owns final location controls', template.includes('id="locationPermissionSetting"') && settings.includes('function wireLocationSetting'));
+requireCondition('Template owns final Settings footer', template.includes('<div class="settings-footer">'));
+requireCondition('Template owns final diagnostic help copy', template.includes('Share a privacy-safe diagnostic log to help us understand what happened.'));
+requireCondition('Template owns Help & privacy presentation', template.includes('Help & privacy'));
+requireCondition('Template owns feedback presentation', template.includes('Questions, ideas or suggestions are always welcome'));
+requireCondition('Template owns privacy-policy presentation', template.includes('Read privacy policy'));
 requireCondition('Historical Settings polish transform is retired', !fs.existsSync(polishPath));
 requireCondition('Historical help/privacy Settings transform is retired', !fs.existsSync(helpPath));
 requireCondition('Historical road freshness transform is retired', !fs.existsSync(legacyRoadFreshnessPath));
