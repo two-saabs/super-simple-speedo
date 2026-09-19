@@ -6,6 +6,7 @@ const { ROAD_BRAIN_VERSION } = require("./brains/road-brain");
 const { applyStartupRobustnessFix } = require("./build/startup-robustness-fix");
 const { applyUsageStatistics } = require("./build/usage-statistics");
 const { applySpeedDisplayUnits } = require("./build/speed-display-units");
+const { applyVisibleElements } = require("./build/visible-elements");
 const { applySettingsRedesign } = require("./build/settings-redesign");
 const { applyBrandRefresh } = require("./build/brand-refresh");
 const { applySimpleStartup } = require("./build/startup-simple");
@@ -45,6 +46,7 @@ html = injectSupportDiagnostics(html, {
 });
 html = applyUsageStatistics(html);
 html = applySpeedDisplayUnits(html);
+html = applyVisibleElements(html);
 html = applySettingsRedesign(html, { appVersion });
 html = applyBrandRefresh(html);
 html = applySimpleStartup(html);
